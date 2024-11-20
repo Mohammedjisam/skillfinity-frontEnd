@@ -1,42 +1,69 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import { GoogleLogin } from '@react-oauth/google';
-import { jwtDecode } from "jwt-decode";
-import { addUser } from '@/redux/slice/UserSlice';
-import 'react-toastify/dist/ReactToastify.css';
+import { EyeIcon, EyeOffIcon } from 'lucide-react';
 import { toast } from 'sonner';
+import { addUser } from '@/redux/slice/UserSlice';
 import axiosInstance from '@/AxiosConfig';
 
-const Login = () => {
+export default function Login() {
   const dispatch = useDispatch();
-  const userData = useSelector((store) => store.user.userDatas);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false); // State for password visibility
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
+
+  // Validation function similar to signup page
+  const validate = () => {
+    const errors = {};
+
+    if (!email?.trim()) {
+      errors.email = "Email is required";
+    } else if (/^\d/.test(email.trim())) {
+      errors.email = "Email should not start with a number";
+    } else if (
+      !/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email.trim())
+    ) {
+      errors.email = "Invalid email format";
+    }
+
+    if (!password?.trim()) {
+      errors.password = "Password is required";
+    } else if (password.length < 8) {
+      errors.password = "Password must be at least 8 characters long";
+    }
+
+    return errors;
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    try {
-      const response = await axiosInstance.post("/user/login", { email, password }, { withCredentials: true });
-      if (response.data) {
-        dispatch(addUser(response.data.userData));
-        navigate("/home");
-        return toast.success(response.data.message);
-      } else {
-        toast.error('No data received from server');
+    const errors = validate();
+
+    if (Object.keys(errors).length === 0) {
+      try {
+        const response = await axiosInstance.post("/user/login", { email, password }, { withCredentials: true });
+        if (response.data) {
+          dispatch(addUser(response.data.userData));
+          navigate("/home");
+          return toast.success(response.data.message);
+        } else {
+          toast.error('No data received from server');
+        }
+      } catch (err) {
+        const errorMessage = err.response?.data?.message || 'Login failed';
+        console.error(errorMessage);
+        toast.error(errorMessage);
       }
-    } catch (err) {
-      const errorMessage = err.response?.data?.message || 'Login failed';
-      console.error(errorMessage);
-      toast.error(errorMessage);
+    } else {
+      // Display validation errors
+      Object.values(errors).forEach(error => toast.error(error));
     }
   };
 
   const handleGoogleSuccess = async (credentialResponse) => {
     try {
-      // Send the token as 'token' in the request body, matching backend expectations
       const response = await axiosInstance.post(`/auth/google`, 
         { token: credentialResponse.credential }, 
         { withCredentials: true }
@@ -53,9 +80,7 @@ const Login = () => {
   
   const handleGoogleFailure = () => {
     toast.error("Google login was unsuccessful");
-};
-
-
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
@@ -86,7 +111,7 @@ const Login = () => {
               <label className="block text-gray-700 font-medium">Password</label>
               <div className="relative">
                 <input
-                  type={showPassword ? "text" : "password"} // Toggle type based on showPassword state
+                  type={showPassword ? "text" : "password"}
                   className="w-full border border-gray-300 p-3 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Enter your Password"
                   value={password}
@@ -95,10 +120,14 @@ const Login = () => {
                 />
                 <button
                   type="button"
-                  onClick={() => setShowPassword(!showPassword)} // Toggle showPassword state
+                  onClick={() => setShowPassword(!showPassword)}
                   className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500"
                 >
-                  {showPassword ? "Hide" : "Show"} 
+                  {showPassword ? (
+                    <EyeOffIcon className="h-4 w-4" />
+                  ) : (
+                    <EyeIcon className="h-4 w-4" />
+                  )}
                 </button>
               </div>
             </div>
@@ -108,7 +137,7 @@ const Login = () => {
                   e.preventDefault();
                   navigate('/forgot-password');
                 }}
-                className="text-blue-500 hover:underline"
+                className="text-blue-500 hover:underline cursor-pointer"
               >
                 Forgot Password?
               </a>
@@ -126,13 +155,13 @@ const Login = () => {
             />
           </form>
           <p className="mt-4 text-center">
-            Don’t have an account?{' '}
+            Don't have an account?{' '}
             <a
               onClick={(e) => {
                 e.preventDefault();
                 navigate('/signup');
               }}
-              className="text-blue-500 hover:underline"
+              className="text-blue-500 hover:underline cursor-pointer"
             >
               Sign Up
             </a>
@@ -141,6 +170,4 @@ const Login = () => {
       </div>
     </div>
   );
-};
-
-export default Login;
+}

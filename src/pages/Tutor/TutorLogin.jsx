@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { GoogleLogin } from "@react-oauth/google";
-import { jwtDecode } from "jwt-decode";
+import { EyeIcon, EyeOffIcon } from 'lucide-react';
 import { addTutor } from "@/redux/slice/TutorSlice";
 import { toast } from "sonner";
 import axiosInstance from "@/AxiosConfig";
@@ -12,34 +12,61 @@ const TutorLogin = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-
   const navigate = useNavigate();
+
+  const validate = () => {
+    const errors = {};
+
+    if (!email?.trim()) {
+      errors.email = "Email is required";
+    } else if (/^\d/.test(email.trim())) {
+      errors.email = "Email should not start with a number";
+    } else if (
+      !/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email.trim())
+    ) {
+      errors.email = "Invalid email format";
+    }
+
+    if (!password?.trim()) {
+      errors.password = "Password is required";
+    } else if (password.length < 8) {
+      errors.password = "Password must be at least 8 characters long";
+    }
+
+    return errors;
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    try {
-      const response = await axiosInstance.post(
-        "/tutor/login",
-        { email, password },
-        { withCredentials: true }
-      );
-      if (response.data) {
-        dispatch(addTutor(response.data.userData));
-        navigate("/tutor/dashboard");
-        return toast.success(response.data.message);
-      } else {
-        toast.error("No data received from server");
+    const errors = validate();
+
+    if (Object.keys(errors).length === 0) {
+      try {
+        const response = await axiosInstance.post(
+          "/tutor/login",
+          { email, password },
+          { withCredentials: true }
+        );
+        if (response.data) {
+          dispatch(addTutor(response.data.userData));
+          navigate("/tutor/dashboard");
+          return toast.success(response.data.message);
+        } else {
+          toast.error("No data received from server");
+        }
+      } catch (err) {
+        const errorMessage = err.response?.data?.message || "Login failed";
+        console.error(errorMessage);
+        toast.error(errorMessage);
       }
-    } catch (err) {
-      const errorMessage = err.response?.data?.message || "Login failed";
-      console.error(errorMessage);
-      toast.error(errorMessage);
+    } else {
+      // Display validation errors
+      Object.values(errors).forEach(error => toast.error(error));
     }
   };
 
   const handleGoogleSuccess = async (credentialResponse) => {
     try {
-      // Send the token as 'token' in the request body, matching backend expectations
       const response = await axiosInstance.post(
         `/auth/google`,
         { token: credentialResponse.credential },
@@ -104,7 +131,11 @@ const TutorLogin = () => {
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500"
                 >
-                  {showPassword ? "Hide" : "Show"}
+                  {showPassword ? (
+                    <EyeOffIcon className="h-4 w-4" />
+                  ) : (
+                    <EyeIcon className="h-4 w-4" />
+                  )}
                 </button>
               </div>
             </div>

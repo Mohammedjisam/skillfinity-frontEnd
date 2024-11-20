@@ -15,17 +15,48 @@ export default function AddCategory() {
     title: '',
     description: ''
   })
+  const [errors, setErrors] = useState({
+    title: '',
+    description: ''
+  })
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
+  const validateInput = (name, value) => {
+    const regex = /^[a-zA-Z\s]*$/
+    if (!regex.test(value)) {
+      setErrors(prev => ({
+        ...prev,
+        [name]: 'Only letters and spaces are allowed'
+      }))
+      return false
+    }
+    setErrors(prev => ({
+      ...prev,
+      [name]: ''
+    }))
+    return true
+  }
+
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    })
+    const { name, value } = e.target
+    if (validateInput(name, value)) {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }))
+    }
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    if (errors.title || errors.description) {
+      toast.error('Please correct the errors before submitting')
+      return
+    }
+    if (!formData.title.trim() || !formData.description.trim()) {
+      toast.error('Title and description are required')
+      return
+    }
     try {
       const response = await axiosInstance.post(
         '/admin/addcategory',
@@ -68,7 +99,7 @@ export default function AddCategory() {
               className="text-gray-600 lg:hidden" 
               aria-label="Toggle sidebar"
             >
-              {/* {sidebarOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />} */}
+              {sidebarOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </button>
           </div>
           <div className="bg-white shadow-md rounded-lg p-6">
@@ -78,15 +109,18 @@ export default function AddCategory() {
                   Category Title
                 </label>
                 <input
-                 type="text"
-                 id="title"
-                 name="title"
-                 required
-                 maxLength={20} 
-                 value={formData.title}
-                 onChange={handleChange}
-                 className="w-full p-2 border rounded-md bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
-               />
+                  type="text"
+                  id="title"
+                  name="title"
+                  required
+                  maxLength={20} 
+                  value={formData.title}
+                  onChange={handleChange}
+                  className={`w-full p-2 border rounded-md bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                    errors.title ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                />
+                {errors.title && <p className="mt-1 text-sm text-red-500">{errors.title}</p>}
               </div>
 
               <div>
@@ -100,8 +134,11 @@ export default function AddCategory() {
                   required
                   value={formData.description}
                   onChange={handleChange}
-                  className="w-full p-2 border rounded-md bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className={`w-full p-2 border rounded-md bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                    errors.description ? 'border-red-500' : 'border-gray-300'
+                  }`}
                 />
+                {errors.description && <p className="mt-1 text-sm text-red-500">{errors.description}</p>}
               </div>
 
               <div>
