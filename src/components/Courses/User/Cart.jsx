@@ -56,8 +56,8 @@ const Cart = () => {
   };
 
   const handleBuyNow = (courseId) => {
-    navigate(`/coursebuy/${courseId}`);
-  };
+    navigate(`/buycourse/${courseId}`);
+  };
 
   if (loading) {
     return (

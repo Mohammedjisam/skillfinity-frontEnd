@@ -1,3 +1,5 @@
+'use client'
+
 import { useState, useEffect } from 'react'
 import { useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
@@ -41,6 +43,7 @@ export default function AddCourse() {
     difficulty: '',
     courseStructure: ['', '', '']
   })
+  const [errors, setErrors] = useState({})
   const [thumbnailPreview, setThumbnailPreview] = useState(null)
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
@@ -72,26 +75,66 @@ export default function AddCourse() {
     }
   }
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    
-    if (name === "coursetitle") {
-      if (value.length > 22) {
-        toast.error("Course title cannot exceed 22 characters");
-        return;
-      }
+  const validateField = (name, value) => {
+    let error = ''
+    switch (name) {
+      case 'coursetitle':
+        if (value.length > 22) {
+          error = 'Course title cannot exceed 22 characters'
+        } else if (value.trim() === '') {
+          error = 'Course title is required'
+        } else if (!/^[a-zA-Z\s]*$/.test(value)) {
+          error = 'Course title can only contain letters and spaces'
+        }
+        break
+      case 'category':
+        if (!value) error = 'Category is required'
+        break
+      case 'difficulty':
+        if (!value) error = 'Difficulty level is required'
+        break
+      case 'price':
+        if (!value) {
+          error = 'Price is required'
+        } else if (isNaN(value) || Number(value) < 0) {
+          error = 'Price must be a positive number'
+        }
+        break
+      case 'features':
+        if (value.trim() === '') {
+          error = 'Features are required'
+        } else if (!/^[a-zA-Z\s]*$/.test(value)) {
+          error = 'Features can only contain letters and spaces'
+        }
+        break
+      default:
+        break
     }
-  
+    return error
+  }
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target
+    let sanitizedValue = value
+    if (name === 'coursetitle' || name === 'features') {
+      sanitizedValue = value.replace(/[^a-zA-Z\s]/g, '')
+    }
+    const error = validateField(name, sanitizedValue)
     setCourseData(prevData => ({
       ...prevData,
-      [name]: value
-    }));
+      [name]: sanitizedValue
+    }))
+    setErrors(prevErrors => ({
+      ...prevErrors,
+      [name]: error
+    }))
   }
 
   const handleStructureChange = (index, value) => {
+    const sanitizedValue = value.replace(/[^a-zA-Z\s]/g, '')
     setCourseData(prevData => ({
       ...prevData,
-      courseStructure: prevData.courseStructure.map((item, i) => i === index ? value : item)
+      courseStructure: prevData.courseStructure.map((item, i) => i === index ? sanitizedValue : item)
     }))
   }
 
@@ -157,8 +200,34 @@ export default function AddCourse() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     
-    if (!courseData.category || !courseData.difficulty) {
-      toast.error('Please select both category and difficulty level')
+    // Validate all fields
+    const newErrors = {}
+    Object.keys(courseData).forEach(key => {
+      if (key !== 'thumbnail' && key !== 'tutor') {
+        if (key === 'courseStructure') {
+          newErrors[key] = courseData[key].map(item => {
+            if (!/^[a-zA-Z\s]*$/.test(item)) {
+              return 'Section can only contain letters and spaces'
+            }
+            return ''
+          })
+        } else {
+          const error = validateField(key, courseData[key])
+          if (error) newErrors[key] = error
+        }
+      }
+    })
+
+    if (Object.keys(newErrors).some(key => 
+      Array.isArray(newErrors[key]) ? newErrors[key].some(e => e !== '') : newErrors[key]
+    )) {
+      setErrors(newErrors)
+      toast.error('Please correct the errors before submitting')
+      return
+    }
+
+    if (!courseData.thumbnail) {
+      toast.error('Please upload a thumbnail image')
       return
     }
 
@@ -232,7 +301,10 @@ export default function AddCourse() {
                       required
                       maxLength={22}
                       className="w-full bg-rose-50 border-none"
+                      pattern="[a-zA-Z\s]*"
+                      title="Only letters and spaces are allowed"
                     />
+                    {errors.coursetitle && <p className="text-red-500 text-sm mt-1">{errors.coursetitle}</p>}
                   </div>
 
                   <div>
@@ -241,7 +313,10 @@ export default function AddCourse() {
                     </label>
                     <Select
                       value={courseData.category}
-                      onValueChange={(value) => setCourseData(prev => ({ ...prev, category: value }))}
+                      onValueChange={(value) => {
+                        setCourseData(prev => ({ ...prev, category: value }))
+                        setErrors(prev => ({ ...prev, category: '' }))
+                      }}
                     >
                       <SelectTrigger className="w-full bg-rose-50 border-none">
                         <SelectValue placeholder="Select a category" />
@@ -254,6 +329,7 @@ export default function AddCourse() {
                         ))}
                       </SelectContent>
                     </Select>
+                    {errors.category && <p className="text-red-500 text-sm mt-1">{errors.category}</p>}
                   </div>
 
                   <div>
@@ -262,7 +338,10 @@ export default function AddCourse() {
                     </label>
                     <Select
                       value={courseData.difficulty}
-                      onValueChange={(value) => setCourseData(prev => ({ ...prev, difficulty: value }))}
+                      onValueChange={(value) => {
+                        setCourseData(prev => ({ ...prev, difficulty: value }))
+                        setErrors(prev => ({ ...prev, difficulty: '' }))
+                      }}
                     >
                       <SelectTrigger className="w-full bg-rose-50 border-none">
                         <SelectValue placeholder="Select difficulty level" />
@@ -275,6 +354,7 @@ export default function AddCourse() {
                         ))}
                       </SelectContent>
                     </Select>
+                    {errors.difficulty && <p className="text-red-500 text-sm mt-1">{errors.difficulty}</p>}
                   </div>
 
                   <div>
@@ -289,6 +369,7 @@ export default function AddCourse() {
                       required
                       className="w-full bg-rose-50 border-none"
                     />
+                    {errors.price && <p className="text-red-500 text-sm mt-1">{errors.price}</p>}
                   </div>
 
                   <div>
@@ -301,7 +382,10 @@ export default function AddCourse() {
                       onChange={handleInputChange}
                       required
                       className="w-full min-h-[150px] bg-rose-50 border-none"
+                      pattern="[a-zA-Z\s]*"
+                      title="Only letters and spaces are allowed"
                     />
+                    {errors.features && <p className="text-red-500 text-sm mt-1">{errors.features}</p>}
                   </div>
                 </div>
 
@@ -349,13 +433,18 @@ export default function AddCourse() {
                     <div className="bg-rose-50 rounded-lg p-4">
                       <div className="space-y-2">
                         {courseData.courseStructure.map((item, index) => (
-                          <Input
-                            key={index}
-                            value={item}
-                            onChange={(e) => handleStructureChange(index, e.target.value)}
-                            placeholder={`Section ${index + 1}`}
-                            className="w-full bg-white border-none"
-                          />
+                          <>
+                            <Input
+                              key={index}
+                              value={item}
+                              onChange={(e) => handleStructureChange(index, e.target.value)}
+                              placeholder={`Section ${index + 1}`}
+                              className="w-full bg-white border-none"
+                            />
+                            {errors.courseStructure && errors.courseStructure[index] && (
+                              <p className="text-red-500 text-sm mt-1">{errors.courseStructure[index]}</p>
+                            )}
+                          </>
                         ))}
                         <Button
                           type="button"

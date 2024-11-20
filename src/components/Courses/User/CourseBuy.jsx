@@ -9,8 +9,7 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { MonitorPlay, Clock, User, BookOpen, CheckCircle } from "lucide-react";
+import { MonitorPlay, User,  CheckCircle } from "lucide-react";
 import RazorPay from "./RazorPay";
 import { toast } from "sonner";
 import axiosInstance from "@/AxiosConfig";
@@ -80,7 +79,7 @@ function CourseBuy() {
       await axiosInstance.post("/user/data/purchase", { userId, courseIds });
 
       toast.success("Course(s) purchased successfully!");
-      navigate("/home");
+      navigate("/purchasedcourses");
     } catch (error) {
       console.error("Error recording purchase:", error);
       toast.error(
@@ -152,34 +151,10 @@ function CourseBuy() {
                         <MonitorPlay className="w-4 h-4" />
                         {course.lessons?.length || 0} Lessons
                       </Badge>
-                      <Badge
-                        variant="secondary"
-                        className="flex items-center gap-2 bg-yellow-100 text-yellow-800 px-3 py-1"
-                      >
-                        <Clock className="w-4 h-4" />
-                        {course.lessons
-                          ? course.lessons.reduce(
-                              (total, lesson) => total + (lesson.duration || 0),
-                              0
-                            )
-                          : "Not specified"}{" "}
-                        minutes
-                      </Badge>
-                      <Badge
-                        variant="secondary"
-                        className="flex items-center gap-2 bg-purple-100 text-purple-800 px-3 py-1"
-                      >
-                        <BookOpen className="w-4 h-4" />
-                        {course.difficulty || "Not specified"}
-                      </Badge>
                     </div>
                     <div className="text-4xl font-bold text-gray-900">
                       ₹{course.price}
                     </div>
-                    <p className="text-gray-600">
-                      {course.features || "No features specified"}
-                    </p>
-                    <Separator className="my-4" />
                     <div className="space-y-2">
                       {[
                         "24/7 support",

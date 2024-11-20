@@ -81,7 +81,7 @@ const SideBar = ({ isOpen, onClose, activeItem = 'Profile' }) => {
     { name: 'Dashboard', icon: LayoutDashboard, path: '/tutor/dashboard' },
     { name: 'Profile', icon: UserCircle, path: '/tutor/profile' },
     { name: 'Courses', icon: BookOpen, path: '/tutor/mycourse' },
-    { name: 'Revenue', icon: DollarSign, path: '/tutor/revenue' },
+    { name: 'Revenue', icon: DollarSign, path: '/tutor/dashboard' },
     { name: 'Chat & Video', icon: MessageSquare, path: '/tutor/chat' },
   ]
 

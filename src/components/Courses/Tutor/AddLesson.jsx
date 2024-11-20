@@ -1,3 +1,5 @@
+'use client'
+
 import { useState, useEffect } from 'react'
 import { useSelector } from 'react-redux'
 import { useNavigate, useParams } from 'react-router-dom'
@@ -40,6 +42,7 @@ export default function AddLesson() {
     tutor: tutor._id,
     course: courseId,
   })
+  const [errors, setErrors] = useState({})
   const [videoFile, setVideoFile] = useState(null)
   const [pdfFile, setPdfFile] = useState(null)
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
@@ -49,15 +52,50 @@ export default function AddLesson() {
   const [videoPreview, setVideoPreview] = useState(null)
   const [addedLessons, setAddedLessons] = useState([])
 
+  const validateField = (name, value) => {
+    let error = ''
+    switch (name) {
+      case 'title':
+        if (value.trim() === '') {
+          error = 'Lesson title is required'
+        } else if (value.length > 20) {
+          error = 'Lesson title cannot exceed 20 characters'
+        } else if (!/^[a-zA-Z\s]*$/.test(value)) {
+          error = 'Lesson title can only contain letters and spaces'
+        }
+        break
+      case 'description':
+        if (value.trim() === '') {
+          error = 'Lesson description is required'
+        }
+        break
+      case 'duration':
+        if (value === '') {
+          error = 'Lesson duration is required'
+        } else if (isNaN(value) || Number(value) <= 0) {
+          error = 'Duration must be a positive number'
+        }
+        break
+      default:
+        break
+    }
+    return error
+  }
+
   const handleInputChange = (e) => {
     const { name, value } = e.target
-    if (name === 'title' && value.length > 20) {
-      toast.error('Lesson title cannot exceed 20 characters')
-      return
+    let sanitizedValue = value
+    if (name === 'title') {
+      sanitizedValue = value.replace(/[^a-zA-Z\s]/g, '').slice(0, 20)
     }
+    const error = validateField(name, sanitizedValue)
     setLessonData((prevData) => ({
       ...prevData,
-      [name]: value,
+      [name]: sanitizedValue,
+    }))
+    setErrors((prevErrors) => ({
+      ...prevErrors,
+      [name]: error,
     }))
   }
 
@@ -112,6 +150,27 @@ export default function AddLesson() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+
+    // Validate all fields
+    const newErrors = {}
+    Object.keys(lessonData).forEach((key) => {
+      if (key !== 'videoUrl' && key !== 'pdfUrl' && key !== 'tutor' && key !== 'course') {
+        const error = validateField(key, lessonData[key])
+        if (error) newErrors[key] = error
+      }
+    })
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors)
+      toast.error('Please correct the errors before submitting')
+      return
+    }
+
+    if (!videoFile) {
+      toast.error('Please upload a video file')
+      return
+    }
+
     setIsUploading(true)
 
     try {
@@ -156,6 +215,7 @@ export default function AddLesson() {
       setVideoFile(null)
       setPdfFile(null)
       setVideoPreview(null)
+      setErrors({})
     } catch (error) {
       console.error('Error adding lesson:', error)
       toast.error('Failed to add lesson')
@@ -210,6 +270,7 @@ export default function AddLesson() {
                       maxLength={20}
                       className="w-full bg-rose-50 border-none"
                     />
+                    {errors.title && <p className="text-red-500 text-sm mt-1">{errors.title}</p>}
                   </div>
 
                   <div>
@@ -223,6 +284,7 @@ export default function AddLesson() {
                       required
                       className="w-full min-h-[150px] bg-rose-50 border-none"
                     />
+                    {errors.description && <p className="text-red-500 text-sm mt-1">{errors.description}</p>}
                   </div>
 
                   <div>
@@ -238,6 +300,7 @@ export default function AddLesson() {
                       min="1"
                       className="w-full bg-rose-50 border-none"
                     />
+                    {errors.duration && <p className="text-red-500 text-sm mt-1">{errors.duration}</p>}
                   </div>
                 </div>
 
@@ -325,7 +388,7 @@ export default function AddLesson() {
           </Card>
 
           {addedLessons.length > 0 && (
-            <Card className="max-w-[1200px] mx-auto mt-8 bg-white p-8 rounded-lg shadow-sm">
+            <Card className="max-w-[1200px] mx-auto mt-8 bg-white p-8 rounded-lg shadow-sm border-dashed ">
               <h2 className="text-xl font-semibold mb-4">Added Lessons</h2>
               <ul className="space-y-2">
                 {addedLessons.map((lesson, index) => (

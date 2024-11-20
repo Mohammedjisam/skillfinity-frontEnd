@@ -5,20 +5,21 @@ import { useSelector } from "react-redux";
 import axiosInstance from "@/AxiosConfig";
 import { extractTime } from "@/lib/extractTimeForChat";
 
-export default function ChatContainer({ currentChat, socket }) {
-  const tutorData = useSelector((store) => store.tutor.tutorDatas);
+export default function UserChatContainer({ currentChat, socket }) {
+  const userData = useSelector((store) => store.user.userDatas);
 
   const [messages, setMessages] = useState([]);
   const scrollRef = useRef();
   const [arrivalMessage, setArrivalMessage] = useState(null);
 
   console.log("current chat ithaaaaaaaaa===>", currentChat);
+  console.log("userdata chat ithaaaaaaaaa===>", userData);
 
   useEffect(() => {
     const fetchMessages = async () => {
       const response = await axiosInstance.get("/message", {
         params: {
-          from: tutorData._id,
+          from: userData._id,
           to: currentChat.id,
         },
       });
@@ -26,7 +27,7 @@ export default function ChatContainer({ currentChat, socket }) {
     };
 
     if (currentChat) fetchMessages();
-  }, [currentChat, tutorData]);
+  }, [currentChat, userData]);
 
   useEffect(() => {
     const getCurrentChat = async () => {
@@ -43,13 +44,13 @@ export default function ChatContainer({ currentChat, socket }) {
     async (msg) => {
       socket.current.emit("send-msg", {
         to: currentChat.id,
-        from: tutorData._id,
+        from: userData._id,
         msg,
       });
 
       try {
         await axiosInstance.post("/message/send", {
-          from: tutorData._id,
+          from: userData._id,
           to: currentChat.id,
           message: msg,
         });
@@ -64,7 +65,7 @@ export default function ChatContainer({ currentChat, socket }) {
         console.error("Error sending message:", error);
       }
     },
-    [currentChat.id, tutorData._id, socket]
+    [currentChat?.id, userData._id, socket]
   );
 
   useEffect(() => {
@@ -76,9 +77,9 @@ export default function ChatContainer({ currentChat, socket }) {
       });
     };
 
-   
+    if (socket.current) {
       socket.current.on("msg-recieve", handleMsgReceive);
-    
+    }
 
     return () => {
       if (socket.current) {
@@ -94,19 +95,20 @@ export default function ChatContainer({ currentChat, socket }) {
   }, [arrivalMessage]);
 
   useEffect(() => {
-   
     console.log("mesg set aayiiii===>", messages);
   }, [messages]);
 
+
+
   return (
-    <div className="flex flex-col h-full w-full">
+    <div className="flex flex-col h-full">
       <div className="chat-header bg-white border-b border-gray-200 p-4">
         <div className="user-details flex items-center">
           <div className="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center text-xl font-semibold text-gray-600 mr-3">
-            {currentChat.name.charAt(0).toUpperCase()}
+            {currentChat?.name.charAt(0).toUpperCase()}
           </div>
           <div className="username">
-            <h3 className="text-lg font-semibold">{currentChat.name}</h3>
+            <h3 className="text-lg font-semibold">{currentChat?.name}</h3>
           </div>
         </div>
       </div>
@@ -118,7 +120,7 @@ export default function ChatContainer({ currentChat, socket }) {
           >
             <div
               className={`message flex ${
-                message.fromSelf || message.senderId === tutorData._id
+                message.fromSelf || message.senderId === userData._id
                   ? "justify-end"
                   : "justify-start"
               }`}
@@ -139,7 +141,7 @@ export default function ChatContainer({ currentChat, socket }) {
           </div>
         ))}
       </div>
-      <div className="mt-auto w-full">
+      <div className="mt-auto">
         <ChatInput handleSendMsg={handleSendMsg} />
       </div>
     </div>
