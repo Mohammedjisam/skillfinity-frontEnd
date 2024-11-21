@@ -1,4 +1,3 @@
-'use client'
 
 import { useState, useEffect } from 'react'
 import { useSelector } from 'react-redux'
@@ -199,8 +198,6 @@ export default function AddCourse() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    
-    // Validate all fields
     const newErrors = {}
     Object.keys(courseData).forEach(key => {
       if (key !== 'thumbnail' && key !== 'tutor') {

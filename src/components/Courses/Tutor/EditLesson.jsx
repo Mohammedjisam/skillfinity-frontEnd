@@ -3,8 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Save, ArrowLeft, Upload, Menu } from 'lucide-react';
 import axiosInstance from '../../../AxiosConfig';
 import SideBar from '../../../pages/Tutor/SideBar';
-import { toast } from 'sonner'; // Import toast
-import { useSelector } from 'react-redux'; // Import useSelector
+import { toast } from 'sonner'; 
+import { useSelector } from 'react-redux'; 
 
 export default function EditLesson() {
   const [lessonData, setLessonData] = useState(null);
@@ -19,14 +19,13 @@ export default function EditLesson() {
   useEffect(() => {
     const fetchLessonData = async () => {
       try {
-        // Make API call to get lesson data
         const response = await axiosInstance.get(`/tutor/course/editlesson`,{params:{
           lessonId,
           tutorId:tutorDatas._id,
         }});
         
         if (response.data && response.data.lesson) {
-          setLessonData(response.data.lesson); // Update state with fetched data
+          setLessonData(response.data.lesson);
         }
       } catch (error) {
         console.error('Error fetching lesson data:', error);
@@ -35,9 +34,9 @@ export default function EditLesson() {
     };
   
     if (lessonId) {
-      fetchLessonData(); // Fetch data when lessonId changes
+      fetchLessonData();
     }
-  }, [lessonId]); // Re-fetch when lessonId changes
+  }, [lessonId]);
   
 
   const handleInputChange = (field, value) => {
@@ -79,7 +78,7 @@ export default function EditLesson() {
       return data.secure_url;
     } catch (error) {
       console.error(`Error uploading ${resourceType} to Cloudinary:`, error);
-      toast.error(`Failed to upload ${resourceType} file`); // Error toast for file upload
+      toast.error(`Failed to upload ${resourceType} file`);
       throw error;
     }
   };
@@ -113,11 +112,11 @@ export default function EditLesson() {
         ...dataToSend
       });
       console.log('Lesson updated:', response.data);
-      toast.success('Lesson updated successfully'); // Success toast for lesson update
+      toast.success('Lesson updated successfully');
       navigate(`/tutor/editcourse/${lessonData.course}`);
     } catch (error) {
       console.error('Error updating lesson:', error);
-      toast.error('Failed to update lesson'); // Error toast for lesson update
+      toast.error('Failed to update lesson');
     }
   };
 

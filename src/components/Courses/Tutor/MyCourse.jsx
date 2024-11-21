@@ -57,9 +57,7 @@ const MyCourses = () => {
             courseId,
           }})
           toast.success('Course deleted successfully')
-          // Update the course list after deletion
           setCourses((prevCourses) => prevCourses.filter(course => course._id !== courseId))
-          // If the current page becomes empty after deletion, go to the previous page
           if (courses.length === 1 && currentPage > 1) {
             setCurrentPage(prev => prev - 1)
           } else {

@@ -27,7 +27,7 @@ export default function ViewAllTutors() {
   }, []);
 
   const handleBackClick = () => {
-    navigate(-1); // Navigate back to the previous page
+    navigate(-1);
   };
 
   return (

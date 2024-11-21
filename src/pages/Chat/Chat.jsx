@@ -51,14 +51,23 @@ export default function Chat() {
   }, []);
 
   useEffect(() => {
-    if (currentUser) {
-      socket.current = io(host);
+  if (currentUser) {
+    socket.current = io(host);
 
+    socket.current.on("connect", () => {
+      console.log("Connected to server. Socket ID:", socket.current.id);
+
+      // Emit user ID after connection
       socket.current.emit("add-user", currentUser._id);
+    });
 
-      
-    }
-  }, [currentUser]);
+    socket.current.on("connect_error", (err) => {
+      console.error("Error during socket connection:", err);
+    });
+  }
+}, [currentUser]);
+
+  
 
   useEffect(() => {
     getContacts();

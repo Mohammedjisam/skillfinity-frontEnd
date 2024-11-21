@@ -316,9 +316,9 @@ const ViewLessonsByCourse = () => {
   const [loading, setLoading] = useState(true);
   const [courseTitle, setCourseTitle] = useState("");
   const [selectedVideo, setSelectedVideo] = useState(null);
-  const [isChatOpen, setIsChatOpen] = useState(false)
+  const [isChatOpen, setIsChatOpen] = useState(false);
   const { courseId } = useParams();
-  const [tutor, setTutor] = useState(null)
+  const [tutor, setTutor] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -330,8 +330,8 @@ const ViewLessonsByCourse = () => {
       const response = await axiosInstance.get(
         `/user/data/viewcourselessons/${courseId}`
       );
-      console.log('tutorinte vellom ondoooooooooo===>',response.data)
-      setTutor(response.data.lessons[0].tutor)
+      console.log("tutorinte vellom ondoooooooooo===>", response.data);
+      setTutor(response.data.lessons[0].tutor);
       setLessons(response.data.lessons);
       if (response.data.lessons.length > 0) {
         setCourseTitle(response.data.lessons[0].course.coursetitle);
@@ -398,8 +398,8 @@ const ViewLessonsByCourse = () => {
     }
   };
 
-  if(isChatOpen){
-    return <ChatForUser tutor={tutor} />
+  if (isChatOpen) {
+    return <ChatForUser tutor={tutor} />;
   }
   if (loading) {
     return (

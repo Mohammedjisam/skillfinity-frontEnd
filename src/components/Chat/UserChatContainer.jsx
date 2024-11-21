@@ -12,34 +12,27 @@ export default function UserChatContainer({ currentChat, socket }) {
   const scrollRef = useRef();
   const [arrivalMessage, setArrivalMessage] = useState(null);
 
-  console.log("current chat ithaaaaaaaaa===>", currentChat);
-  console.log("userdata chat ithaaaaaaaaa===>", userData);
-
   useEffect(() => {
     const fetchMessages = async () => {
-      const response = await axiosInstance.get("/message", {
-        params: {
-          from: userData._id,
-          to: currentChat.id,
-        },
-      });
-      setMessages(response.data);
-    };
+      if (!currentChat) return; // Avoid fetching if no currentChat
 
-    if (currentChat) fetchMessages();
-  }, [currentChat, userData]);
-
-  useEffect(() => {
-    const getCurrentChat = async () => {
-      if (currentChat) {
-        await JSON.parse(
-          localStorage.getItem(process.env.REACT_APP_LOCALHOST_KEY)
-        )._id;
+      try {
+        const response = await axiosInstance.get("/message", {
+          params: {
+            from: userData._id,
+            to: currentChat.id,
+          },
+        });
+        setMessages(response.data);
+      } catch (error) {
+        console.error("Error fetching messages:", error);
       }
     };
-    getCurrentChat();
-  }, [currentChat]);
 
+    fetchMessages();
+  }, [currentChat, userData]);
+
+  // Handle sending a message
   const handleSendMsg = useCallback(
     async (msg) => {
       socket.current.emit("send-msg", {
@@ -55,12 +48,10 @@ export default function UserChatContainer({ currentChat, socket }) {
           message: msg,
         });
 
-        console.log("message set cheyyan poova");
         setMessages((prevMessages) => [
           ...prevMessages,
           { fromSelf: true, message: msg, createdAt: new Date().toISOString() },
         ]);
-        console.log("message set cheyyan poova");
       } catch (error) {
         console.error("Error sending message:", error);
       }
@@ -68,37 +59,32 @@ export default function UserChatContainer({ currentChat, socket }) {
     [currentChat?.id, userData._id, socket]
   );
 
-  useEffect(() => {
-    const handleMsgReceive = (msg) => {
-      setArrivalMessage({
-        fromSelf: false,
-        message: msg,
-        createdAt: new Date().toISOString(),
-      });
-    };
 
+  useEffect(() => {
     if (socket.current) {
-      socket.current.on("msg-recieve", handleMsgReceive);
+      socket.current.on("msg-recieve", (msg) => {
+        console.log("Message received:", msg);
+        setArrivalMessage({
+          fromSelf: false,
+          message: msg,
+          createdAt: new Date().toISOString(), // You could use server's timestamp here
+        });
+      });
     }
 
     return () => {
       if (socket.current) {
-        socket.current.off("msg-recieve", handleMsgReceive);
+        socket.current.off("msg-recieve");
       }
     };
-  }, []);
+  }, [socket]);
 
+  // Update messages with incoming ones
   useEffect(() => {
     if (arrivalMessage) {
-      setMessages((prev) => [...prev, arrivalMessage]);
+      setMessages((prevMessages) => [...prevMessages, arrivalMessage]);
     }
   }, [arrivalMessage]);
-
-  useEffect(() => {
-    console.log("mesg set aayiiii===>", messages);
-  }, [messages]);
-
-
 
   return (
     <div className="flex flex-col h-full">
@@ -113,10 +99,10 @@ export default function UserChatContainer({ currentChat, socket }) {
         </div>
       </div>
       <div className="chat-messages flex-grow overflow-y-auto p-4 space-y-4">
-        {messages.map((message, index) => (
+        {messages.map((message) => (
           <div
-            ref={index === messages.length - 1 ? scrollRef : null}
-            key={uuidv4()}
+            ref={message === messages[messages.length - 1] ? scrollRef : null}
+            key={message._id || uuidv4()} // Prefer using _id from backend if available
           >
             <div
               className={`message flex ${

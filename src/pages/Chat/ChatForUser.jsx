@@ -2,13 +2,15 @@ import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { io } from "socket.io-client";
 import { host } from "../../lib/APIRoutes";
-import { useSelector } from "react-redux";
 import UserChatContainer from "@/components/Chat/UserChatContainer";
 
 export default function ChatForUser({ tutor }) {
   const [currentChat, setCurrentChat] = useState(null);
+  const [currentUser, setCurrentUser] = useState(undefined);
+  const [loading, setLoading] = useState(true);
+  const socket = useRef();
 
-  console.log("ithaaaaaaa tutor dataaaaaa=>", tutor);
+  console.log("Received tutor data:", tutor);
 
   useEffect(() => {
     if (tutor?.name) {
@@ -19,31 +21,35 @@ export default function ChatForUser({ tutor }) {
     }
   }, [tutor]);
 
-  const navigate = useNavigate();
-  const socket = useRef();
-  const [currentUser, setCurrentUser] = useState(undefined);
-  const [loading, setLoading] = useState(true);
-
-  const getCurrentUser = async () => {
-    if (tutor) {
-      setCurrentUser(tutor);
-    }
-  };
-
   useEffect(() => {
-    const fetchUser = async () => {
-      await getCurrentUser();
-      setLoading(false);
+    socket.current = io(host, { transports: ["websocket"] });
+
+    socket.current.on("connect", () => {
+      console.log("Socket connected:", socket.current.id);
+    });
+
+    socket.current.on("connect_error", (err) => {
+      console.error("Socket connection error:", err);
+    });
+
+    return () => {
+      if (socket.current) {
+        socket.current.disconnect();
+      }
     };
-    fetchUser();
   }, []);
 
   useEffect(() => {
-    if (currentUser) {
-      socket.current = io(host);
-      socket.current.emit("add-user", currentUser._id);
+    if (tutor) {
+      setCurrentUser(tutor);
+      setLoading(false);
+    }
+  }, [tutor]);
 
-      
+  useEffect(() => {
+    if (currentUser && socket.current) {
+      socket.current.emit("add-user", currentUser._id);
+      console.log("Emitted add-user with:", currentUser._id);
     }
   }, [currentUser]);
 

@@ -60,7 +60,6 @@ const TutorLogin = () => {
         toast.error(errorMessage);
       }
     } else {
-      // Display validation errors
       Object.values(errors).forEach(error => toast.error(error));
     }
   };
@@ -91,7 +90,7 @@ const TutorLogin = () => {
       <div className="max-w-4xl w-full bg-white shadow-lg rounded-lg overflow-hidden flex flex-col md:flex-row">
         <div className="md:w-1/2">
           <img
-            src="/ai-generated-8575440.png"
+            src="/pexels-karolina-grabowska-6958515[1].jpg"
             alt="Login visual"
             className="w-full h-full object-cover rounded-t-lg md:rounded-none md:rounded-l-lg"
           />

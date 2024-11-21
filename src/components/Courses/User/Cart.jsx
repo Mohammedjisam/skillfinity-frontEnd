@@ -55,9 +55,6 @@ const Cart = () => {
     navigate('/buyallcourses', { state: { courseIds, totalAmount: calculateTotal() } });
   };
 
-  const handleBuyNow = (courseId) => {
-    navigate(`/buycourse/${courseId}`);
-  };
 
   if (loading) {
     return (
@@ -97,13 +94,6 @@ const Cart = () => {
                 <p className="font-bold text-lg mb-2">₹{item.price}</p>
               </div>
               <div className="flex flex-col sm:flex-col gap-2 w-full sm:w-auto">
-                <button
-                  onClick={() => handleBuyNow(course._id)}
-                  disabled={isProcessing}
-                  className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-[#334155] transition-colors disabled:opacity-50"
-                >
-                  Buy Now
-                </button>
                 <button
                   onClick={() => handleRemove(course._id)}
                   disabled={isProcessing}

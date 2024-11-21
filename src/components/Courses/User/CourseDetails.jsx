@@ -1,6 +1,18 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { MonitorPlay, Heart, ShoppingCart, Clock, BarChart, Calendar, User, BookOpen, Tag, AlertTriangle, X } from 'lucide-react';
+import {
+  MonitorPlay,
+  Heart,
+  ShoppingCart,
+  Clock,
+  BarChart,
+  Calendar,
+  User,
+  BookOpen,
+  Tag,
+  AlertTriangle,
+  X,
+} from "lucide-react";
 import axiosInstance from "../../../AxiosConfig";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +24,7 @@ export default function CourseDetails() {
   const [loading, setLoading] = useState(true);
   const [isInCart, setIsInCart] = useState(false);
   const [isPurchased, setIsPurchased] = useState(false);
+  const [isInWishlist, setIsInWishlist] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [reportReason, setReportReason] = useState("");
   const [reportComment, setReportComment] = useState("");
@@ -23,6 +36,7 @@ export default function CourseDetails() {
     fetchCartData();
     fetchCourseData();
     checkPurchaseStatus();
+    checkWishlistStatus();
   }, [courseId, userDatas._id]);
 
   const fetchCourseData = async () => {
@@ -53,7 +67,9 @@ export default function CourseDetails() {
 
   const checkPurchaseStatus = async () => {
     try {
-      const purchaseResponse = await axiosInstance.get(`/user/data/checkpurchase/${userDatas._id}/${courseId}`);
+      const purchaseResponse = await axiosInstance.get(
+        `/user/data/checkpurchase/${userDatas._id}/${courseId}`
+      );
       setIsPurchased(purchaseResponse.data.isPurchased);
     } catch (error) {
       console.error("Error checking purchase status:", error);
@@ -72,6 +88,32 @@ export default function CourseDetails() {
       console.error("Error adding to cart:", error);
       toast.error("Failed to add course to cart.");
     }
+  };
+
+  const checkWishlistStatus = async () => {
+    try {
+      const response = await axiosInstance.get(
+        `/user/data/checkwishlist/${courseId}/${userDatas._id}`
+      );
+      setIsInWishlist(response.data.isInWishlist);
+    } catch (error) {
+      console.error("Error checking wishlist status:", error);
+    }
+  };
+
+  const addToWishlist = async () => {
+    try {
+      await axiosInstance.post(`/user/data/addtowishlist/${courseId}/${userDatas._id}`);
+      toast.success("Course added to wishlist successfully!");
+      setIsInWishlist(true);
+    } catch (error) {
+      console.error("Error adding to wishlist:", error);
+      toast.error("Failed to add course to wishlist. Please try again.");
+    }
+  };
+
+  const goToWishlist = () => {
+    navigate("/wishlist");
   };
 
   const goToCart = () => {
@@ -106,7 +148,6 @@ export default function CourseDetails() {
       });
       toast.success("Course reported successfully");
       closeReportModal();
-      // Refresh course data to reflect updated reported status
       fetchCourseData();
     } catch (error) {
       console.error("Error submitting report:", error);
@@ -167,7 +208,11 @@ export default function CourseDetails() {
                     className="px-4 py-2 text-sm bg-gradient-to-r from-purple-400/10 to-purple-500/10 border border-purple-500/20 text-purple-300 hover:from-purple-400/20 hover:to-purple-500/20 transition-colors duration-200"
                   >
                     <Clock className="w-4 h-4 mr-2 text-purple-400" />
-                    {courseData.lessons?.reduce((total, lesson) => total + (lesson.duration || 0), 0) || "Not specified"} minutes
+                    {courseData.lessons?.reduce(
+                      (total, lesson) => total + (lesson.duration || 0),
+                      0
+                    ) || "Not specified"}{" "}
+                    minutes
                   </Badge>
                 </div>
               </div>
@@ -305,7 +350,7 @@ export default function CourseDetails() {
               <h2 className="text-3xl font-bold mb-6 text-gray-900">
                 ₹{courseData.price}
               </h2>
-              
+
               <div className="space-y-4">
                 {isPurchased ? (
                   <>
@@ -327,7 +372,9 @@ export default function CourseDetails() {
                       disabled={courseData.isReported}
                     >
                       <AlertTriangle className="w-5 h-5 mr-2" />
-                      {courseData.isReported ? "Course Reported" : "Report Course"}
+                      {courseData.isReported
+                        ? "Course Reported"
+                        : "Report Course"}
                     </Button>
                   </>
                 ) : (
@@ -358,14 +405,28 @@ export default function CourseDetails() {
                         Add to Cart
                       </Button>
                     )}
-                    <Button
-                      variant="outline"
-                      className="w-full text-lg py-6 border-blue-600 text-blue-600 hover:bg-blue-50"
-                      size="lg"
-                    >
-                      <Heart className="w-5 h-5 mr-2" />
-                      Add to Wishlist
-                    </Button>
+
+                    {isInWishlist ? (
+                      <Button
+                        onClick={goToWishlist}
+                        variant="outline"
+                        className="w-full text-lg py-6 border-blue-600 text-blue-600 hover:bg-blue-50"
+                        size="lg"
+                      >
+                        <Heart className="w-5 h-5 mr-2" />
+                        Go to Wishlist
+                      </Button>
+                    ) : (
+                      <Button
+                        onClick={addToWishlist}
+                        variant="outline"
+                        className="w-full text-lg py-6 border-blue-600 text-blue-600 hover:bg-blue-50"
+                        size="lg"
+                      >
+                        <Heart className="w-5 h-5 mr-2" />
+                        Add to Wishlist
+                      </Button>
+                    )}
                   </>
                 )}
               </div>
@@ -378,14 +439,22 @@ export default function CourseDetails() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xl font-semibold text-gray-900">Report Course</h3>
-              <button onClick={closeReportModal} className="text-gray-400 hover:text-gray-500">
+              <h3 className="text-xl font-semibold text-gray-900">
+                Report Course
+              </h3>
+              <button
+                onClick={closeReportModal}
+                className="text-gray-400 hover:text-gray-500"
+              >
                 <X className="w-6 h-6" />
               </button>
             </div>
             <div className="space-y-4">
               <div>
-                <label htmlFor="reportReason" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="reportReason"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   Reason for Reporting
                 </label>
                 <textarea
@@ -397,7 +466,10 @@ export default function CourseDetails() {
                 ></textarea>
               </div>
               <div>
-                <label htmlFor="reportComment" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="reportComment"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   Additional Comments
                 </label>
                 <textarea

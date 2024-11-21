@@ -23,6 +23,7 @@ import CourseBuy from '@/components/Courses/User/CourseBuy'
 import ViewLessonsByCourse from '../components/Courses/User/ViewLessonsByCourse'
 import PurchasedCourses from '@/components/Courses/User/PurchasedCourses'
 import PurchaseHistory from '@/components/Courses/User/PusrchaseHistory'
+import WishlistCourses from '@/components/Courses/User/WishlistCourses'
 
 function UserRoutes() {
   return (
@@ -50,6 +51,7 @@ function UserRoutes() {
         <Route path='course/:courseId/lessons' element={<ProtectedUserRoutes><ViewLessonsByCourse /></ProtectedUserRoutes>}/>
         <Route path='/purchasedcourses' element={<ProtectedUserRoutes><PurchasedCourses /></ProtectedUserRoutes>}/>
         <Route path='/purchasehistory' element={<ProtectedUserRoutes><PurchaseHistory /></ProtectedUserRoutes>}/>
+        <Route path='/wishlist' element={<ProtectedUserRoutes><WishlistCourses /></ProtectedUserRoutes>}/>
        </Routes>
        <Footer />
     </div>

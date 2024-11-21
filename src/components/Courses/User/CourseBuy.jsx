@@ -9,7 +9,7 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { MonitorPlay, User,  CheckCircle } from "lucide-react";
+import { MonitorPlay, User, CheckCircle } from "lucide-react";
 import RazorPay from "./RazorPay";
 import { toast } from "sonner";
 import axiosInstance from "@/AxiosConfig";
@@ -67,7 +67,7 @@ function CourseBuy() {
 
   const handlePaymentSuccess = async () => {
     try {
-      const userId = userData?._id; // Get user ID from Redux store
+      const userId = userData?._id; 
       const courseIds = courseId
         ? [courseId]
         : courses.map((course) => course._id);

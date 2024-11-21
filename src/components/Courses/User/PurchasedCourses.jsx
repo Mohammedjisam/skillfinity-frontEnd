@@ -1,5 +1,3 @@
-'use client'
-
 import React, { useState, useEffect } from 'react'
 import { useSelector } from 'react-redux'
 import axiosInstance from '@/AxiosConfig'
@@ -34,7 +32,6 @@ export default function PurchasedCourses() {
         console.log(`Fetching purchased courses for User ID: ${userData._id}`)
         const response = await axiosInstance.get(`/user/data/buyedcourses/${userData._id}`)
         console.log("API Response:", response.data)
-        // Ensure each course has a unique identifier
         const coursesWithUniqueIds = response.data.purchasedCourses.map((course, index) => ({
           ...course,
           uniqueId: `${course._id}-${index}`

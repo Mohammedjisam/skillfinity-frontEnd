@@ -49,7 +49,7 @@ const AdminLogin = () => {
             <div className="max-w-4xl w-full bg-white shadow-lg rounded-lg overflow-hidden flex flex-col md:flex-row">
                 <div className="md:w-1/2">
                     <img
-                        src="/ai-generated-8575440.png"
+                        src="/6310507.jpg"
                         alt="Login visual"
                         className="w-full h-[500px] object-cover rounded-t-lg md:rounded-none md:rounded-l-lg"
                     />

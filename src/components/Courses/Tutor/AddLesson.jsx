@@ -1,17 +1,15 @@
-'use client'
-
-import { useState, useEffect } from 'react'
-import { useSelector } from 'react-redux'
-import { useNavigate, useParams } from 'react-router-dom'
-import { Menu, Upload, FileText, Loader2 } from 'lucide-react'
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Card } from "@/components/ui/card"
-import { Progress } from "@/components/ui/progress"
-import SideBar from '../../../pages/Tutor/SideBar'
-import axiosInstance from '../../../AxiosConfig'
-import { toast } from 'sonner'
+import { useState, useEffect } from "react";
+import { useSelector } from "react-redux";
+import { useNavigate, useParams } from "react-router-dom";
+import { Menu, Upload, FileText, Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Card } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import SideBar from "../../../pages/Tutor/SideBar";
+import axiosInstance from "../../../AxiosConfig";
+import { toast } from "sonner";
 
 const LoadingFallback = ({ progress, message }) => (
   <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -26,215 +24,224 @@ const LoadingFallback = ({ progress, message }) => (
       </p>
     </Card>
   </div>
-)
+);
 
 export default function AddLesson() {
-  const { id: courseId } = useParams()
-  const navigate = useNavigate()
-  const tutor = useSelector((state) => state.tutor.tutorDatas)
+  const { id: courseId } = useParams();
+  const navigate = useNavigate();
+  const tutor = useSelector((state) => state.tutor.tutorDatas);
 
   const [lessonData, setLessonData] = useState({
-    title: '',
-    description: '',
-    videoUrl: '',
-    pdfUrl: '',
-    duration: '',
+    title: "",
+    description: "",
+    videoUrl: "",
+    pdfUrl: "",
+    duration: "",
     tutor: tutor._id,
     course: courseId,
-  })
-  const [errors, setErrors] = useState({})
-  const [videoFile, setVideoFile] = useState(null)
-  const [pdfFile, setPdfFile] = useState(null)
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
-  const [isUploading, setIsUploading] = useState(false)
-  const [uploadType, setUploadType] = useState('')
-  const [uploadProgress, setUploadProgress] = useState(0)
-  const [videoPreview, setVideoPreview] = useState(null)
-  const [addedLessons, setAddedLessons] = useState([])
+  });
+  const [errors, setErrors] = useState({});
+  const [videoFile, setVideoFile] = useState(null);
+  const [pdfFile, setPdfFile] = useState(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadType, setUploadType] = useState("");
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [videoPreview, setVideoPreview] = useState(null);
+  const [addedLessons, setAddedLessons] = useState([]);
 
   const validateField = (name, value) => {
-    let error = ''
+    let error = "";
     switch (name) {
-      case 'title':
-        if (value.trim() === '') {
-          error = 'Lesson title is required'
+      case "title":
+        if (value.trim() === "") {
+          error = "Lesson title is required";
         } else if (value.length > 20) {
-          error = 'Lesson title cannot exceed 20 characters'
+          error = "Lesson title cannot exceed 20 characters";
         } else if (!/^[a-zA-Z\s]*$/.test(value)) {
-          error = 'Lesson title can only contain letters and spaces'
+          error = "Lesson title can only contain letters and spaces";
         }
-        break
-      case 'description':
-        if (value.trim() === '') {
-          error = 'Lesson description is required'
+        break;
+      case "description":
+        if (value.trim() === "") {
+          error = "Lesson description is required";
         }
-        break
-      case 'duration':
-        if (value === '') {
-          error = 'Lesson duration is required'
+        break;
+      case "duration":
+        if (value === "") {
+          error = "Lesson duration is required";
         } else if (isNaN(value) || Number(value) <= 0) {
-          error = 'Duration must be a positive number'
+          error = "Duration must be a positive number";
         }
-        break
+        break;
       default:
-        break
+        break;
     }
-    return error
-  }
+    return error;
+  };
 
   const handleInputChange = (e) => {
-    const { name, value } = e.target
-    let sanitizedValue = value
-    if (name === 'title') {
-      sanitizedValue = value.replace(/[^a-zA-Z\s]/g, '').slice(0, 20)
+    const { name, value } = e.target;
+    let sanitizedValue = value;
+    if (name === "title") {
+      sanitizedValue = value.replace(/[^a-zA-Z\s]/g, "").slice(0, 20);
     }
-    const error = validateField(name, sanitizedValue)
+    const error = validateField(name, sanitizedValue);
     setLessonData((prevData) => ({
       ...prevData,
       [name]: sanitizedValue,
-    }))
+    }));
     setErrors((prevErrors) => ({
       ...prevErrors,
       [name]: error,
-    }))
-  }
+    }));
+  };
 
   const handleVideoChange = (e) => {
-    const file = e.target.files[0]
-    setVideoFile(file)
+    const file = e.target.files[0];
+    setVideoFile(file);
     if (file) {
-      const videoUrl = URL.createObjectURL(file)
-      setVideoPreview(videoUrl)
+      const videoUrl = URL.createObjectURL(file);
+      setVideoPreview(videoUrl);
     } else {
-      setVideoPreview(null)
+      setVideoPreview(null);
     }
-  }
+  };
 
   const handlePdfChange = (e) => {
-    setPdfFile(e.target.files[0])
-  }
+    setPdfFile(e.target.files[0]);
+  };
 
   const uploadFile = async (file, uploadType) => {
-    const formData = new FormData()
-    formData.append('file', file)
-    formData.append('upload_preset', 'skillfinity_media')
-    formData.append('cloud_name', 'dwxnxuuht')
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", "skillfinity_media");
+    formData.append("cloud_name", "dwxnxuuht");
 
-    const xhr = new XMLHttpRequest()
-    xhr.open('POST', `https://api.cloudinary.com/v1_1/dwxnxuuht/${uploadType}/upload`)
+    const xhr = new XMLHttpRequest();
+    xhr.open(
+      "POST",
+      `https://api.cloudinary.com/v1_1/dwxnxuuht/${uploadType}/upload`
+    );
 
     return new Promise((resolve, reject) => {
       xhr.upload.onprogress = (event) => {
         if (event.lengthComputable) {
-          const percentComplete = (event.loaded / event.total) * 100
-          setUploadProgress(percentComplete)
+          const percentComplete = (event.loaded / event.total) * 100;
+          setUploadProgress(percentComplete);
         }
-      }
+      };
 
-      xhr.onload = function() {
+      xhr.onload = function () {
         if (xhr.status === 200) {
-          const response = JSON.parse(xhr.responseText)
-          resolve(response.secure_url)
+          const response = JSON.parse(xhr.responseText);
+          resolve(response.secure_url);
         } else {
-          reject(new Error('Upload failed'))
+          reject(new Error("Upload failed"));
         }
-      }
+      };
 
-      xhr.onerror = function() {
-        reject(new Error('Upload failed'))
-      }
+      xhr.onerror = function () {
+        reject(new Error("Upload failed"));
+      };
 
-      xhr.send(formData)
-    })
-  }
+      xhr.send(formData);
+    });
+  };
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-
-    // Validate all fields
-    const newErrors = {}
+    e.preventDefault();
+    const newErrors = {};
     Object.keys(lessonData).forEach((key) => {
-      if (key !== 'videoUrl' && key !== 'pdfUrl' && key !== 'tutor' && key !== 'course') {
-        const error = validateField(key, lessonData[key])
-        if (error) newErrors[key] = error
+      if (
+        key !== "videoUrl" &&
+        key !== "pdfUrl" &&
+        key !== "tutor" &&
+        key !== "course"
+      ) {
+        const error = validateField(key, lessonData[key]);
+        if (error) newErrors[key] = error;
       }
-    })
+    });
 
     if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors)
-      toast.error('Please correct the errors before submitting')
-      return
+      setErrors(newErrors);
+      toast.error("Please correct the errors before submitting");
+      return;
     }
 
     if (!videoFile) {
-      toast.error('Please upload a video file')
-      return
+      toast.error("Please upload a video file");
+      return;
     }
 
-    setIsUploading(true)
+    setIsUploading(true);
 
     try {
-      let videoUrl = ''
-      let pdfUrl = ''
+      let videoUrl = "";
+      let pdfUrl = "";
 
       if (videoFile) {
-        setUploadType('video')
-        setUploadProgress(0)
-        videoUrl = await uploadFile(videoFile, 'video')
+        setUploadType("video");
+        setUploadProgress(0);
+        videoUrl = await uploadFile(videoFile, "video");
       }
 
       if (pdfFile) {
-        setUploadType('pdf')
-        setUploadProgress(0)
-        pdfUrl = await uploadFile(pdfFile, 'raw')
+        setUploadType("pdf");
+        setUploadProgress(0);
+        pdfUrl = await uploadFile(pdfFile, "raw");
       }
 
-      setUploadType('lesson')
-      setUploadProgress(0)
+      setUploadType("lesson");
+      setUploadProgress(0);
 
       const lessonDataToSubmit = {
         ...lessonData,
         videoUrl: videoUrl,
         pdfUrl: pdfUrl,
-      }
-  
-      const response = await axiosInstance.post(`/tutor/course/addlesson/${courseId}`, lessonDataToSubmit)
-      setAddedLessons([...addedLessons, response.data.lesson])
-      toast.success('Lesson added successfully')
-      
+      };
+
+      const response = await axiosInstance.post(
+        `/tutor/course/addlesson/${courseId}`,
+        lessonDataToSubmit
+      );
+      setAddedLessons([...addedLessons, response.data.lesson]);
+      toast.success("Lesson added successfully");
+
       // Reset form fields
       setLessonData({
-        title: '',
-        description: '',
-        videoUrl: '',
-        pdfUrl: '',
-        duration: '',
+        title: "",
+        description: "",
+        videoUrl: "",
+        pdfUrl: "",
+        duration: "",
         tutor: tutor._id,
         course: courseId,
-      })
-      setVideoFile(null)
-      setPdfFile(null)
-      setVideoPreview(null)
-      setErrors({})
+      });
+      setVideoFile(null);
+      setPdfFile(null);
+      setVideoPreview(null);
+      setErrors({});
     } catch (error) {
-      console.error('Error adding lesson:', error)
-      toast.error('Failed to add lesson')
+      console.error("Error adding lesson:", error);
+      toast.error("Failed to add lesson");
     } finally {
-      setIsUploading(false)
-      setUploadType('')
-      setUploadProgress(0)
+      setIsUploading(false);
+      setUploadType("");
+      setUploadProgress(0);
     }
-  }
+  };
 
   const handleFinishCourse = () => {
-    navigate('/tutor/courses')
-  }
+    navigate("/tutor/courses");
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
-      <SideBar 
-        isOpen={isSidebarOpen} 
-        onClose={() => setIsSidebarOpen(false)} 
+      <SideBar
+        isOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
         activeItem="Courses"
       />
       <div className="flex-1">
@@ -270,7 +277,11 @@ export default function AddLesson() {
                       maxLength={20}
                       className="w-full bg-rose-50 border-none"
                     />
-                    {errors.title && <p className="text-red-500 text-sm mt-1">{errors.title}</p>}
+                    {errors.title && (
+                      <p className="text-red-500 text-sm mt-1">
+                        {errors.title}
+                      </p>
+                    )}
                   </div>
 
                   <div>
@@ -284,7 +295,11 @@ export default function AddLesson() {
                       required
                       className="w-full min-h-[150px] bg-rose-50 border-none"
                     />
-                    {errors.description && <p className="text-red-500 text-sm mt-1">{errors.description}</p>}
+                    {errors.description && (
+                      <p className="text-red-500 text-sm mt-1">
+                        {errors.description}
+                      </p>
+                    )}
                   </div>
 
                   <div>
@@ -300,7 +315,11 @@ export default function AddLesson() {
                       min="1"
                       className="w-full bg-rose-50 border-none"
                     />
-                    {errors.duration && <p className="text-red-500 text-sm mt-1">{errors.duration}</p>}
+                    {errors.duration && (
+                      <p className="text-red-500 text-sm mt-1">
+                        {errors.duration}
+                      </p>
+                    )}
                   </div>
                 </div>
 
@@ -313,11 +332,17 @@ export default function AddLesson() {
                     <div className="bg-gray-50 rounded-lg p-4">
                       <div className="aspect-video w-full rounded-lg border-2 border-dashed border-gray-200 bg-white overflow-hidden">
                         {videoPreview ? (
-                          <video src={videoPreview} controls className="w-full h-full object-cover" />
+                          <video
+                            src={videoPreview}
+                            controls
+                            className="w-full h-full object-cover"
+                          />
                         ) : (
                           <div className="h-full flex flex-col items-center justify-center">
                             <Upload className="h-12 w-12 text-gray-400 mb-3" />
-                            <p className="text-sm text-gray-500">Upload lesson video</p>
+                            <p className="text-sm text-gray-500">
+                              Upload lesson video
+                            </p>
                           </div>
                         )}
                       </div>
@@ -330,10 +355,12 @@ export default function AddLesson() {
                       />
                       <Button
                         type="button"
-                        onClick={() => document.getElementById('video-upload').click()}
+                        onClick={() =>
+                          document.getElementById("video-upload").click()
+                        }
                         className="mt-4 w-full bg-teal-500 hover:bg-teal-600 text-white"
                       >
-                        {videoFile ? 'Change Video' : 'Add Video'}
+                        {videoFile ? "Change Video" : "Add Video"}
                       </Button>
                     </div>
                   </div>
@@ -347,12 +374,16 @@ export default function AddLesson() {
                         {pdfFile ? (
                           <div className="h-full flex flex-col items-center justify-center">
                             <FileText className="h-12 w-12 text-gray-400 mb-3" />
-                            <p className="text-sm text-gray-500">{pdfFile.name}</p>
+                            <p className="text-sm text-gray-500">
+                              {pdfFile.name}
+                            </p>
                           </div>
                         ) : (
                           <div className="h-full flex flex-col items-center justify-center">
                             <FileText className="h-12 w-12 text-gray-400 mb-3" />
-                            <p className="text-sm text-gray-500">Upload lesson PDF</p>
+                            <p className="text-sm text-gray-500">
+                              Upload lesson PDF
+                            </p>
                           </div>
                         )}
                       </div>
@@ -365,10 +396,12 @@ export default function AddLesson() {
                       />
                       <Button
                         type="button"
-                        onClick={() => document.getElementById('pdf-upload').click()}
+                        onClick={() =>
+                          document.getElementById("pdf-upload").click()
+                        }
                         className="mt-4 w-full bg-teal-500 hover:bg-teal-600 text-white"
                       >
-                        {pdfFile ? 'Change PDF' : 'Add PDF'}
+                        {pdfFile ? "Change PDF" : "Add PDF"}
                       </Button>
                     </div>
                   </div>
@@ -381,7 +414,7 @@ export default function AddLesson() {
                   disabled={isUploading}
                   className="w-full bg-emerald-500 hover:bg-emerald-600 text-white py-3 text-lg font-medium"
                 >
-                  {isUploading ? 'Uploading...' : 'Add Lesson'}
+                  {isUploading ? "Uploading..." : "Add Lesson"}
                 </Button>
               </div>
             </form>
@@ -392,7 +425,10 @@ export default function AddLesson() {
               <h2 className="text-xl font-semibold mb-4">Added Lessons</h2>
               <ul className="space-y-2">
                 {addedLessons.map((lesson, index) => (
-                  <li key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                  <li
+                    key={index}
+                    className="flex items-center justify-between p-2 bg-gray-50 rounded"
+                  >
                     <span>{index + 1}</span>
                     <span>{lesson.title}</span>
                     <span>{lesson.duration} minutes</span>
@@ -410,15 +446,17 @@ export default function AddLesson() {
         </main>
       </div>
       {isUploading && (
-        <LoadingFallback 
-          progress={uploadProgress} 
+        <LoadingFallback
+          progress={uploadProgress}
           message={
-            uploadType === 'video' ? 'Uploading Video...' :
-            uploadType === 'pdf' ? 'Uploading PDF...' :
-            'Adding Lesson...'
+            uploadType === "video"
+              ? "Uploading Video..."
+              : uploadType === "pdf"
+              ? "Uploading PDF..."
+              : "Adding Lesson..."
           }
         />
       )}
     </div>
-  )
+  );
 }

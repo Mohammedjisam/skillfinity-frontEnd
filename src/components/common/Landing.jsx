@@ -6,10 +6,9 @@ export default function Landing() {
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        // Simulate loading delay
         const timer = setTimeout(() => {
             setIsLoading(false);
-        }, 2000); // Adjust this value to simulate your actual loading time
+        }, 100); 
 
         return () => clearTimeout(timer);
     }, []);
