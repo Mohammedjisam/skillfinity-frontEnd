@@ -3,16 +3,23 @@ import { useNavigate } from "react-router-dom";
 import { io } from "socket.io-client";
 import { host } from "../../lib/APIRoutes";
 import UserChatContainer from "@/components/Chat/UserChatContainer";
+import { useSelector } from "react-redux";
 
 export default function ChatForUser({ tutor }) {
   const [currentChat, setCurrentChat] = useState(null);
   const [currentUser, setCurrentUser] = useState(undefined);
+  const userData = useSelector((store) => store.user.userDatas);
   const [loading, setLoading] = useState(true);
   const socket = useRef();
 
   console.log("Received tutor data:", tutor);
 
+  useEffect(()=>{
+    console.log("Heeeeeeeeeelo")
+  })
+
   useEffect(() => {
+    console.log('object :>> ', tutor);
     if (tutor?.name) {
       setCurrentChat({
         name: tutor.name,
@@ -22,10 +29,17 @@ export default function ChatForUser({ tutor }) {
   }, [tutor]);
 
   useEffect(() => {
-    socket.current = io(host, { transports: ["websocket"] });
+    console.log("tutoeeeeeeeeeeeee",tutor)
+    socket.current = io(host, { 
+      transports: ["websocket"],
+      auth:{
+        userId:userData._id
+      }
+    });
 
     socket.current.on("connect", () => {
       console.log("Socket connected:", socket.current.id);
+      console.log("Socket :", socket.current);
     });
 
     socket.current.on("connect_error", (err) => {
@@ -34,7 +48,7 @@ export default function ChatForUser({ tutor }) {
 
     return () => {
       if (socket.current) {
-        socket.current.disconnect();
+        console.log("nnnnnnnnn", socket.current.disconnect())
       }
     };
   }, []);

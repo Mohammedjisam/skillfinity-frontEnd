@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axiosInstance from '../../../AxiosConfig';
 import { toast } from 'sonner';
 import { useSelector } from 'react-redux';
+import { useCart } from '@/context/CartContext';
 
 const Cart = () => {
   const [cartItems, setCartItems] = useState([]);
@@ -10,6 +11,7 @@ const Cart = () => {
   const [loading, setLoading] = useState(true);
   const userDatas = useSelector((store) => store.user.userDatas);
   const navigate = useNavigate();
+  const { updateCartCount, decrementCartCount } = useCart();
 
   useEffect(() => {
     const fetchCart = async () => {
@@ -37,6 +39,7 @@ const Cart = () => {
         }
       });
       setCartItems((prevItems) => prevItems.filter((item) => item.courseId?._id !== courseId));
+      decrementCartCount();
       toast.success("Course removed from cart successfully!");
     } catch (error) {
       console.error("Error removing course from cart:", error);
@@ -45,6 +48,7 @@ const Cart = () => {
       setIsProcessing(false);
     }
   };
+
 
   const calculateTotal = () => {
     return cartItems.reduce((total, item) => total + (item.price || 0), 0);
@@ -83,7 +87,7 @@ const Cart = () => {
           if (!course || !course._id) return null;
 
           return (
-            <div key={course._id} className="bg-white rounded-lg shadow-sm p-6 flex flex-col sm:flex-row items-center gap-4">
+            <div key={course._id} className="bg-gray-100 rounded-lg shadow-xl p-6 flex flex-col sm:flex-row items-center gap-4">
               <img
                 src={course.thumbnail || '/placeholder.svg'}
                 alt={course.coursetitle || 'Course Thumbnail'}

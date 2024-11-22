@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { Loader2, Book, DollarSign, Mail, ShoppingCart, ChevronLeft, ChevronRight, Play } from 'lucide-react'
 import { toast } from 'sonner'
 import { useSelector } from 'react-redux'
+import { useCart } from "@/context/CartContext";
 
 const ITEMS_PER_PAGE = 8
 
@@ -21,6 +22,7 @@ const ViewTutor = () => {
   const [purchasedCourses, setPurchasedCourses] = useState([])
   const userDatas = useSelector((store) => store.user.userDatas)
   const navigate = useNavigate()
+  const { incrementCartCount } = useCart();
 
   useEffect(() => {
     fetchTutorData()
@@ -85,6 +87,7 @@ const ViewTutor = () => {
       }
       await axiosInstance.post(`/user/data/addcart/${courseId}`, { userId: userDatas._id })
       setCartItems(prevItems => [...prevItems, courseId])
+      incrementCartCount();
       toast.success('Course added to cart successfully!')
     } catch (error) {
       console.error("Error adding course to cart:", error)

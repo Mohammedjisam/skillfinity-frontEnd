@@ -14,6 +14,10 @@ export default function ChatContainer({ currentChat, socket }) {
 
   console.log("current chat ithaaaaaaaaa===>", currentChat);
 
+  useEffect(()=>{
+    console.log("Heeeeeeeeeelo")
+  })
+
   // Fetch messages when currentChat changes
   useEffect(() => {
     const fetchMessages = async () => {

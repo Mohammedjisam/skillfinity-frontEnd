@@ -52,7 +52,7 @@ export default function Chat() {
 
   useEffect(() => {
   if (currentUser) {
-    socket.current = io(host);
+    socket.current = io(host,{transports:["websocket"]});
 
     socket.current.on("connect", () => {
       console.log("Connected to server. Socket ID:", socket.current.id);

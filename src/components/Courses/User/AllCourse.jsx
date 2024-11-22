@@ -5,6 +5,7 @@ import axiosInstance from '@/AxiosConfig'
 import { Button } from "@/components/ui/button"
 import { toast } from 'sonner'
 import { useSelector } from 'react-redux'
+import { useCart } from "@/context/CartContext";
 
 const AllCourse = () => {
   const [courses, setCourses] = useState([])
@@ -16,6 +17,7 @@ const AllCourse = () => {
   const navigate = useNavigate()
   const coursesPerPage = 12
   const userDatas = useSelector((store) => store.user.userDatas)
+  const { incrementCartCount } = useCart();
 
   useEffect(() => {
     fetchCourses()
@@ -87,6 +89,7 @@ const AllCourse = () => {
       await axiosInstance.post(`/user/data/addcart/${courseId}`, { userId: userDatas._id })
       toast.success("Course added to cart successfully!")
       fetchCartItems()
+      incrementCartCount();
     } catch (error) {
       console.error("Error adding course to cart:", error)
       toast.error("Failed to add course to cart.")

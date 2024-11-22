@@ -18,6 +18,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { useSelector } from "react-redux";
+import { useCart } from "@/context/CartContext";
+
 
 export default function CourseDetails() {
   const [courseData, setCourseData] = useState(null);
@@ -31,6 +33,7 @@ export default function CourseDetails() {
   const { courseId } = useParams();
   const navigate = useNavigate();
   const userDatas = useSelector((store) => store.user.userDatas);
+  const { incrementCartCount } = useCart();
 
   useEffect(() => {
     fetchCartData();
@@ -84,6 +87,7 @@ export default function CourseDetails() {
       );
       toast.success("Course added to cart successfully!");
       setIsInCart(true);
+      incrementCartCount();
     } catch (error) {
       console.error("Error adding to cart:", error);
       toast.error("Failed to add course to cart.");
