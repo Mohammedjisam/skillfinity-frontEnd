@@ -144,6 +144,8 @@ export default function AddCourse() {
     }))
   }
 
+
+
   const handleImageUpload = async (e) => {
     const file = e.target.files[0]
     if (!file) return
@@ -258,6 +260,8 @@ export default function AddCourse() {
       setIsAddingCourse(false)
     }
   }
+
+
 
   return (
     <div className="min-h-screen bg-gray-50 flex">

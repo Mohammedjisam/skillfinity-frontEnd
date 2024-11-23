@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
-import { Menu, Upload, FileText, Loader2 } from "lucide-react";
+import { Menu, Upload, FileText, Loader2, PlusCircle, X } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -10,6 +10,7 @@ import { Progress } from "@/components/ui/progress";
 import SideBar from "../../../pages/Tutor/SideBar";
 import axiosInstance from "../../../AxiosConfig";
 import { toast } from "sonner";
+import { AddQuizModal } from "../../../components/Courses/Tutor/AddQuizModal";
 
 const LoadingFallback = ({ progress, message }) => (
   <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -49,6 +50,8 @@ export default function AddLesson() {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [videoPreview, setVideoPreview] = useState(null);
   const [addedLessons, setAddedLessons] = useState([]);
+  const [isQuizModalOpen, setIsQuizModalOpen] = useState(false);
+  const [quizQuestions, setQuizQuestions] = useState([]);
 
   const validateField = (name, value) => {
     let error = "";
@@ -149,6 +152,21 @@ export default function AddLesson() {
     });
   };
 
+  const handleAddQuiz = () => {
+    setIsQuizModalOpen(true);
+  };
+
+  const handleQuizSubmit = (questions) => {
+    setQuizQuestions(questions);
+    setIsQuizModalOpen(false);
+  };
+
+  const handleRemoveQuestion = (index) => {
+    const newQuestions = [...quizQuestions];
+    newQuestions.splice(index, 1);
+    setQuizQuestions(newQuestions);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     const newErrors = {};
@@ -206,7 +224,21 @@ export default function AddLesson() {
         `/tutor/course/addlesson/${courseId}`,
         lessonDataToSubmit
       );
-      setAddedLessons([...addedLessons, response.data.lesson]);
+
+      // Add quiz data to the database
+      if (quizQuestions.length > 0) {
+        try {
+          const quizResponse = await axiosInstance.post(`/data/addquiz/${courseId}`, {
+            questions: quizQuestions
+          });
+          toast.success("Quiz added successfully");
+        } catch (quizError) {
+          console.error("Error adding quiz:", quizError);
+          toast.error("Failed to add quiz");
+        }
+      }
+
+      setAddedLessons([...addedLessons, { ...response.data.lesson, quizQuestions }]);
       toast.success("Lesson added successfully");
 
       // Reset form fields
@@ -222,6 +254,7 @@ export default function AddLesson() {
       setVideoFile(null);
       setPdfFile(null);
       setVideoPreview(null);
+      setQuizQuestions([]);
       setErrors({});
     } catch (error) {
       console.error("Error adding lesson:", error);
@@ -263,7 +296,6 @@ export default function AddLesson() {
           <Card className="max-w-[1200px] mx-auto bg-white p-8 rounded-lg shadow-sm border-dashed border-gray-300">
             <form onSubmit={handleSubmit}>
               <div className="grid md:grid-cols-2 gap-8">
-                {/* Left Column */}
                 <div className="space-y-6">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -295,7 +327,8 @@ export default function AddLesson() {
                       required
                       className="w-full min-h-[150px] bg-rose-50 border-none"
                     />
-                    {errors.description && (
+                
+{errors.description && (
                       <p className="text-red-500 text-sm mt-1">
                         {errors.description}
                       </p>
@@ -321,9 +354,55 @@ export default function AddLesson() {
                       </p>
                     )}
                   </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Quiz
+                    </label>
+                    <div className="bg-gray-50 rounded-lg p-4">
+                      {quizQuestions.length > 0 ? (
+                        <div className="space-y-4">
+                          {quizQuestions.map((question, index) => (
+                            <div key={index} className="bg-white p-4 rounded-lg shadow-sm relative">
+                              <h4 className="font-semibold mb-2">Question {index + 1}</h4>
+                              <p>{question.questionText}</p>
+                              <ul className="list-disc pl-5 mt-2">
+                                {question.options.map((option, optionIndex) => (
+                                  <li key={optionIndex} className={option === question.correctAnswer ? "font-bold" : ""}>
+                                    {option}
+                                  </li>
+                                ))}
+                              </ul>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="absolute top-2 right-2"
+                                onClick={() => handleRemoveQuestion(index)}
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="h-full flex flex-col items-center justify-center">
+                          <PlusCircle className="h-12 w-12 text-gray-400 mb-3" />
+                          <p className="text-sm text-gray-500">
+                            Add quiz for this lesson
+                          </p>
+                        </div>
+                      )}
+                      <Button
+                        type="button"
+                        onClick={handleAddQuiz}
+                        className="mt-4 w-full bg-purple-500 hover:bg-purple-600 text-white"
+                      >
+                        {quizQuestions.length > 0 ? "Add More Questions" : "Add Quiz"}
+                      </Button>
+                    </div>
+                  </div>
                 </div>
 
-                {/* Right Column */}
                 <div className="space-y-6">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -432,6 +511,11 @@ export default function AddLesson() {
                     <span>{index + 1}</span>
                     <span>{lesson.title}</span>
                     <span>{lesson.duration} minutes</span>
+                    {lesson.quizQuestions && lesson.quizQuestions.length > 0 && (
+                      <span className="text-purple-500">
+                        {lesson.quizQuestions.length} quiz questions
+                      </span>
+                    )}
                   </li>
                 ))}
               </ul>
@@ -457,6 +541,13 @@ export default function AddLesson() {
           }
         />
       )}
+      <AddQuizModal
+        isOpen={isQuizModalOpen}
+        onClose={() => setIsQuizModalOpen(false)}
+        onSubmit={handleQuizSubmit}
+        existingQuestions={quizQuestions}
+      />
     </div>
   );
 }
+

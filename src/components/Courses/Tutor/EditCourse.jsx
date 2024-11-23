@@ -169,6 +169,10 @@ export default function EditCourse() {
     setEditingStructureIndex(null);
   };
 
+  const handleAddQuiz = () => {
+    navigate(`/tutor/addquiz/${id}/course`);
+  };
+
   const handleThumbnailChange = (e) => {
     if (e.target.files && e.target.files.length > 0) {
       setThumbnailFile(e.target.files[0]);
@@ -327,6 +331,13 @@ export default function EditCourse() {
                       <PlusCircle className="w-5 h-5" />
                       Add Lesson
                     </button>
+                    <button
+                        onClick={handleAddQuiz}
+                        className="px-4 py-2 bg-purple-500 text-white rounded-md hover:bg-purple-600 transition-colors flex items-center gap-2"
+                      >
+                        <PlusCircle className="w-5 h-5" />
+                        Add Quiz
+                      </button>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {courseData.lessons?.map((lesson) => (

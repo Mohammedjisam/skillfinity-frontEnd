@@ -11,6 +11,8 @@ import axiosInstance from "@/AxiosConfig";
 export default function Chat() {
   const tutorData = useSelector((store) => store.tutor.tutorDatas);
 
+  console.log(tutorData)
+
   const navigate = useNavigate();
   const socket = useRef();
   const [contacts, setContacts] = useState([]);
@@ -51,14 +53,14 @@ export default function Chat() {
   }, []);
 
   useEffect(() => {
-  if (currentUser) {
-    socket.current = io(host,{transports:["websocket"]});
+    if (currentUser) {
+      socket.current = io(host, {
+        transports: ["websocket"],
+        auth: { userId: currentUser._id }
+      });
 
     socket.current.on("connect", () => {
       console.log("Connected to server. Socket ID:", socket.current.id);
-
-      // Emit user ID after connection
-      socket.current.emit("add-user", currentUser._id);
     });
 
     socket.current.on("connect_error", (err) => {
