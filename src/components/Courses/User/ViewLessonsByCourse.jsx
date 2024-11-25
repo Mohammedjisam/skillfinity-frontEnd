@@ -156,6 +156,7 @@ const CustomVideoPlayer = ({ src }) => {
     }
   };
 
+  
   return (
     <div
       ref={containerRef}
@@ -352,6 +353,10 @@ const ViewLessonsByCourse = () => {
     setSelectedVideo(videoUrl);
   };
 
+  const handleAttendQuiz = () => {
+    navigate(`/quiz/${courseId}`);
+  };
+
   const handleDownloadPdf = async (pdfUrl) => {
     try {
       if (!pdfUrl) {
@@ -427,6 +432,12 @@ const ViewLessonsByCourse = () => {
           >
             Chat with tutor
           </Button>
+          <Button
+              onClick={handleAttendQuiz}
+              className="bg-blue-600 hover:bg-blue-700 text-white shadow-md hover:shadow-lg transition-all duration-300"
+            >
+              Attend Quiz
+            </Button>
         </div>
         <Card className="bg-white shadow-xl border-none rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-2xl">
           <CardHeader className="bg-gradient-to-r from-gray-100 to-gray-200 p-8">

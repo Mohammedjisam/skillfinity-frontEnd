@@ -170,7 +170,7 @@ export default function EditCourse() {
   };
 
   const handleAddQuiz = () => {
-    navigate(`/tutor/addquiz/${id}/course`);
+    navigate(`/tutor/addquiz/${id}`);
   };
 
   const handleThumbnailChange = (e) => {

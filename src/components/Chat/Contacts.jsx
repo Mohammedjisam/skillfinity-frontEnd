@@ -28,10 +28,13 @@ export default function Contacts({ contacts, changeChat }) {
               onClick={() => changeCurrentChat(index, contact)}
             >
               <div className="flex items-center space-x-4">
-                <div className="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center text-xl font-semibold text-gray-600">
+                <div 
+                  key={`avatar-${contact._id}`}
+                  className="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center text-xl font-semibold text-gray-600"
+                >
                   {contact.name.charAt(0).toUpperCase()}
                 </div>
-                <div>
+                <div key={`name-${contact._id}`}>
                   <h3 className="text-lg font-semibold">{contact.name}</h3>
                 </div>
               </div>
@@ -50,3 +53,4 @@ export default function Contacts({ contacts, changeChat }) {
     </div>
   );
 }
+

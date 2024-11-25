@@ -225,12 +225,13 @@ export default function AddLesson() {
         lessonDataToSubmit
       );
 
-      // Add quiz data to the database
       if (quizQuestions.length > 0) {
         try {
-          const quizResponse = await axiosInstance.post(`/data/addquiz/${courseId}`, {
+          console.log('Sending quiz data:', { courseId, questions: quizQuestions });
+          const quizResponse = await axiosInstance.post(`/user/data/addquiz/${courseId}`, {
             questions: quizQuestions
           });
+          console.log("Quiz added successfully:", quizResponse.data);
           toast.success("Quiz added successfully");
         } catch (quizError) {
           console.error("Error adding quiz:", quizError);
@@ -241,7 +242,6 @@ export default function AddLesson() {
       setAddedLessons([...addedLessons, { ...response.data.lesson, quizQuestions }]);
       toast.success("Lesson added successfully");
 
-      // Reset form fields
       setLessonData({
         title: "",
         description: "",
@@ -265,6 +265,7 @@ export default function AddLesson() {
       setUploadProgress(0);
     }
   };
+
 
   const handleFinishCourse = () => {
     navigate("/tutor/courses");

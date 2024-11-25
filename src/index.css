@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=Great+Vibes&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -31,4 +33,21 @@
     @apply bg-background text-foreground;
   }
 }
+
+.font-script {
+  font-family: 'Great Vibes', cursive;
+}
+
+.font-serif {
+  font-family: 'Playfair Display', serif;
+}
+
+.text-copper {
+  color: rgb(var(--copper));
+}
+
+.border-copper {
+  border-color: rgb(var(--copper));
+}
+
 
