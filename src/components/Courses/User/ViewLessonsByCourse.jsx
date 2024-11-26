@@ -16,301 +16,17 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Slider } from "@/components/ui/slider";
 import {
   Play,
-  Pause,
   FileText,
   Clock,
   ChevronLeft,
-  X,
-  Volume2,
-  VolumeX,
-  Maximize,
-  Settings,
-  SkipBack,
-  SkipForward,
 } from "lucide-react";
 import { toast } from "sonner";
 import ChatForUser from "@/pages/Chat/ChatForUser";
-
-const CustomVideoPlayer = ({ src }) => {
-  const videoRef = useRef(null);
-  const containerRef = useRef(null);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(0);
-  const [volume, setVolume] = useState(1);
-  const [isMuted, setIsMuted] = useState(false);
-  const [playbackRate, setPlaybackRate] = useState(1);
-  const [isFullscreen, setIsFullscreen] = useState(false);
-  const [showControls, setShowControls] = useState(true);
-  const [showSettings, setShowSettings] = useState(false);
-
-  useEffect(() => {
-    const video = videoRef.current;
-    if (video) {
-      video.addEventListener("timeupdate", handleTimeUpdate);
-      video.addEventListener("loadedmetadata", handleLoadedMetadata);
-
-      const hideControlsTimer = setTimeout(() => {
-        if (isPlaying) setShowControls(false);
-      }, 3000);
-
-      return () => {
-        video.removeEventListener("timeupdate", handleTimeUpdate);
-        video.removeEventListener("loadedmetadata", handleLoadedMetadata);
-        clearTimeout(hideControlsTimer);
-      };
-    }
-  }, [isPlaying]);
-
-  const handleTimeUpdate = () => {
-    if (videoRef.current) {
-      setCurrentTime(videoRef.current.currentTime);
-    }
-  };
-
-  const handleLoadedMetadata = () => {
-    if (videoRef.current) {
-      setDuration(videoRef.current.duration);
-    }
-  };
-
-  const togglePlay = () => {
-    if (videoRef.current) {
-      if (isPlaying) {
-        videoRef.current.pause();
-      } else {
-        videoRef.current.play();
-      }
-      setIsPlaying(!isPlaying);
-    }
-  };
-
-  const handleSeek = (value) => {
-    const newTime = value[0];
-    if (videoRef.current) {
-      videoRef.current.currentTime = newTime;
-      setCurrentTime(newTime);
-    }
-  };
-
-  const handleVolumeChange = (value) => {
-    const newVolume = value[0];
-    if (videoRef.current) {
-      videoRef.current.volume = newVolume;
-      setVolume(newVolume);
-      setIsMuted(newVolume === 0);
-    }
-  };
-
-  const toggleMute = () => {
-    if (videoRef.current) {
-      const newMutedState = !isMuted;
-      videoRef.current.muted = newMutedState;
-      setIsMuted(newMutedState);
-      if (newMutedState) {
-        setVolume(0);
-      } else {
-        setVolume(1);
-        videoRef.current.volume = 1;
-      }
-    }
-  };
-
-  const handleSpeedChange = (value) => {
-    const newSpeed = parseFloat(value);
-    if (videoRef.current) {
-      videoRef.current.playbackRate = newSpeed;
-      setPlaybackRate(newSpeed);
-      setShowSettings(false);
-    }
-  };
-
-  const toggleFullscreen = () => {
-    if (!document.fullscreenElement) {
-      containerRef.current.requestFullscreen();
-      setIsFullscreen(true);
-    } else {
-      document.exitFullscreen();
-      setIsFullscreen(false);
-    }
-  };
-
-  const formatTime = (time) => {
-    const minutes = Math.floor(time / 60);
-    const seconds = Math.floor(time % 60);
-    return `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`;
-  };
-
-  const skipForward = () => {
-    if (videoRef.current) {
-      videoRef.current.currentTime += 10;
-    }
-  };
-
-  const skipBackward = () => {
-    if (videoRef.current) {
-      videoRef.current.currentTime -= 10;
-    }
-  };
-
-  
-  return (
-    <div
-      ref={containerRef}
-      className="relative bg-[#2D1B69] rounded-lg overflow-hidden group aspect-video"
-      onMouseMove={() => setShowControls(true)}
-      onMouseLeave={() => isPlaying && setShowControls(false)}
-    >
-      <video
-        ref={videoRef}
-        src={src}
-        className="w-full h-full"
-        onClick={togglePlay}
-      />
-
-      {/* Center Play Button */}
-      <div className="absolute inset-0 flex items-center justify-center">
-        <button
-          onClick={togglePlay}
-          className="w-16 h-16 flex items-center justify-center rounded-full bg-white/10 text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white/20"
-        >
-          {isPlaying ? (
-            <Pause className="h-8 w-8" />
-          ) : (
-            <Play className="h-8 w-8" />
-          )}
-        </button>
-      </div>
-
-      {/* Video Controls */}
-      <div
-        className={`absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 via-black/40 to-transparent transition-opacity duration-300 ${
-          showControls ? "opacity-100" : "opacity-0"
-        }`}
-      >
-        {/* Progress Bar */}
-        <div className="px-4 pt-8">
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-white/80">
-              {formatTime(currentTime)}
-            </span>
-            <Slider
-              value={[currentTime]}
-              max={duration}
-              step={1}
-              onValueChange={handleSeek}
-              className="w-full"
-            />
-            <span className="text-xs text-white/80">
-              {formatTime(duration)}
-            </span>
-          </div>
-        </div>
-
-        {/* Controls Bar */}
-        <div className="flex items-center justify-between px-4 py-3">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-1">
-              <Button
-                onClick={toggleMute}
-                variant="ghost"
-                size="icon"
-                className="text-white hover:bg-white/10"
-              >
-                {isMuted ? (
-                  <VolumeX className="h-5 w-5" />
-                ) : (
-                  <Volume2 className="h-5 w-5" />
-                )}
-              </Button>
-              <Slider
-                value={[volume]}
-                max={1}
-                step={0.1}
-                onValueChange={handleVolumeChange}
-                className="w-20"
-              />
-            </div>
-            <div className="flex items-center gap-1">
-              <Button
-                onClick={skipBackward}
-                variant="ghost"
-                size="icon"
-                className="text-white hover:bg-white/10"
-              >
-                <SkipBack className="h-5 w-5" />
-              </Button>
-              <Button
-                onClick={togglePlay}
-                variant="ghost"
-                size="icon"
-                className="text-white hover:bg-white/10"
-              >
-                {isPlaying ? (
-                  <Pause className="h-5 w-5" />
-                ) : (
-                  <Play className="h-5 w-5" />
-                )}
-              </Button>
-              <Button
-                onClick={skipForward}
-                variant="ghost"
-                size="icon"
-                className="text-white hover:bg-white/10"
-              >
-                <SkipForward className="h-5 w-5" />
-              </Button>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <div className="relative">
-              <Button
-                onClick={() => setShowSettings(!showSettings)}
-                variant="ghost"
-                size="icon"
-                className="text-white hover:bg-white/10"
-              >
-                <Settings className="h-5 w-5" />
-              </Button>
-              {showSettings && (
-                <div className="absolute bottom-full right-0 mb-2 p-3 bg-black/90 rounded-lg min-w-[200px]">
-                  <div className="text-sm text-white mb-2">Playback Speed</div>
-                  <div className="grid grid-cols-4 gap-1">
-                    {[0.5, 1, 1.5, 2].map((speed) => (
-                      <button
-                        key={speed}
-                        onClick={() => handleSpeedChange(speed)}
-                        className={`px-2 py-1 rounded ${
-                          playbackRate === speed
-                            ? "bg-white/20"
-                            : "hover:bg-white/10"
-                        } text-white text-sm`}
-                      >
-                        {speed}x
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-            <Button
-              onClick={toggleFullscreen}
-              variant="ghost"
-              size="icon"
-              className="text-white hover:bg-white/10"
-            >
-              <Maximize className="h-5 w-5" />
-            </Button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
+import { useSelector } from "react-redux";
+import CustomVideoPlayer from "./CustomVideoPlayer"
+import Sidebar from "../../../pages/User/Sidebar";
 
 const ViewLessonsByCourse = () => {
   const [lessons, setLessons] = useState([]);
@@ -318,20 +34,24 @@ const ViewLessonsByCourse = () => {
   const [courseTitle, setCourseTitle] = useState("");
   const [selectedVideo, setSelectedVideo] = useState(null);
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [hasCertificate, setHasCertificate] = useState(false);
   const { courseId } = useParams();
   const [tutor, setTutor] = useState(null);
   const navigate = useNavigate();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+  const userId = useSelector((store) => store.user.userDatas._id)
+
+  const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
+
 
   useEffect(() => {
     fetchLessons();
+    checkCertificate();
   }, [courseId]);
 
   const fetchLessons = async () => {
     try {
-      const response = await axiosInstance.get(
-        `/user/data/viewcourselessons/${courseId}`
-      );
-      console.log("tutorinte vellom ondoooooooooo===>", response.data);
+      const response = await axiosInstance.get(`/user/data/viewcourselessons/${courseId}`);
       setTutor(response.data.lessons[0].tutor);
       setLessons(response.data.lessons);
       if (response.data.lessons.length > 0) {
@@ -345,7 +65,17 @@ const ViewLessonsByCourse = () => {
     }
   };
 
-  const handleBack = () => {
+  const checkCertificate = async () => {
+    try {
+      const response = await axiosInstance.get(`/user/data/certificate/check/${userId}/${courseId}`);
+      setHasCertificate(response.data.exists);
+    } catch (error) {
+      console.error("Error checking certificate:", error);
+      toast.error("Failed to check certificate status.");
+    }
+  };
+
+    const handleBack = () => {
     navigate(-1);
   };
 
@@ -415,11 +145,25 @@ const ViewLessonsByCourse = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto">
-        <div className="flex justify-between">
-          <Button
-            onClick={handleBack}
+    <div className="flex h-screen bg-gray-100 overflow-hidden">
+      <Sidebar isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} activeItem="Courses"  />
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <header className="bg-white shadow-sm lg:hidden">
+          <div className="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8">
+            <button
+              onClick={toggleSidebar}
+              className="p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
+              aria-label="Toggle sidebar"
+            >
+              <ChevronLeft className="h-6 w-6" aria-hidden="true" />
+            </button>
+          </div>
+        </header>
+        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-4xl mx-auto">
+            <div className="flex justify-between">
+              <Button
+                onClick={handleBack}
             variant="ghost"
             className="mb-6 hover:bg-gray-200 text-gray-800 shadow-sm transition-all duration-300 bg-gray-100"
           >
@@ -432,12 +176,14 @@ const ViewLessonsByCourse = () => {
           >
             Chat with tutor
           </Button>
-          <Button
+          {!hasCertificate && (
+            <Button
               onClick={handleAttendQuiz}
               className="bg-blue-600 hover:bg-blue-700 text-white shadow-md hover:shadow-lg transition-all duration-300"
             >
               Attend Quiz
             </Button>
+          )}
         </div>
         <Card className="bg-white shadow-xl border-none rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-2xl">
           <CardHeader className="bg-gradient-to-r from-gray-100 to-gray-200 p-8">
@@ -500,15 +246,17 @@ const ViewLessonsByCourse = () => {
                         className="flex items-center bg-white hover:bg-gray-100 text-gray-800 shadow-md hover:shadow-lg transition-all duration-300 border-none"
                         onClick={() => handleDownloadPdf(lesson.pdfnotes)}
                       >
-                        <FileText className="mr-2 h-5 w-5" /> Download PDF Notes
-                      </Button>
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
-              ))}
-            </Accordion>
-          </CardContent>
-        </Card>
+                           <FileText className="mr-2 h-5 w-5" /> Download PDF Notes
+                          </Button>
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
+                  ))}
+                </Accordion>
+              </CardContent>
+            </Card>
+          </div>
+        </main>
       </div>
     </div>
   );

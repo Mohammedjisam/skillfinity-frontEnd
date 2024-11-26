@@ -26,6 +26,7 @@ import PurchaseHistory from '@/components/Courses/User/PusrchaseHistory'
 import WishlistCourses from '@/components/Courses/User/WishlistCourses'
 import CourseQuiz  from '@/components/Courses/User/CourseQuiz'
 import CourseCertificate from '@/components/Courses/User/CourseCertificate'
+import UserCertificates from '@/components/Courses/User/ViewCerticates'
 
 function UserRoutes() {
   return (
@@ -56,8 +57,10 @@ function UserRoutes() {
         <Route path='/wishlist' element={<ProtectedUserRoutes><WishlistCourses /></ProtectedUserRoutes>}/>
         <Route path='/quiz/:courseId' element={<ProtectedUserRoutes><CourseQuiz /></ProtectedUserRoutes>}/>
         <Route path='/certificate/:courseId' element={<ProtectedUserRoutes><CourseCertificate /></ProtectedUserRoutes>}/>
+        <Route path='/certifications' element={<ProtectedUserRoutes><UserCertificates /></ProtectedUserRoutes>}/>
        </Routes>
        <Footer />
+       
     </div>
   )
 }

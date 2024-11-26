@@ -1,56 +1,56 @@
 import React, { useState, useEffect } from "react";
+import { Search } from 'lucide-react';
 
-export default function Contacts({ contacts, changeChat }) {
-  const [currentUserName, setCurrentUserName] = useState(undefined);
-  const [currentUserImage, setCurrentUserImage] = useState(undefined);
-  const [currentSelected, setCurrentSelected] = useState(undefined);
+export default function Contacts({ contacts, changeChat, currentChat }) {
+  const [searchTerm, setSearchTerm] = useState("");
 
-  const changeCurrentChat = (index, contact) => {
-    setCurrentSelected(index);
-    changeChat(contact);
-  };
+  const filteredContacts = contacts?.users?.filter(contact =>
+    contact.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
-    <div className="flex flex-col h-full bg-gray-50 border-r border-gray-200">
-      <div className="bg-primary p-6 shadow-md">
-        <h3 className="text-3xl font-bold text-gray-800 tracking-wide">CHAT</h3>
+    <div className="flex flex-col h-full">
+      <div className="bg-gray-100 p-4">
+        <h2 className="text-2xl font-bold text-gray-800">Chats</h2>
       </div>
-      <div className="flex-grow overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
-        {contacts?.users && contacts.users.length > 0 ? (
-          contacts.users.map((contact, index) => (
+      <div className="p-4 border-b border-gray-200">
+        <div className="relative">
+          <input
+            type="text"
+            placeholder="Search or start new chat"
+            className="w-full py-2 pl-10 pr-4 text-gray-700 bg-gray-100 rounded-full focus:outline-none focus:ring-2 focus:ring-green-500"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+          <Search className="absolute left-3 top-2.5 text-gray-400" size={20} />
+        </div>
+      </div>
+      <div className="flex-1 overflow-y-auto">
+        {filteredContacts && filteredContacts.length > 0 ? (
+          filteredContacts.map((contact) => (
             <div
               key={contact._id}
-              className={`p-4 cursor-pointer transition-all duration-300 ease-in-out ${
-                index === currentSelected
-                  ? "bg-primary text-gray-800 shadow-md"
-                  : "hover:bg-gray-100"
+              className={`flex items-center p-4 cursor-pointer transition-all duration-300 ease-in-out ${
+                currentChat?.id === contact._id ? "bg-gray-100" : "hover:bg-gray-50"
               }`}
-              onClick={() => changeCurrentChat(index, contact)}
+              onClick={() => changeChat(contact)}
             >
-              <div className="flex items-center space-x-4">
-                <div 
-                  key={`avatar-${contact._id}`}
-                  className="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center text-xl font-semibold text-gray-600"
-                >
-                  {contact.name.charAt(0).toUpperCase()}
-                </div>
-                <div key={`name-${contact._id}`}>
-                  <h3 className="text-lg font-semibold">{contact.name}</h3>
-                </div>
+              <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center text-xl font-semibold text-white mr-4">
+                {contact.name.charAt(0).toUpperCase()}
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-800">{contact.name}</h3>
+                <p className="text-sm text-gray-500">Click to start chatting</p>
               </div>
             </div>
           ))
         ) : (
-          <div className="p-8 text-center text-gray-500">
-            <svg className="w-16 h-16 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-            </svg>
-            <p className="text-xl font-semibold">No contacts available</p>
-            <p className="mt-2">Start adding contacts to chat with them</p>
+          <div className="p-4 text-center text-gray-500">
+            <p className="text-lg font-semibold">No contacts found</p>
+            <p className="mt-2">Try a different search or add new contacts</p>
           </div>
         )}
       </div>
     </div>
   );
 }
-
