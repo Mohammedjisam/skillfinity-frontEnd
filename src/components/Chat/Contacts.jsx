@@ -10,7 +10,7 @@ export default function Contacts({ contacts, changeChat, currentChat }) {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="bg-gray-100 p-4">
+      <div className="bg-white p-4">
         <h2 className="text-2xl font-bold text-gray-800">Chats</h2>
       </div>
       <div className="p-4 border-b border-gray-200">
@@ -25,26 +25,26 @@ export default function Contacts({ contacts, changeChat, currentChat }) {
           <Search className="absolute left-3 top-2.5 text-gray-400" size={20} />
         </div>
       </div>
-      <div className="flex-1 overflow-y-auto">
-        {filteredContacts && filteredContacts.length > 0 ? (
-          filteredContacts.map((contact) => (
-            <div
-              key={contact._id}
-              className={`flex items-center p-4 cursor-pointer transition-all duration-300 ease-in-out ${
-                currentChat?.id === contact._id ? "bg-gray-100" : "hover:bg-gray-50"
-              }`}
-              onClick={() => changeChat(contact)}
-            >
-              <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center text-xl font-semibold text-white mr-4">
-                {contact.name.charAt(0).toUpperCase()}
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold text-gray-800">{contact.name}</h3>
-                <p className="text-sm text-gray-500">Click to start chatting</p>
-              </div>
-            </div>
-          ))
-        ) : (
+<div className="flex-1 overflow-y-auto">
+  {filteredContacts && filteredContacts.length > 0 ? (
+    filteredContacts.map((contact, index) => (
+      <div
+        key={contact._id || `contact-${index}`}
+        className={`flex items-center p-4 cursor-pointer transition-all duration-300 ease-in-out ${
+          currentChat?.id === contact._id ? "bg-gray-100" : "hover:bg-gray-50"
+        }`}
+        onClick={() => changeChat(contact)}
+      >
+        <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center text-xl font-semibold text-white mr-4">
+          {contact.name.charAt(0).toUpperCase()}
+        </div>
+        <div>
+          <h3 className="text-lg font-semibold text-gray-800">{contact.name}</h3>
+          <p className="text-sm text-gray-500">Click to start chatting</p>
+        </div>
+      </div>
+    ))
+  ) : (
           <div className="p-4 text-center text-gray-500">
             <p className="text-lg font-semibold">No contacts found</p>
             <p className="mt-2">Try a different search or add new contacts</p>

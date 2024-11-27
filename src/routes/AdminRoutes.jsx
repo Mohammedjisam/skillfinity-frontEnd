@@ -17,6 +17,7 @@ import CategoryManagement from '@/pages/Admin/CategoryManagement'
 import CourseManagement from '@/components/Courses/Admin/CourseManagement'
 import ViewCourseDetails from '@/components/Courses/Admin/ViewCourseDetails'
 import ViewLessons from '@/components/Courses/Admin/ViewLessons'
+import AdminOrders from '../components/Courses/Admin/AdminOrders'
 
 function AdminRoutes() {
   return (
@@ -37,7 +38,7 @@ function AdminRoutes() {
         <Route path='category' element={<ProtectedAdminRoutes><CategoryManagement/></ProtectedAdminRoutes>}/>
         <Route path='courses/:id' element={<ProtectedAdminRoutes><ViewCourseDetails/></ProtectedAdminRoutes>}/>
         <Route path='courses/:courseId/lessons' element={<ProtectedAdminRoutes><ViewLessons/></ProtectedAdminRoutes>}/>
-
+        <Route path='orders' element={<ProtectedAdminRoutes><AdminOrders /></ProtectedAdminRoutes>}/>
       </Routes>
       <Footer />
     </div>

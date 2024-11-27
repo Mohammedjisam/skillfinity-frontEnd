@@ -25,19 +25,6 @@ export default function TutorProfile() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  useEffect(() => {
-    const fetchTutorData = async () => {
-      try {
-        const response = await axiosInstance.get('/tutor/profile');
-        dispatch(addTutor(response.data.tutor)); // Dispatch addTutor instead of setTutorData
-      } catch (error) {
-        console.error("Error fetching tutor profile:", error);
-      }
-    };
-
-    fetchTutorData();
-  }, [dispatch]);
-
   const toggleSidebar = () => {
     if (window.innerWidth < 1024) {
       setIsSidebarOpen(!isSidebarOpen);
@@ -118,7 +105,7 @@ export default function TutorProfile() {
 
   return (
     <div className="flex h-screen bg-gray-100 overflow-hidden">
-      <TutorSidebar isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
+      <TutorSidebar isOpen={isSidebarOpen} toggleSidebar={toggleSidebar}/>
       <div className="flex-1 flex flex-col overflow-hidden">
         <header className="bg-white shadow-sm lg:hidden">
           <div className="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8">

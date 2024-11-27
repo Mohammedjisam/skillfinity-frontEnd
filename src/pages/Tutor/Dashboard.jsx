@@ -1,20 +1,49 @@
-import { useState } from 'react'
-import SideBar from './SideBar'
-import { Menu } from 'lucide-react'
+import React, { useState, useEffect } from 'react';
+import axiosInstance from '../../AxiosConfig';
+import { useSelector } from 'react-redux';
+import SideBar from './SideBar';
+import TutorRevenueChart from '../../components/Courses/Tutor/TutorRevenueChart';
+import { Menu, Loader2 } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 const Dashboard = () => {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
-  const chartData = [
-    { month: 'Jan', value: 40 },
-    { month: 'Feb', value: 30 },
-    { month: 'Mar', value: 50 },
-    { month: 'Apr', value: 27 },
-    { month: 'May', value: 18 },
-    { month: 'Jun', value: 23 },
-    { month: 'Jul', value: 34 },
-  ]
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const tutorData = useSelector((store) => store.tutor.tutorDatas);
+  const [overviewData, setOverviewData] = useState({
+    totalRevenue: 0,
+    totalCourses: 0,
+    totalStudents: 0
+  });
+  const [isLoading, setIsLoading] = useState(true);
+  const [selectedPeriod, setSelectedPeriod] = useState('days');
+  const tutorId = tutorData?._id;
 
-  const maxValue = Math.max(...chartData.map(item => item.value))
+  useEffect(() => {
+    if (tutorId) {
+      fetchDashboardData();
+    }
+  }, [tutorId]);
+
+  const fetchDashboardData = async () => {
+    setIsLoading(true);
+    try {
+      const response = await axiosInstance.get(`/user/data/revenue/${tutorId}`);
+      setOverviewData({
+        totalRevenue: response.data.totalRevenue || 0,
+        totalCourses: response.data.totalCourses || 0,
+        totalStudents: response.data.totalStudents || 0
+      });
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const formatCurrency = (value) => {
+    return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', minimumFractionDigits: 0 }).format(value);
+  };
 
   return (
     <div className="flex h-screen bg-gray-100 overflow-hidden">
@@ -39,57 +68,55 @@ const Dashboard = () => {
             <h1 className="text-2xl font-bold mb-6">Dashboard</h1>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
               {[
-                { title: 'Total Revenue', value: '₹2100000' },
-                { title: 'Total Courses', value: '65' },
-                { title: 'Total Students', value: '252' },
+                { title: 'Total Revenue', value: formatCurrency(overviewData.totalRevenue) },
+                { title: 'Total Courses', value: overviewData.totalCourses },
+                { title: 'Total Students', value: overviewData.totalStudents },
               ].map((item, index) => (
-                <div key={index} className="bg-white p-6 rounded-lg shadow">
-                  <h2 className="text-3xl font-bold mb-2">{item.value}</h2>
-                  <p className="text-gray-600">{item.title}</p>
-                </div>
+                <Card key={index}>
+                  <CardHeader>
+                    <CardTitle>{item.title}</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-3xl font-bold">{item.value}</p>
+                  </CardContent>
+                </Card>
               ))}
             </div>
-            <div className="bg-white p-6 rounded-lg shadow">
-              <div className="flex flex-wrap justify-between items-center mb-4">
-                <h2 className="text-xl font-semibold mb-2 sm:mb-0">Market Overview</h2>
-                <div className="flex flex-wrap space-x-2">
-                  {['All', '1M', '6M', '1Y', 'YTD'].map((period) => (
-                    <button
-                      key={period}
-                      className="px-3 py-1 text-sm rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors mb-2 sm:mb-0"
-                    >
-                      {period}
-                    </button>
-                  ))}
+            <Card>
+              <CardHeader>
+                <CardTitle>Market Overview</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-wrap justify-between items-center mb-4">
+                  <div className="flex flex-wrap space-x-2">
+                    {['days', 'weeks', 'month', 'year'].map((period) => (
+                      <Button
+                        key={period}
+                        variant={selectedPeriod === period ? "default" : "outline"}
+                        onClick={() => setSelectedPeriod(period)}
+                      >
+                        {period.charAt(0).toUpperCase() + period.slice(1)}
+                      </Button>
+                    ))}
+                  </div>
                 </div>
-              </div>
-              <div className="h-64 mt-4">
-               <div className="relative h-full">
-                 {chartData.map((item, index) => (
-                   <div
-                    key={index}
-                      className="absolute bottom-0 bg-teal-500 w-8 rounded-t-md flex flex-col justify-between items-center"
-                      style={{
-                      height: `${(item.value / maxValue) * 100}%`,
-                      left: `calc(${(index / (chartData.length - 1)) * 100}% - 1rem)`, // Adjust left position
-                    }}
-                  >
-                   <div className="text-xs text-white mt-1">
-                     {item.value}
-                   </div>
-                   <div className="text-xs text-white mb-1">
-                     {item.month}
-                   </div>
-                 </div>
-                 ))}
-                </div>
-               </div>
-            </div>
+                {isLoading ? (
+                  <div className="flex justify-center items-center h-64">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                  </div>
+                ) : (
+                  <div className="h-64 mt-4">
+                    <TutorRevenueChart tutorId={tutorId} timeFilter={selectedPeriod} />
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </div>
         </main>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default Dashboard
+export default Dashboard;
+

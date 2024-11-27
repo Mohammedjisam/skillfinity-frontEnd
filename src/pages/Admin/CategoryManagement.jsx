@@ -125,7 +125,7 @@ export default function CategoryManagement() {
       </header>
 
       <div className="flex flex-1">
-        <AdminSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+        <AdminSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} activeItem="Category" />
 
         <main className="flex-1 p-4 md:p-8 overflow-x-auto">
           <h1 className="text-2xl font-bold mb-6 hidden md:block">Categories</h1>

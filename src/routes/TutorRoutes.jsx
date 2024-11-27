@@ -17,6 +17,7 @@ import EditLesson from '@/components/Courses/Tutor/EditLesson'
 import MyCourses from '@/components/Courses/Tutor/MyCourse'
 import ChatForTutor from "../pages/Chat/ChatForTutor"
 import AddQuiz from '@/components/Courses/Tutor/AddQuiz'
+import TutorCourseOrders from '../components/Courses/Tutor/TutorCourseOrders'
 
 function TutorRoutes() {
   return (
@@ -37,6 +38,7 @@ function TutorRoutes() {
         <Route path='editlesson/:lessonId'element={<ProtectedTutorRoutes><EditLesson/></ProtectedTutorRoutes>}/>
         <Route path='chat' element={<ChatForTutor/>} />
         <Route path='addquiz/:id' element={<ProtectedTutorRoutes><AddQuiz/></ProtectedTutorRoutes>}/>
+        <Route path='revenue' element={<ProtectedTutorRoutes><TutorCourseOrders/></ProtectedTutorRoutes>}/>
       </Routes>
     <Footer/>
     </div>

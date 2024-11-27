@@ -7,8 +7,8 @@ import { toast } from 'sonner';
 import ConfirmationDialog from '../../components/common/ConfirmationDialog'
 import axiosInstance from '@/AxiosConfig';
 
-const AdminSidebar = ({ initialActiveItem = 'Dashboard', isOpen, onClose }) => {
-  const [activeItem, setActiveItem] = useState(initialActiveItem);
+const AdminSidebar = ({  isOpen, onClose }) => {
+  const [activeItem, setActiveItem] = useState();
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
