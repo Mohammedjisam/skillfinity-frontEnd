@@ -5,7 +5,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Loader2, Book, DollarSign, Mail, ShoppingCart, ChevronLeft, ChevronRight, Play } from 'lucide-react'
+import { Loader2, Book, DollarSign, Mail, ShoppingCart, ChevronLeft, ChevronRight, Play, User } from 'lucide-react'
 import { toast } from 'sonner'
 import { useSelector } from 'react-redux'
 import { useCart } from "@/context/CartContext";
@@ -133,8 +133,13 @@ const ViewTutor = () => {
               <CardContent className="pt-6">
                 <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6">
                   <Avatar className="h-24 w-24 sm:h-32 sm:w-32">
-                    <AvatarImage src={tutor.tutor.profileImage} alt={tutor.tutor.name} />
-                    <AvatarFallback>{tutor.tutor.name.charAt(0)}</AvatarFallback>
+                    {tutor.tutor.profileImage ? (
+                      <AvatarImage src={tutor.tutor.profileImage} alt={tutor.tutor.name} />
+                    ) : (
+                      <AvatarFallback className="bg-gray-300 flex items-center justify-center">
+                        <User className="h-12 w-12 sm:h-16 sm:w-16 text-gray-500" />
+                      </AvatarFallback>
+                    )}
                   </Avatar>
                   <div className="text-center sm:text-left flex-1">
                     <h2 className="text-2xl sm:text-3xl font-bold mb-2">{tutor.tutor.name}</h2>
@@ -159,56 +164,65 @@ const ViewTutor = () => {
             </Card>
 
             <h3 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 text-gray-800">Courses by {tutor.tutor.name}</h3>
-            <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-              {currentCourses.map(course => (
-                <Card key={course._id} className="flex flex-col overflow-hidden transition-shadow hover:shadow-lg border-none shadow-md">
-                  <img
-                    src={course.thumbnail || "/placeholder.svg?height=180&width=320"}
-                    alt={course.coursetitle}
-                    className="w-full h-40 sm:h-48 object-cover"
-                  />
-                  <CardHeader className="p-3 pb-0">
-                    <CardTitle className="text-base sm:text-lg line-clamp-2">{course.coursetitle}</CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-3 pt-2 flex-grow">
-                    <p className="text-xs sm:text-sm text-gray-500 mb-1">
-                      Category: {course.category?.title || "Uncategorized"}
-                    </p>
-                    <p className="text-base sm:text-lg font-semibold text-green-600">₹{course.price}</p>
-                  </CardContent>
-                  <CardFooter className="p-3 pt-0 flex flex-col sm:flex-row gap-2">
-                    <Button asChild variant="outline" className="w-full sm:w-1/2 text-xs sm:text-sm py-1">
-                      <Link to={`/coursedetails/${course._id}`}>View Course</Link>
-                    </Button>
-                    {isPurchased(course._id) ? (
-                      <Button 
-                        className="w-full sm:w-1/2 bg-gray-500 hover:bg-gray-600 text-xs sm:text-sm py-1"
-                        onClick={() => handleWatchLessons(course._id)}
-                      >
-                        <Play className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-                        Watch Lessons
+            {currentCourses.length > 0 ? (
+              <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+                {currentCourses.map(course => (
+                  <Card key={course._id} className="flex flex-col overflow-hidden transition-shadow hover:shadow-lg border-none shadow-md">
+                    <img
+                      src={course.thumbnail || "/placeholder.svg?height=180&width=320"}
+                      alt={course.coursetitle}
+                      className="w-full h-40 sm:h-48 object-cover"
+                    />
+                    <CardHeader className="p-3 pb-0">
+                      <CardTitle className="text-base sm:text-lg line-clamp-2">{course.coursetitle}</CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-3 pt-2 flex-grow">
+                      <p className="text-xs sm:text-sm text-gray-500 mb-1">
+                        Category: {course.category?.title || "Uncategorized"}
+                      </p>
+                      <p className="text-base sm:text-lg font-semibold text-green-600">₹{course.price}</p>
+                    </CardContent>
+                    <CardFooter className="p-3 pt-0 flex flex-col sm:flex-row gap-2">
+                      <Button asChild variant="outline" className="w-full sm:w-1/2 text-xs sm:text-sm py-1">
+                        <Link to={`/coursedetails/${course._id}`}>View Course</Link>
                       </Button>
-                    ) : cartItems.includes(course._id) ? (
-                      <Button 
-                        className="w-full sm:w-1/2 bg-orange-500 hover:bg-orange-600 text-xs sm:text-sm py-1"
-                        onClick={goToCart}
-                      >
-                        <ShoppingCart className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-                        Go to Cart
-                      </Button>
-                    ) : (
-                      <Button 
-                        className="w-full sm:w-1/2 bg-green-600 hover:bg-green-700 text-xs sm:text-sm py-1"
-                        onClick={() => handleAddToCart(course._id)}
-                      >
-                        <ShoppingCart className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-                        Add to Cart
-                      </Button>
-                    )}
-                  </CardFooter>
-                </Card>
-              ))}
-            </div>
+                      {isPurchased(course._id) ? (
+                        <Button 
+                          className="w-full sm:w-1/2 bg-gray-500 hover:bg-gray-600 text-xs sm:text-sm py-1"
+                          onClick={() => handleWatchLessons(course._id)}
+                        >
+                          <Play className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                          Watch Lessons
+                        </Button>
+                      ) : cartItems.includes(course._id) ? (
+                        <Button 
+                          className="w-full sm:w-1/2 bg-orange-500 hover:bg-orange-600 text-xs sm:text-sm py-1"
+                          onClick={goToCart}
+                        >
+                          <ShoppingCart className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                          Go to Cart
+                        </Button>
+                      ) : (
+                        <Button 
+                          className="w-full sm:w-1/2 bg-green-600 hover:bg-green-700 text-xs sm:text-sm py-1"
+                          onClick={() => handleAddToCart(course._id)}
+                        >
+                          <ShoppingCart className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                          Add to Cart
+                        </Button>
+                      )}
+                    </CardFooter>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <Card className="text-center p-6">
+                <CardContent>
+                  <h3 className="text-xl font-semibold mb-2">No Courses Available</h3>
+                  <p className="text-gray-600">This tutor hasn't uploaded any courses yet.</p>
+                </CardContent>
+              </Card>
+            )}
 
             {totalPages > 1 && (
               <div className="flex justify-center items-center mt-8 gap-2">
@@ -254,3 +268,4 @@ const ViewTutor = () => {
 }
 
 export default ViewTutor
+

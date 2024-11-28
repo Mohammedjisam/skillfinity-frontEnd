@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState } from 'react';
 import { 
   LayoutDashboard, 
   UserCircle, 
@@ -8,13 +8,13 @@ import {
   LogOut, 
   X, 
   PlusCircle 
-} from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
-import { useSelector, useDispatch } from 'react-redux'
-import { logoutTutor } from '@/redux/slice/TutorSlice'
-import { toast } from 'sonner'
-import axiosInstance from '@/AxiosConfig'
-import Swal from 'sweetalert2'
+} from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { useSelector, useDispatch } from 'react-redux';
+import { logoutTutor } from '@/redux/slice/TutorSlice';
+import { toast } from 'sonner';
+import axiosInstance from '@/AxiosConfig';
+import Swal from 'sweetalert2';
 
 const ConfirmationDialog = ({
   title,
@@ -42,15 +42,19 @@ const ConfirmationDialog = ({
   return { showConfirmation };
 };
 
-const SideBar = ({ isOpen, onClose, activeItem = 'Profile' }) => {
-  const tutorData = useSelector((store) => store.tutor.tutorDatas)
-  const navigate = useNavigate()
-  const dispatch = useDispatch()
+const SideBar = ({ isOpen, onClose }) => {
+  const tutorData = useSelector((store) => store.tutor.tutorDatas);
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
 
-  const handleNavigation = (path) => {
-    navigate(path)
-    onClose?.()
-  }
+  // Manage active item state
+  const [activeItem, setActiveItem] = useState('Dashboard');
+
+  const handleNavigation = (path, itemName) => {
+    setActiveItem(itemName); // Update active item
+    navigate(path);
+    onClose?.();
+  };
 
   const handleLogout = async () => {
     const { showConfirmation } = ConfirmationDialog({
@@ -75,7 +79,6 @@ const SideBar = ({ isOpen, onClose, activeItem = 'Profile' }) => {
   
     showConfirmation();
   };
-  
 
   const menuItems = [
     { name: 'Dashboard', icon: LayoutDashboard, path: '/tutor/dashboard' },
@@ -83,7 +86,7 @@ const SideBar = ({ isOpen, onClose, activeItem = 'Profile' }) => {
     { name: 'Courses', icon: BookOpen, path: '/tutor/mycourse' },
     { name: 'Revenue', icon: DollarSign, path: '/tutor/revenue' },
     { name: 'Chat & Video', icon: MessageSquare, path: '/tutor/chat' },
-  ]
+  ];
 
   return (
     <>
@@ -132,7 +135,7 @@ const SideBar = ({ isOpen, onClose, activeItem = 'Profile' }) => {
             {menuItems.map((item) => (
               <button
                 key={item.name}
-                onClick={() => handleNavigation(item.path)}
+                onClick={() => handleNavigation(item.path, item.name)}
                 className={`flex items-center w-full p-3 rounded-lg transition-all duration-150 ${
                   activeItem === item.name
                     ? 'bg-gray-100 text-gray-900 shadow-sm'
@@ -154,7 +157,7 @@ const SideBar = ({ isOpen, onClose, activeItem = 'Profile' }) => {
           </button>
           {/* Add Course Button */}
           <button
-            onClick={() => handleNavigation('/tutor/addcourse')}
+            onClick={() => handleNavigation('/tutor/addcourse', 'AddCourse')}
             className="flex items-center w-full p-3 mt-6 rounded-lg bg-teal-600 text-white hover:bg-teal-700 transition-colors"
           >
             <PlusCircle className="w-5 h-5 mr-3" />
@@ -163,7 +166,7 @@ const SideBar = ({ isOpen, onClose, activeItem = 'Profile' }) => {
         </nav>
       </div>
     </>
-  )
-}
+  );
+};
 
-export default SideBar
+export default SideBar;

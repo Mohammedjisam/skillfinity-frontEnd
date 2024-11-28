@@ -1,40 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import axiosInstance from '../../../AxiosConfig';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { AlertCircle, Loader2 } from 'lucide-react';
+import React, { useMemo } from 'react';
+import ReactApexChart from 'react-apexcharts';
 import moment from 'moment';
 
-const TutorRevenueChart = ({ tutorId, timeFilter }) => {
-  const [chartData, setChartData] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    fetchRevenueData();
-  }, [tutorId]);
-
-  const fetchRevenueData = async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const response = await axiosInstance.get(`/user/data/revenue/${tutorId}`);
-      const { revenue } = response.data;
-      setChartData(revenue);
-      console.log(response)
-    } catch (err) {
-      setError('Failed to fetch revenue data. Please try again later.');
-      console.error('Error fetching revenue data:', err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const filterData = (data, filter) => {
+const TutorRevenueChart = ({ data, timeFilter }) => {
+  const filteredData = useMemo(() => {
     const endDate = moment();
     let startDate;
 
-    switch (filter) {
+    switch (timeFilter) {
       case 'days':
         startDate = moment().subtract(7, 'days');
         break;
@@ -48,62 +21,142 @@ const TutorRevenueChart = ({ tutorId, timeFilter }) => {
         startDate = moment().subtract(1, 'year');
         break;
       default:
-        return data;
+        startDate = moment(0); // Beginning of time
     }
 
-    return data.filter(item => {
-      const itemDate = moment(item.date);
-      return itemDate.isBetween(startDate, endDate, null, '[]');
-    });
-  };
-
-  const filteredData = filterData(chartData, timeFilter);
+    return data
+      .filter(item => {
+        const itemDate = moment(item.date);
+        return itemDate.isSameOrAfter(startDate) && itemDate.isSameOrBefore(endDate);
+      })
+      .sort((a, b) => moment(a.date).diff(moment(b.date)));
+  }, [data, timeFilter]);
 
   const formatCurrency = (value) => {
-    return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', minimumFractionDigits: 0 }).format(value);
+    return new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'INR',
+      minimumFractionDigits: 0
+    }).format(value);
   };
 
-  return (
-    <Card className="w-full max-w-3xl mx-auto">
-      <CardHeader>
-        <CardTitle>Tutor Revenue Chart</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="h-[400px] relative">
-          {isLoading ? (
-            <div className="absolute inset-0 flex items-center justify-center">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            </div>
-          ) : error ? (
-            <div className="absolute inset-0 flex items-center justify-center text-destructive">
-              <AlertCircle className="h-6 w-6 mr-2" />
-              <p>{error}</p>
-            </div>
-          ) : (
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart
-                data={filteredData}
-                margin={{
-                  top: 5,
-                  right: 30,
-                  left: 20,
-                  bottom: 5,
-                }}
-              >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="date" />
-                <YAxis tickFormatter={formatCurrency} />
-                <Tooltip formatter={(value) => formatCurrency(value)} />
-                <Legend />
-                <Line type="monotone" dataKey="revenue" stroke="#8884d8" activeDot={{ r: 8 }} />
-              </LineChart>
-            </ResponsiveContainer>
-          )}
+  const chartOptions = {
+    chart: {
+      type: 'area',
+      height: 350,
+      toolbar: {
+        show: false
+      },
+      zoom: {
+        enabled: false
+      }
+    },
+    dataLabels: {
+      enabled: false
+    },
+    stroke: {
+      curve: 'smooth',
+      width: 2
+    },
+    xaxis: {
+      type: 'datetime',
+      categories: filteredData.map(item => item.date),
+      labels: {
+        formatter: function(value) {
+          return moment(new Date(value)).format("DD MMM");
+        }
+      },
+      axisBorder: {
+        show: false
+      },
+      axisTicks: {
+        show: false
+      }
+    },
+    yaxis: {
+      labels: {
+        formatter: function(value) {
+          return formatCurrency(value);
+        }
+      }
+    },
+    tooltip: {
+      x: {
+        format: 'dd MMM yyyy'
+      },
+      y: {
+        formatter: function(value) {
+          return formatCurrency(value);
+        }
+      }
+    },
+    fill: {
+      type: 'gradient',
+      gradient: {
+        shadeIntensity: 1,
+        opacityFrom: 0.7,
+        opacityTo: 0.2,
+        stops: [0, 90, 100]
+      }
+    },
+    colors: ['#4F46E5'],
+    grid: {
+      borderColor: '#f1f1f1',
+      xaxis: {
+        lines: {
+          show: false
+        }
+      },
+      yaxis: {
+        lines: {
+          show: true
+        }
+      }
+    }
+  };
+
+  const series = [{
+    name: 'Revenue',
+    data: filteredData.map(item => item.revenue)
+  }];
+
+  if (!data || data.length === 0) {
+    return (
+      <div className="bg-white rounded-lg shadow p-6">
+        <h3 className="text-lg font-semibold mb-4">Tutor Revenue Chart</h3>
+        <div className="h-[400px] flex items-center justify-center text-red-500">
+          <svg
+            className="w-6 h-6 mr-2"
+            fill="none"
+            strokeCurrentColor
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+          <p>No revenue data available</p>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-white rounded-lg shadow p-6">
+      <h3 className="text-lg font-semibold mb-4">Tutor Revenue Chart</h3>
+      <div className="h-[400px]">
+        <ReactApexChart
+          options={chartOptions}
+          series={series}
+          type="area"
+          height={350}
+        />
+      </div>
+    </div>
   );
 };
 
 export default TutorRevenueChart;
-

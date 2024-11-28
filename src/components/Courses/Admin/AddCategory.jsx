@@ -22,20 +22,23 @@ export default function AddCategory() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   const validateInput = (name, value) => {
-    const regex = /^[a-zA-Z\s]*$/
+    // Regex to allow letters, spaces, and specific special characters
+    const regex = /^[a-zA-Z\s@#_\-!$%^&*()+=,.?":{}|<>]*$/; 
+  
     if (!regex.test(value)) {
       setErrors(prev => ({
         ...prev,
-        [name]: 'Only letters and spaces are allowed'
-      }))
-      return false
+        [name]: 'Only letters, spaces, and allowed special characters are permitted'
+      }));
+      return false;
     }
+  
     setErrors(prev => ({
       ...prev,
       [name]: ''
-    }))
-    return true
-  }
+    }));
+    return true;
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target

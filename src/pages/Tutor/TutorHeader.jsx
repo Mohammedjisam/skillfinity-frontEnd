@@ -33,14 +33,39 @@ const Header = () => {
               />
             </div>
             {tutorData ? (
-              <nav className="hidden md:flex space-x-6">
-                <a href="#" className="text-gray-700 hover:text-gray-900">Home</a>
-                <a href="#" className="text-gray-700 hover:text-gray-900">Courses</a>
-                <a href="#" className="text-gray-700 hover:text-gray-900">About Us</a>
-                <a href="#" className="text-gray-700 hover:text-gray-900">Categories</a>
-                <a href="#" className="text-gray-700 hover:text-gray-900">Contact</a>
-              </nav>
-            ) : null}
+      <nav className="hidden md:flex space-x-6">
+        <button
+          onClick={() => navigate("/tutor/dashboard")}
+          className="text-gray-700 hover:text-gray-900"
+        >
+          Home
+        </button>
+        <button
+          onClick={() => navigate("/tutor/mycourse")}
+          className="text-gray-700 hover:text-gray-900"
+        >
+          Courses
+        </button>
+        <button
+          onClick={() => navigate("/tutor/revenue")}
+          className="text-gray-700 hover:text-gray-900"
+        >
+          Revenue
+        </button>
+        <button
+          onClick={() => navigate("/tutor/profile")}
+          className="text-gray-700 hover:text-gray-900"
+        >
+          Profile
+        </button>
+        <button
+          onClick={() => navigate("/tutor/chat")}
+          className="text-gray-700 hover:text-gray-900"
+        >
+          Chat
+        </button>
+      </nav>
+    ) : null}
             <div className="hidden md:flex items-center space-x-4">
               {tutorData ? (
                 <>

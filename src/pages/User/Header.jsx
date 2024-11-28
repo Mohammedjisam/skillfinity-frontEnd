@@ -27,7 +27,7 @@ const Header = () => {
   const { cartCount, updateCartCount } = useCart();
 
   console.log("userdataaaa----->>", userData);
-  
+
   useEffect(() => {
     if (userData && userData._id) {
       fetchCartCount();
@@ -90,27 +90,30 @@ const Header = () => {
             {userData ? (
               <>
                 <nav className="hidden md:flex space-x-6">
-                  <a href="/home" className="text-gray-700 hover:text-gray-900">
+                  <button
+                    onClick={() => navigate("/home")}
+                    className="text-gray-700 hover:text-gray-900"
+                  >
                     Home
-                  </a>
-                  <a
-                    href="/allcourse"
+                  </button>
+                  <button
+                    onClick={() => navigate("/allcourse")}
                     className="text-gray-700 hover:text-gray-900"
                   >
                     Courses
-                  </a>
-                  <a href="#" className="text-gray-700 hover:text-gray-900">
-                    About Us
-                  </a>
-                  <a
-                    href="/viewalltutors"
+                  </button>
+                  <button
+                    onClick={() => navigate("/viewallcategories")}
+                    className="text-gray-700 hover:text-gray-900"
+                  >
+                    Categories
+                  </button>
+                  <button
+                    onClick={() => navigate("/viewalltutors")}
                     className="text-gray-700 hover:text-gray-900"
                   >
                     Tutors
-                  </a>
-                  <a href="#" className="text-gray-700 hover:text-gray-900">
-                    Contact
-                  </a>
+                  </button>
                 </nav>
                 <div className="hidden md:flex items-center space-x-4">
                   <div className="relative">

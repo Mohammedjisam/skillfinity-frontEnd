@@ -1,50 +1,140 @@
-import { useState, useEffect } from 'react'
-import AdminSidebar from './AdminSidebar'
-import { Menu } from 'lucide-react'
-import { Chart, LineController, LineElement, PointElement, LinearScale, Title, CategoryScale, Filler } from 'chart.js'
-Chart.register(LineController, LineElement, PointElement, LinearScale, CategoryScale, Title, Filler)
+import React, { useState, useEffect, useMemo } from 'react';
+import axios from 'axios';
+import AdminSidebar from './AdminSidebar';
+import { Menu } from 'lucide-react';
+import ReactApexChart from 'react-apexcharts';
+import moment from 'moment';
+import axiosInstance from '@/AxiosConfig';
 
 export default function AdminDashboard() {
-  const [sidebarOpen, setSidebarOpen] = useState(false)
-
-  const stats = [
-    { title: "Total Revenue", value: "₹2100000", icon: "₹" },
-    { title: "Total Courses", value: "65", icon: "📚" },
-    { title: "Total Tutors", value: "12", icon: "👨‍🏫" },
-    { title: "Total Students", value: "252", icon: "👨‍🎓" }
-  ]
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [dashboardData, setDashboardData] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [selectedFilter, setSelectedFilter] = useState('days');
 
   useEffect(() => {
-    const ctx = document.getElementById('marketOverview').getContext('2d')
-    new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-        datasets: [{
-          label: 'Market Overview',
-          data: [400, 300, 600, 800, 500, 700],
-          borderColor: 'rgb(59, 130, 246)',
-          backgroundColor: 'rgba(59, 130, 246, 0.1)',
-          tension: 0.1,
-          fill: true
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            display: false
-          }
-        },
-        scales: {
-          y: {
-            beginAtZero: true
-          }
+    const fetchDashboardData = async () => {
+      setIsLoading(true);
+      try {
+        const response = await axiosInstance.get('/admin/revenue');
+        setDashboardData(response.data.data);
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error);
+      }
+      setIsLoading(false);
+    };
+
+    fetchDashboardData();
+  }, []);
+
+  const filteredData = useMemo(() => {
+    if (!dashboardData) return [];
+
+    const endDate = moment();
+    let startDate;
+
+    switch (selectedFilter) {
+      case 'days':
+        startDate = moment().subtract(7, 'days');
+        break;
+      case 'weeks':
+        startDate = moment().subtract(4, 'weeks');
+        break;
+      case 'month':
+        startDate = moment().subtract(1, 'month');
+        break;
+      case 'year':
+        startDate = moment().subtract(1, 'year');
+        break;
+      default:
+        return dashboardData.revenue;
+    }
+
+    return dashboardData.revenue.filter(item => {
+      const itemDate = moment(item.date);
+      return itemDate.isBetween(startDate, endDate, null, '[]');
+    });
+  }, [dashboardData, selectedFilter]);
+
+  const formatCurrency = (value) => {
+    return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', minimumFractionDigits: 0 }).format(value);
+  };
+
+  const stats = dashboardData ? [
+    { title: "Total Revenue", value: formatCurrency(dashboardData.totalRevenue), icon: "₹" },
+    { title: "Total Courses", value: dashboardData.totalCourses, icon: "📚" },
+    { title: "Total Tutors", value: dashboardData.totalTutors, icon: "👨‍🏫" },
+    { title: "Total Students", value: dashboardData.totalStudents, icon: "👨‍🎓" }
+  ] : [];
+
+  const chartOptions = {
+    chart: {
+      type: 'area',
+      height: 350,
+      toolbar: {
+        show: false
+      }
+    },
+    dataLabels: {
+      enabled: false
+    },
+    stroke: {
+      curve: 'smooth',
+      width: 2
+    },
+    xaxis: {
+      type: 'datetime',
+      categories: filteredData.map(item => item.date),
+      labels: {
+        formatter: function(value) {
+          return moment(value).format('DD MMM');
         }
       }
-    })
-  }, [])
+    },
+    yaxis: {
+      title: {
+        text: 'Revenue (₹)'
+      },
+      labels: {
+        formatter: function(value) {
+          return formatCurrency(value);
+        }
+      }
+    },
+    tooltip: {
+      x: {
+        format: 'dd MMM yyyy'
+      },
+      y: {
+        formatter: function(value) {
+          return formatCurrency(value);
+        }
+      }
+    },
+    fill: {
+      type: 'gradient',
+      gradient: {
+        shadeIntensity: 1,
+        opacityFrom: 0.7,
+        opacityTo: 0.9,
+        stops: [0, 90, 100]
+      }
+    },
+    colors: ['#4F46E5']
+  };
+
+  const series = [{
+    name: 'Revenue',
+    data: filteredData.map(item => item.revenue)
+  }];
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-indigo-500"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen bg-gray-100">
@@ -71,13 +161,31 @@ export default function AdminDashboard() {
             ))}
           </div>
           <div className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-lg font-semibold mb-4">Market Overview</h2>
-            <div className="h-[300px]">
-              <canvas id="marketOverview"></canvas>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-semibold">Revenue Overview</h2>
+              <div className="flex space-x-2">
+                {['days', 'weeks', 'month', 'year'].map((filter) => (
+                  <button
+                    key={filter}
+                    className={`px-3 py-1 rounded-md text-sm font-medium ${
+                      selectedFilter === filter
+                        ? 'bg-indigo-600 text-white'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                    onClick={() => setSelectedFilter(filter)}
+                  >
+                    {filter.charAt(0).toUpperCase() + filter.slice(1)}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="h-[400px]">
+              <ReactApexChart options={chartOptions} series={series} type="area" height={350} />
             </div>
           </div>
         </main>
       </div>
     </div>
-  )
+  );
 }
+

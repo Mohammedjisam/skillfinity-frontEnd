@@ -24,7 +24,7 @@ export default function CourseManagement() {
   useEffect(() => {
     const fetchCourses = async () => {
       try {
-        const response = await axiosInstance.get('/user/data/viewallcourse', { withCredentials: true })
+        const response = await axiosInstance.get('/user/data/viewallcourseadmin', { withCredentials: true })
         setIsLoading(false)
         setCourses(response.data.courses)
       } catch (error) {

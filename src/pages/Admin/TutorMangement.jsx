@@ -177,7 +177,14 @@ export default function TutorManagement() {
                         <td className="px-4 py-2 text-sm text-gray-500">{tutor.user_id}</td>
                         <td className="px-4 py-2 text-sm text-gray-900">{tutor.name}</td>
                         <td className="px-4 py-2 text-sm text-gray-900">{tutor.email}</td>
-                        <td className="px-4 py-2 text-sm text-gray-500">{tutor.course || 'No Courses'}</td>
+                        <td className="px-4 py-2 text-sm text-gray-500">
+        {typeof tutor.coursesTaken === 'number' 
+          ? tutor.coursesTaken > 0 
+            ? `${tutor.coursesTaken} Course${tutor.coursesTaken > 1 ? 's' : ''}`
+            : 'No Courses'
+          : 'No Courses'
+        }
+      </td>
                         <td className="px-4 py-2 text-sm text-gray-500">{tutor.isActive ? 'Active' : 'Inactive'}</td>
                         <td className="px-4 py-2 text-sm font-medium">
                           <button

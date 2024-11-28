@@ -133,6 +133,23 @@ const ViewLessonsByCourse = () => {
     }
   };
 
+  const formatDuration = (minutes) => {
+    if (!minutes) return "Duration not specified";
+    
+    if (minutes < 60) {
+      return `${minutes} minutes`;
+    } else {
+      const hours = Math.floor(minutes / 60);
+      const remainingMinutes = minutes % 60;
+      
+      if (remainingMinutes === 0) {
+        return `${hours} hour${hours === 1 ? '' : 's'}`;
+      }
+      
+      return `${hours} hour${hours === 1 ? '' : 's'} ${remainingMinutes} minute${remainingMinutes === 1 ? '' : 's'}`;
+    }
+  };
+
   if (isChatOpen) {
     return <ChatForUser tutor={tutor} />;
   }
@@ -199,17 +216,17 @@ const ViewLessonsByCourse = () => {
                   value={`item-${index}`}
                   className="mb-4 rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-all duration-300 border-none data-[state=open]:bg-gray-50"
                 >
-                  <AccordionTrigger className="text-left py-6 px-6 bg-white hover:bg-gray-50 transition-colors duration-200 [&[data-state=open]>div]:text-gray-900 [&[data-state=open]]:bg-gray-50 hover:no-underline">
-                    <div className="flex items-center w-full group">
-                      <span className="text-xl font-semibold text-gray-800 group-hover:text-gray-900">
-                        {lesson.lessontitle}
-                      </span>
-                      <span className="ml-auto text-sm text-gray-500 flex items-center">
-                        <Clock className="w-5 h-5 mr-2" />
-                        {lesson.duration} min
-                      </span>
-                    </div>
-                  </AccordionTrigger>
+                   <AccordionTrigger className="text-left py-6 px-6 bg-white hover:bg-gray-50 transition-colors duration-200 [&[data-state=open]>div]:text-gray-900 [&[data-state=open]]:bg-gray-50 hover:no-underline">
+        <div className="flex items-center w-full group">
+          <span className="text-xl font-semibold text-gray-800 group-hover:text-gray-900">
+            {lesson.lessontitle}
+          </span>
+          <span className="ml-auto text-sm text-gray-500 flex items-center">
+            <Clock className="w-5 h-5 mr-2" />
+            {formatDuration(lesson.duration)}
+          </span>
+        </div>
+      </AccordionTrigger>
                   <AccordionContent className="px-6 pb-6">
                     <p className="mb-6 text-gray-700 leading-relaxed">
                       {lesson.description}

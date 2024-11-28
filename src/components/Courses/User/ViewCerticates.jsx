@@ -1,16 +1,18 @@
 import React, { useState, useEffect } from 'react'
 import { useSelector } from 'react-redux'
-import axiosInstance from '@/AxiosConfig'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Skeleton } from "@/components/ui/skeleton"
-import { Award, Calendar, Menu, Download } from 'lucide-react'
+import axiosInstance from '../../../AxiosConfig'
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../../../components/ui/card"
+import { Badge } from "../../../components/ui/badge"
+import { Skeleton } from "../../../components/ui/skeleton"
+import { Award, Calendar, Menu, BookOpen, GraduationCap, Trophy } from 'lucide-react'
 import Sidebar from '../../../pages/User/Sidebar'
-import { Button } from "@/components/ui/button"
+import { Button } from "../../../components/ui/button"
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
+import { Alert, AlertDescription, AlertTitle } from "../../../components/ui/alert"
 
-export default function UserCertificates() {
+
+export default function ViewCertificates() {
   const [certificates, setCertificates] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -31,10 +33,15 @@ export default function UserCertificates() {
 
       try {
         const response = await axiosInstance.get(`/user/data/usercertificates/${userData._id}`)
-        setCertificates(response.data.certificates)
+        console.log(".......................",response.data)
+        if (response.data.certificates.length === 0) {
+          setError('no_certificates')
+        } else {
+          setCertificates(response.data.certificates)
+        }
       } catch (error) {
         console.error('Error fetching certificates:', error.response?.data || error.message)
-        setError('Failed to fetch certificates. Please try again later.')
+        setError('fetch_failed')
       } finally {
         setLoading(false)
       }
@@ -48,6 +55,62 @@ export default function UserCertificates() {
     return new Date(dateString).toLocaleDateString(undefined, options)
   }
 
+  const NoCertificates = () => (
+    <Card className="w-full bg-white shadow-lg border-none">
+      <CardHeader className="text-center pb-2">
+        <div className="mx-auto w-16 h-16 mb-4 bg-primary/10 rounded-full flex items-center justify-center">
+          <Trophy className="w-8 h-8 text-primary" />
+        </div>
+        <CardTitle className="text-2xl font-bold text-gray-800">
+          Ready to Earn Your First Certificate?
+        </CardTitle>
+        <CardDescription className="text-base">
+          Complete these steps to earn your certificate
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="pt-6">
+        <div className="space-y-6">
+          <div className="flex items-start gap-4">
+            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+              <BookOpen className="w-4 h-4 text-primary" />
+            </div>
+            <div>
+              <h3 className="font-medium text-gray-900">1. Complete Course Content</h3>
+              <p className="text-sm text-gray-500">Watch all lessons and complete the course materials</p>
+            </div>
+          </div>
+          <div className="flex items-start gap-4">
+            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+              <GraduationCap className="w-4 h-4 text-primary" />
+            </div>
+            <div>
+              <h3 className="font-medium text-gray-900">2. Take the Quiz</h3>
+              <p className="text-sm text-gray-500">Complete the course quiz to test your knowledge</p>
+            </div>
+          </div>
+          <div className="flex items-start gap-4">
+            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+              <Award className="w-4 h-4 text-primary" />
+            </div>
+            <div>
+              <h3 className="font-medium text-gray-900">3. Score 90% or Higher</h3>
+              <p className="text-sm text-gray-500">Achieve a score of 90% or higher to earn your certificate</p>
+            </div>
+          </div>
+        </div>
+        <div className="mt-6 text-center text-gray-600">
+          <p>You haven't achieved any certificates yet. Participate in the quiz and complete the course to earn your completion certificate!</p>
+        </div>
+        <div className="mt-8 flex justify-center">
+          <Button onClick={() => navigate('/courses')} size="lg" className="w-full sm:w-auto">
+            <BookOpen className="w-4 h-4 mr-2" />
+            Browse Courses
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  )
+  
   const renderCertificates = () => {
     if (loading) {
       return (
@@ -71,12 +134,19 @@ export default function UserCertificates() {
       )
     }
 
-    if (error) {
-      return <p className="text-center text-red-600">{error}</p>
+    if (error === 'fetch_failed') {
+      return (
+        <Alert variant="destructive">
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription>
+            Failed to fetch certificates. Please try again later or contact support if the problem persists.
+          </AlertDescription>
+        </Alert>
+      )
     }
 
-    if (certificates.length === 0) {
-      return <p className="text-center text-gray-600">You haven't earned any certificates yet.</p>
+    if (error === 'no_certificates') {
+      return <NoCertificates />
     }
 
     return (
@@ -136,4 +206,3 @@ export default function UserCertificates() {
     </div>
   )
 }
-

@@ -60,6 +60,22 @@ export default function Home() {
     fetchTutors(); // Fetch tutors data
   }, []);
 
+  const formatDuration = (minutes) => {
+    if (!minutes) return "Duration not specified";
+    
+    if (minutes < 60) {
+      return `${minutes} minute${minutes !== 1 ? 's' : ''}`;
+    } else {
+      const hours = Math.floor(minutes / 60);
+      const remainingMinutes = minutes % 60;
+      if (remainingMinutes === 0) {
+        return `${hours} hour${hours !== 1 ? 's' : ''}`;
+      } else {
+        return `${hours} hour${hours !== 1 ? 's' : ''} ${remainingMinutes} minute${remainingMinutes !== 1 ? 's' : ''}`;
+      }
+    }
+  };
+  
   const handleCategoryClick = (categoryId) => {
     navigate(`/category/${categoryId}`);
   };
@@ -109,7 +125,7 @@ export default function Home() {
             <Button className="bg-gray-700 hover:bg-gray-800 text-white font-bold py-3 px-6 rounded-full transition duration-300 ease-in-out transform hover:scale-105" onClick={handleExploreClick}>
               Explore Courses
             </Button>
-            <Button variant="outline" className="bg-white hover:bg-gray-100 text-gray-700 font-bold py-3 px-6 rounded-full border-2 border-gray-700 transition duration-300 ease-in-out transform hover:scale-105">
+            <Button variant="outline" className="bg-white hover:bg-gray-100 text-gray-700 font-bold py-3 px-6 rounded-full border-2 border-gray-700 transition duration-300 ease-in-out transform hover:scale-105" onClick={handleExploreClick}>
               View Pricing
             </Button>
           </div>
@@ -204,18 +220,18 @@ export default function Home() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
-                      <div className="flex items-center">
-                        <Clock className="w-4 h-4 mr-1" />
-                        {course.lessons && course.lessons.length > 0
-                          ? `${course.lessons.reduce((total, lesson) => total + (lesson.duration || 0), 0)} minutes`
-                          : "Duration not specified"}
-                      </div>
-                      <div className="flex items-center">
-                        <Users className="w-4 h-4 mr-1" />
-                        {course.students || "1.2k"} students
-                      </div>
-                    </div>
+                  <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
+      <div className="flex items-center">
+        <Clock className="w-4 h-4 mr-1" />
+        {course.lessons && course.lessons.length > 0
+          ? formatDuration(course.lessons.reduce((total, lesson) => total + (lesson.duration || 0), 0))
+          : "Duration not specified"}
+      </div>
+      <div className="flex items-center">
+        <Users className="w-4 h-4 mr-1" />
+        {course.students || "1.2k"} students
+      </div>
+    </div>
                     <div className="flex items-center mt-2">
                       {[1, 2, 3, 4, 5].map((star) => (
                         <Star key={star} className="w-4 h-4 text-yellow-400 fill-yellow-400" />

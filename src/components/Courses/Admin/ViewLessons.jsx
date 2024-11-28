@@ -6,6 +6,23 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Clock, Play, Pause, Maximize, ArrowLeft, BookOpen } from 'lucide-react'
 import { toast } from 'sonner'
 
+const formatDuration = (minutes) => {
+  if (!minutes) return "Duration not specified";
+  
+  if (minutes < 60) {
+    return `${minutes} minutes`;
+  } else {
+    const hours = Math.floor(minutes / 60);
+    const remainingMinutes = minutes % 60;
+    
+    if (remainingMinutes === 0) {
+      return `${hours} hour${hours === 1 ? '' : 's'}`;
+    }
+    
+    return `${hours} hour${hours === 1 ? '' : 's'} ${remainingMinutes} minute${remainingMinutes === 1 ? '' : 's'}`;
+  }
+};
+
 function LessonCard({ lesson, index }) {
   const videoRef = useRef(null)
   const [isPlaying, setIsPlaying] = useState(false)
@@ -57,7 +74,7 @@ function LessonCard({ lesson, index }) {
   }
 
   return (
-    <Card className="overflow-hidden shadow-lg transition-all duration-300 hover:shadow-2xl  rounded-xl border-none  transform hover:-translate-y-1">
+    <Card className="overflow-hidden shadow-lg transition-all duration-300 hover:shadow-2xl rounded-xl border-none transform hover:-translate-y-1">
       <div className="relative aspect-video">
         <video
           ref={videoRef}
@@ -74,7 +91,7 @@ function LessonCard({ lesson, index }) {
         </div>
         <Button 
           variant="ghost" 
-          className="absolute top-2 right-2 text-black bg-opacity-50  p-1 hover:bg-opacity-70 transition-all" 
+          className="absolute top-2 right-2 text-black bg-opacity-50 p-1 hover:bg-opacity-70 transition-all" 
           onClick={handleFullScreen}
         >
           <Maximize className="w-6 h-6" />
@@ -90,17 +107,18 @@ function LessonCard({ lesson, index }) {
         />
       </div>
       <CardContent className="p-5">
-      <div className="flex items-center justify-between text-sm text-gray-600 mb-3">
-  <h3 className="text-xl font-bold text-gray-800">{lesson.lessontitle}</h3>
-  <div className="flex items-center text-gray-500">
-    <Clock className="w-4 h-4 mr-1" />
-    <span>{lesson.duration} minutes</span>
-  </div>
-</div>
+        <div className="flex items-center justify-between text-sm text-gray-600 mb-3">
+          <h3 className="text-xl font-bold text-gray-800">{lesson.lessontitle}</h3>
+          <div className="flex items-center text-gray-500">
+            <Clock className="w-4 h-4 mr-1" />
+            <span>{formatDuration(lesson.duration)}</span>
+          </div>
+        </div>
         <p className="text-sm text-gray-600 mb-4 line-clamp-2">{lesson.description}</p>
         <div className="flex justify-between items-center">
-          <span className="text-sm font-medium text-gray-600 bg-gray-200 px-3 py-1 rounded-full">Lesson {index + 1}</span>
-          
+          <span className="text-sm font-medium text-gray-600 bg-gray-200 px-3 py-1 rounded-full">
+            Lesson {index + 1}
+          </span>
         </div>
       </CardContent>
     </Card>
@@ -137,16 +155,17 @@ export default function ViewLessons() {
   }
 
   return (
-    <div className="min-h-screen  py-12 bg-gray-100">
+    <div className="min-h-screen py-12 bg-gray-100">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between mb-8">
           <Button variant="outline" className="text-gray-600 hover:bg-gray-50" onClick={() => navigate(-1)}>
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Course
-          </Button></div>
-          <h1 className="text-3xl font-bold text-gray-700">Course Lessons</h1><br></br>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 ">
+          </Button>
+        </div>
+        <h1 className="text-3xl font-bold text-gray-700">Course Lessons</h1>
+        <br />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
           {lessons.map((lesson, index) => (
             <LessonCard
               key={lesson._id}
@@ -159,3 +178,4 @@ export default function ViewLessons() {
     </div>
   )
 }
+

@@ -142,6 +142,20 @@ export default function CourseDetails() {
     setReportComment("");
   };
 
+  const formatDuration = (minutes) => {
+    if (minutes < 60) {
+      return `${minutes} minute${minutes !== 1 ? 's' : ''}`;
+    } else {
+      const hours = Math.floor(minutes / 60);
+      const remainingMinutes = minutes % 60;
+      if (remainingMinutes === 0) {
+        return `${hours} hour${hours !== 1 ? 's' : ''}`;
+      } else {
+        return `${hours} hour${hours !== 1 ? 's' : ''} ${remainingMinutes} minute${remainingMinutes !== 1 ? 's' : ''}`;
+      }
+    }
+  };
+
   const submitReport = async () => {
     try {
       await axiosInstance.post("/user/data/reportcourse", {
@@ -175,54 +189,55 @@ export default function CourseDetails() {
     );
   }
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-100 via-white to-gray-100 text-gray-900">
-      <div className="max-w-7xl mx-auto p-6">
-        <div className="mb-12">
-          <div className="relative h-[420px] rounded-2xl overflow-hidden shadow-2xl border-none">
-            <img
-              src={
-                courseData.thumbnail || "/placeholder.svg?height=420&width=1280"
-              }
-              alt={courseData.coursetitle}
-              className="w-full h-full object-cover opacity-90"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/70 to-transparent flex items-end">
-              <div className="p-8 w-full">
-                <h1 className="text-5xl font-bold mb-6 text-white tracking-tight">
-                  {courseData.coursetitle}
-                </h1>
-                <div className="flex items-center gap-4 flex-wrap">
-                  <Badge
-                    variant="secondary"
-                    className="px-4 py-2 text-sm bg-gradient-to-r from-blue-400/10 to-blue-500/10 border border-blue-500/20 text-blue-300 hover:from-blue-400/20 hover:to-blue-500/20 transition-colors duration-200"
-                  >
-                    <MonitorPlay className="w-4 h-4 mr-2 text-blue-400" />
-                    {courseData.lessons?.length || 0} Lessons
-                  </Badge>
-                  <Badge
-                    variant="secondary"
-                    className="px-4 py-2 text-sm bg-gradient-to-r from-green-400/10 to-green-500/10 border border-green-500/20 text-green-300 hover:from-green-400/20 hover:to-green-500/20 transition-colors duration-200"
-                  >
-                    <User className="w-4 h-4 mr-2 text-green-400" />
-                    {courseData.tutor?.name || "Not specified"}
-                  </Badge>
-                  <Badge
-                    variant="secondary"
-                    className="px-4 py-2 text-sm bg-gradient-to-r from-purple-400/10 to-purple-500/10 border border-purple-500/20 text-purple-300 hover:from-purple-400/20 hover:to-purple-500/20 transition-colors duration-200"
-                  >
-                    <Clock className="w-4 h-4 mr-2 text-purple-400" />
-                    {courseData.lessons?.reduce(
-                      (total, lesson) => total + (lesson.duration || 0),
-                      0
-                    ) || "Not specified"}{" "}
-                    minutes
-                  </Badge>
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-100 via-white to-gray-100 text-gray-900">
+        <div className="max-w-7xl mx-auto p-6">
+          <div className="mb-12">
+            <div className="relative h-[420px] rounded-2xl overflow-hidden shadow-2xl border-none">
+              <img
+                src={
+                  courseData.thumbnail || "/placeholder.svg?height=420&width=1280"
+                }
+                alt={courseData.coursetitle}
+                className="w-full h-full object-cover opacity-90"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/70 to-transparent flex items-end">
+                <div className="p-8 w-full">
+                  <h1 className="text-5xl font-bold mb-6 text-white tracking-tight">
+                    {courseData.coursetitle}
+                  </h1>
+                  <div className="flex items-center gap-4 flex-wrap">
+                    <Badge
+                      variant="secondary"
+                      className="px-4 py-2 text-sm bg-gradient-to-r from-blue-400/10 to-blue-500/10 border border-blue-500/20 text-blue-300 hover:from-blue-400/20 hover:to-blue-500/20 transition-colors duration-200"
+                    >
+                      <MonitorPlay className="w-4 h-4 mr-2 text-blue-400" />
+                      {courseData.lessons?.length || 0} Lessons
+                    </Badge>
+                    <Badge
+                      variant="secondary"
+                      className="px-4 py-2 text-sm bg-gradient-to-r from-green-400/10 to-green-500/10 border border-green-500/20 text-green-300 hover:from-green-400/20 hover:to-green-500/20 transition-colors duration-200"
+                    >
+                      <User className="w-4 h-4 mr-2 text-green-400" />
+                      {courseData.tutor?.name || "Not specified"}
+                    </Badge>
+                    <Badge
+                      variant="secondary"
+                      className="px-4 py-2 text-sm bg-gradient-to-r from-purple-400/10 to-purple-500/10 border border-purple-500/20 text-purple-300 hover:from-purple-400/20 hover:to-purple-500/20 transition-colors duration-200"
+                    >
+                      <Clock className="w-4 h-4 mr-2 text-purple-400" />
+                      {formatDuration(
+                        courseData.lessons?.reduce(
+                          (total, lesson) => total + (lesson.duration || 0),
+                          0
+                        ) || 0
+                      )}
+                    </Badge>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-12">
@@ -296,20 +311,19 @@ export default function CourseDetails() {
                   </span>
                 </li>
                 <li className="flex items-center">
-                  <Clock className="w-5 h-5 mr-3 text-blue-500" />
-                  <span className="font-semibold mr-2 text-gray-700">
-                    Duration:
-                  </span>
-                  <span className="text-gray-600">
-                    {courseData.lessons && courseData.lessons.length > 0
-                      ? courseData.lessons.reduce(
-                          (total, lesson) => total + (lesson.duration || 0),
-                          0
-                        )
-                      : "Not specified"}{" "}
-                    minutes
-                  </span>
-                </li>
+                <Clock className="w-5 h-5 mr-3 text-blue-500" />
+                <span className="font-semibold mr-2 text-gray-700">
+                  Duration:
+                </span>
+                <span className="text-gray-600">
+                  {formatDuration(
+                    courseData.lessons?.reduce(
+                      (total, lesson) => total + (lesson.duration || 0),
+                      0
+                    ) || 0
+                  )}
+                </span>
+              </li>
                 <li className="flex items-center">
                   <BarChart className="w-5 h-5 mr-3 text-blue-500" />
                   <span className="font-semibold mr-2 text-gray-700">

@@ -171,31 +171,52 @@ export default function StudentManagement() {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {paginatedStudents.length === 0 ? (
-                    <tr>
-                      <td colSpan={7} className="px-4 py-2 text-sm text-gray-500 text-center">No students found</td>
-                    </tr>
-                  ) : (
-                    paginatedStudents.map((student, index) => (
-                      <tr key={student._id} className="cursor-pointer hover:bg-gray-50">
-                        <td className="px-4 py-2 text-sm text-gray-500">{index + 1 + (currentPage - 1) * itemsPerPage}</td>
-                        <td className="px-4 py-2 text-sm text-gray-900">{student.user_id}</td>
-                        <td className="px-4 py-2 text-sm text-gray-900">{student.name}</td>
-                        <td className="px-4 py-2 text-sm text-gray-500">{student.email}</td>
-                        <td className="px-4 py-2 text-sm text-gray-500">{student.course || 'No Courses'}</td>
-                        <td className="px-4 py-2 text-sm text-gray-500">{student.isActive ? 'Active' : 'Inactive'}</td>
-                        <td className="px-4 py-2 text-sm font-medium">
-                          <button
-                            className={`w-24 px-6 py-2 rounded-md text-white transition duration-300 ${student.isActive ? 'bg-red-600 hover:bg-red-700' : 'bg-blue-600 hover:bg-blue-700'}`}
-                            onClick={() => student.isActive ? handleBlock(student._id) : handleUnblock(student._id)}
-                          >
-                            {student.isActive ? 'Block' : 'Unblock'}
-                          </button>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>               
+        {paginatedStudents.length === 0 ? (
+          <tr>
+            <td colSpan={7} className="px-4 py-2 text-sm text-gray-500 text-center">
+              No students found
+            </td>
+          </tr>
+        ) : (
+          paginatedStudents.map((student, index) => (
+            <tr key={student._id} className="cursor-pointer hover:bg-gray-50">
+              <td className="px-4 py-2 text-sm text-gray-500">
+                {index + 1 + (currentPage - 1) * itemsPerPage}
+              </td>
+              <td className="px-4 py-2 text-sm text-gray-900">{student.user_id}</td>
+              <td className="px-4 py-2 text-sm text-gray-900">{student.name}</td>
+              <td className="px-4 py-2 text-sm text-gray-500">{student.email}</td>
+              <td className="px-4 py-2 text-sm text-gray-500">
+        {typeof student.coursePurchased === 'number' 
+          ? student.coursePurchased > 0 
+            ? `${student.coursePurchased} Course${student.coursePurchased > 1 ? 's ' : ''}`
+            : 'No Courses'
+          : 'No Courses'
+        }
+      </td>
+              <td className="px-4 py-2 text-sm text-gray-500">
+                {student.isActive ? 'Active' : 'Inactive'}
+              </td>
+              <td className="px-4 py-2 text-sm font-medium">
+                <button
+                  className={`w-24 px-6 py-2 rounded-md text-white transition duration-300 ${
+                    student.isActive 
+                      ? 'bg-red-600 hover:bg-red-700' 
+                      : 'bg-blue-600 hover:bg-blue-700'
+                  }`}
+                  onClick={() => 
+                    student.isActive 
+                      ? handleBlock(student._id) 
+                      : handleUnblock(student._id)
+                  }
+                >
+                  {student.isActive ? 'Block' : 'Unblock'}
+                </button>
+              </td>
+            </tr>
+          ))
+        )}
+      </tbody>
               </table>
             </div>
           </div>
