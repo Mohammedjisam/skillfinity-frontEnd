@@ -58,7 +58,6 @@ const Sidebar = ({ isOpen, toggleSidebar, activeItem = 'Profile' }) => {
         toggleSidebar()
         toast.success('Logged out successfully!')
       }catch (error) {
-        // Handle any errors that occur during the API call
         console.error("Error during logout:", error);
         toast.error('Logout failed. Please try again.');
       }

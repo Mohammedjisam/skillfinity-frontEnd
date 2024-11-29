@@ -30,7 +30,6 @@ const AdminSidebar = ({  isOpen, onClose }) => {
       navigate("/")
       toast.success('Logged out successfully!')
     }catch (error) {
-      // Handle any errors that occur during the API call
       console.error("Error during logout:", error);
       toast.error('Logout failed. Please try again.');
     }

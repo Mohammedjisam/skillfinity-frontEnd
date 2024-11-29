@@ -10,6 +10,7 @@ import {
   BarChart,
   Calendar,
   Tag,
+  FileText,
 } from "lucide-react";
 import axiosInstance from "../../../AxiosConfig";
 import { Button } from "@/components/ui/button";
@@ -82,6 +83,10 @@ export default function ViewCourseDetails() {
         toast.error("Failed to toggle course visibility");
       }
     }
+  };
+
+  const viewReportings = () => {
+    navigate(`/admin/courses/${id}/reports`);
   };
 
   if (loading) {
@@ -307,7 +312,7 @@ export default function ViewCourseDetails() {
                 </Button>
                 <Button
                   onClick={toggleVisibility}
-                  className={`w-full text-lg py-6 ${
+                  className={`w-full text-lg py-6 mb-4 ${
                     isVisible
                       ? "bg-red-600 hover:bg-red-700"
                       : "bg-green-600 hover:bg-green-700"
@@ -325,6 +330,14 @@ export default function ViewCourseDetails() {
                       Unhide Course
                     </>
                   )}
+                </Button>
+                <Button
+                  onClick={viewReportings}
+                  className="w-full text-lg py-6 bg-purple-600 text-white hover:bg-purple-700"
+                  size="lg"
+                >
+                  <FileText className="mr-2 h-5 w-5" />
+                  View Reportings
                 </Button>
               </CardContent>
             </Card>

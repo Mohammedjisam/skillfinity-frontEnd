@@ -15,6 +15,7 @@ export default function CategoryPage() {
   const [loading, setLoading] = useState(true)
   const [cartItems, setCartItems] = useState([])
   const [purchasedCourses, setPurchasedCourses] = useState([])
+  const [wishlistItems, setWishlistItems] = useState([])
   const navigate = useNavigate()
   const userDatas = useSelector((store) => store.user.userDatas)
   const { incrementCartCount } = useCart();
@@ -23,6 +24,7 @@ export default function CategoryPage() {
     fetchCategoryData()
     fetchCartData()
     fetchPurchasedCourses()
+    fetchWishlistItems()
   }, [categoryId, userDatas._id])
 
   const fetchCategoryData = async () => {
@@ -75,6 +77,24 @@ export default function CategoryPage() {
     }
   }
 
+  const fetchWishlistItems = async () => {
+    try {
+      if (!userDatas || !userDatas._id) {
+        console.log("User data not available, skipping wishlist fetch")
+        return
+      }
+      const response = await axiosInstance.get(`/user/data/viewwishlist/${userDatas._id}`)
+      if (response.data.status === "success") {
+        setWishlistItems(response.data.wishlist.map(item => item.id))
+      } else {
+        setWishlistItems([])
+      }
+    } catch (error) {
+      console.error("Error fetching wishlist items:", error)
+      setWishlistItems([])
+    }
+  }
+
   const handleAddToCart = async (courseId) => {
     try {
       if (!userDatas || !userDatas._id) {
@@ -88,6 +108,44 @@ export default function CategoryPage() {
     } catch (error) {
       console.error("Error adding course to cart:", error)
       toast.error("Failed to add course to cart.")
+    }
+  }
+
+  const handleAddToWishlist = async (courseId) => {
+    if (!userDatas?._id) {
+      toast.error("Please log in to add items to wishlist.")
+      return
+    }
+    try {
+      const response = await axiosInstance.post(`/user/data/addtowishlist/${courseId}/${userDatas._id}`)
+      if (response.data.message.includes("successfully")) {
+        setWishlistItems(prev => [...prev, courseId])
+        toast.success("Course added to wishlist successfully!")
+      } else {
+        toast.error("Failed to add course to wishlist. Please try again.")
+      }
+    } catch (error) {
+      console.error("Error adding to wishlist:", error)
+      toast.error("Failed to add course to wishlist. Please try again.")
+    }
+  }
+
+  const handleRemoveFromWishlist = async (courseId) => {
+    if (!userDatas?._id) {
+      toast.error("Please log in to remove items from wishlist.")
+      return
+    }
+    try {
+      const response = await axiosInstance.delete(`/user/data/removefromwishlist/${courseId}/${userDatas._id}`)
+      if (response.data.message.includes("successfully")) {
+        setWishlistItems(prev => prev.filter(id => id !== courseId))
+        toast.success("Course removed from wishlist successfully!")
+      } else {
+        toast.error("Failed to remove course from wishlist. Please try again.")
+      }
+    } catch (error) {
+      console.error("Error removing from wishlist:", error)
+      toast.error("Failed to remove course from wishlist. Please try again.")
     }
   }
 
@@ -129,9 +187,15 @@ export default function CategoryPage() {
                       alt={course.coursetitle}
                       className="w-full h-48 object-cover"
                     />
-                    <button className="absolute top-4 right-4 p-2 rounded-full bg-white/80 hover:bg-white transition-colors">
-                      <Heart className="w-5 h-5 text-gray-600" />
-                    </button>
+                    {!isPurchased(course._id) && (
+                      <button 
+                        onClick={() => wishlistItems.includes(course._id) ? handleRemoveFromWishlist(course._id) : handleAddToWishlist(course._id)}
+                        className="absolute top-4 right-4 p-2 rounded-full bg-white/80 hover:bg-white transition-colors"
+                      >
+                        <Heart className={`w-5 h-5 ${wishlistItems.includes(course._id) ? 'text-red-500 fill-current' : 'text-gray-600'}`} />
+                        <span className="sr-only">{wishlistItems.includes(course._id) ? 'Remove from favorites' : 'Add to favorites'}</span>
+                      </button>
+                    )}
                   </div>
 
                   <div className="p-5">
@@ -210,3 +274,4 @@ export default function CategoryPage() {
     </div>
   )
 }
+

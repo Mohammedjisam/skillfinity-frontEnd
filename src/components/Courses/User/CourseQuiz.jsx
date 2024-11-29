@@ -23,9 +23,9 @@ export default function CourseQuiz() {
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 
-  const userId = useSelector((store) => store.user.userDatas._id);
-  const tutorId = useSelector((store) => store.tutor.tutorDatas._id);
-
+  const user = useSelector((store) => store.user.userDatas);
+  const tutor = useSelector((store) => store.tutor.tutorDatas);
+  console.log('-------------------------->',tutor)
 
   useEffect(() => {
     const fetchQuiz = async () => {
@@ -39,7 +39,12 @@ export default function CourseQuiz() {
       }
     };
 
-    fetchQuiz();
+    if (courseId) {
+      fetchQuiz();
+    } else {
+      setLoading(false);
+      toast.error("Course ID is missing. Please try accessing the quiz again.");
+    }
   }, [courseId]);
 
   const handleAnswerChange = (questionId, answer) => {
@@ -48,11 +53,15 @@ export default function CourseQuiz() {
 
   const handleSubmit = async () => {
     try {
-      if (!userId || !tutorId || !courseId || !quiz) {
-        toast.error("Invalid data. Please reload the page and try again.");
+      if (!user || !user._id) {
+        toast.error("User information is missing. Please log in and try again.");
         return;
       }
-
+      
+      if (!tutor || !tutor._id) {
+        toast.error("Tutor information is missing. Please try again later.");
+        return;
+      }
       const questionResults = quiz.questions.map((question) => ({
         questionId: question._id,
         userAnswer: userAnswers[question._id] || null,
@@ -60,8 +69,8 @@ export default function CourseQuiz() {
       }));
 
       const response = await axiosInstance.post("/user/data/submitquizresult", {
-        userId,
-        tutorId,
+        userId: user._id,
+        tutorId: tutor._id,
         courseId,
         quizId: quiz._id,
         questionResults,

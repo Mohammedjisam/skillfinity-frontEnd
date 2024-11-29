@@ -1,6 +1,6 @@
-import React, { useMemo } from 'react';
-import ReactApexChart from 'react-apexcharts';
-import moment from 'moment';
+import React, { useMemo } from "react";
+import ReactApexChart from "react-apexcharts";
+import moment from "moment";
 
 const TutorRevenueChart = ({ data, timeFilter }) => {
   const filteredData = useMemo(() => {
@@ -8,117 +8,121 @@ const TutorRevenueChart = ({ data, timeFilter }) => {
     let startDate;
 
     switch (timeFilter) {
-      case 'days':
-        startDate = moment().subtract(7, 'days');
+      case "days":
+        startDate = moment().subtract(7, "days");
         break;
-      case 'weeks':
-        startDate = moment().subtract(4, 'weeks');
+      case "weeks":
+        startDate = moment().subtract(4, "weeks");
         break;
-      case 'month':
-        startDate = moment().subtract(1, 'month');
+      case "month":
+        startDate = moment().subtract(1, "month");
         break;
-      case 'year':
-        startDate = moment().subtract(1, 'year');
+      case "year":
+        startDate = moment().subtract(1, "year");
         break;
       default:
         startDate = moment(0); // Beginning of time
     }
 
     return data
-      .filter(item => {
+      .filter((item) => {
         const itemDate = moment(item.date);
-        return itemDate.isSameOrAfter(startDate) && itemDate.isSameOrBefore(endDate);
+        return (
+          itemDate.isSameOrAfter(startDate) && itemDate.isSameOrBefore(endDate)
+        );
       })
       .sort((a, b) => moment(a.date).diff(moment(b.date)));
   }, [data, timeFilter]);
 
   const formatCurrency = (value) => {
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'INR',
-      minimumFractionDigits: 0
+    return new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: "INR",
+      minimumFractionDigits: 0,
     }).format(value);
   };
 
   const chartOptions = {
     chart: {
-      type: 'area',
+      type: "area",
       height: 350,
       toolbar: {
-        show: false
+        show: false,
       },
       zoom: {
-        enabled: false
-      }
+        enabled: false,
+      },
     },
     dataLabels: {
-      enabled: false
+      enabled: false,
     },
     stroke: {
-      curve: 'smooth',
-      width: 2
+      curve: "smooth",
+      width: 2,
     },
     xaxis: {
-      type: 'datetime',
-      categories: filteredData.map(item => item.date),
+      type: "datetime",
+      categories: filteredData.map((item) => item.date),
       labels: {
-        formatter: function(value) {
+        formatter: function (value) {
           return moment(new Date(value)).format("DD MMM");
-        }
+        },
       },
       axisBorder: {
-        show: false
+        show: false,
       },
       axisTicks: {
-        show: false
-      }
+        show: false,
+      },
     },
     yaxis: {
       labels: {
-        formatter: function(value) {
+        formatter: function (value) {
           return formatCurrency(value);
-        }
-      }
+        },
+      },
     },
     tooltip: {
       x: {
-        format: 'dd MMM yyyy'
+        format: "dd MMM yyyy",
       },
       y: {
-        formatter: function(value) {
+        formatter: function (value) {
           return formatCurrency(value);
-        }
-      }
+        },
+      },
     },
     fill: {
-      type: 'gradient',
+      type: "gradient",
       gradient: {
         shadeIntensity: 1,
         opacityFrom: 0.7,
         opacityTo: 0.2,
-        stops: [0, 90, 100]
-      }
+        stops: [0, 90, 100],
+      },
     },
-    colors: ['#4F46E5'],
+    colors: ["#4F46E5"],
     grid: {
-      borderColor: '#f1f1f1',
+      borderColor: "#f1f1f1",
       xaxis: {
         lines: {
-          show: false
-        }
+          show: false,
+        },
       },
       yaxis: {
         lines: {
-          show: true
-        }
-      }
-    }
+          show: true,
+        },
+      },
+    },
   };
 
-  const series = [{
-    name: 'Revenue',
-    data: filteredData.map(item => item.revenue)
-  }];
+  const series = [
+    {
+      name: "Revenue",
+      data: filteredData.map((item) => item.revenue),
+    },
+  ];
 
   if (!data || data.length === 0) {
     return (

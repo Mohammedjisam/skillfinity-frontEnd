@@ -5,10 +5,10 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Loader2, Book, DollarSign, Mail, ShoppingCart, ChevronLeft, ChevronRight, Play, User } from 'lucide-react'
+import { Loader2, Book, DollarSign, Mail, ShoppingCart, ChevronLeft, ChevronRight, Play, User, Heart } from 'lucide-react'
 import { toast } from 'sonner'
 import { useSelector } from 'react-redux'
-import { useCart } from "@/context/CartContext";
+import { useCart } from "@/context/CartContext"
 
 const ITEMS_PER_PAGE = 8
 
@@ -20,28 +20,28 @@ const ViewTutor = () => {
   const [currentPage, setCurrentPage] = useState(1)
   const [cartItems, setCartItems] = useState([])
   const [purchasedCourses, setPurchasedCourses] = useState([])
+  const [wishlistItems, setWishlistItems] = useState([])
   const userDatas = useSelector((store) => store.user.userDatas)
   const navigate = useNavigate()
-  const { incrementCartCount } = useCart();
+  const { incrementCartCount } = useCart()
 
   useEffect(() => {
     fetchTutorData()
-    fetchCartData()
-    fetchPurchasedCourses()
-  }, [id, userDatas._id])
+    if (userDatas?._id) {
+      fetchCartData()
+      fetchPurchasedCourses()
+      fetchWishlistItems()
+    }
+  }, [id, userDatas?._id])
 
   const fetchTutorData = async () => {
     try {
       const tutorResponse = await axiosInstance.get(`/user/data/viewtutor/${id}`)
       setTutor(tutorResponse.data)
-      console.log("Fetched tutor data:", tutorResponse.data)
     } catch (error) {
       console.error("Error fetching tutor details:", error)
       setError("Failed to load tutor details")
       toast.error("Failed to load tutor details")
-      if (error.response) {
-        console.error("Response data:", error.response.data)
-      }
     } finally {
       setLoading(false)
     }
@@ -49,10 +49,6 @@ const ViewTutor = () => {
 
   const fetchCartData = async () => {
     try {
-      if (!userDatas || !userDatas._id) {
-        console.log("User data not available, skipping cart fetch")
-        return
-      }
       const cartResponse = await axiosInstance.post("/user/data/cart", {
         userId: userDatas._id,
       })
@@ -60,18 +56,11 @@ const ViewTutor = () => {
       setCartItems(cartCourseIds)
     } catch (error) {
       console.error("Error fetching cart information:", error)
-      if (error.response) {
-        console.error("Response data:", error.response.data)
-      }
     }
   }
 
   const fetchPurchasedCourses = async () => {
     try {
-      if (!userDatas || !userDatas._id) {
-        console.log("User data not available, skipping purchased courses fetch")
-        return
-      }
       const response = await axiosInstance.get(`/user/data/purchasedcourses/${userDatas._id}`)
       setPurchasedCourses(response.data.purchasedCourses || [])
     } catch (error) {
@@ -79,19 +68,71 @@ const ViewTutor = () => {
     }
   }
 
+  const fetchWishlistItems = async () => {
+    try {
+      const response = await axiosInstance.get(`/user/data/viewwishlist/${userDatas._id}`)
+      if (response.data.status === "success") {
+        setWishlistItems(response.data.wishlist.map(item => item.id))
+      } else {
+        setWishlistItems([])
+      }
+    } catch (error) {
+      console.error("Error fetching wishlist items:", error)
+      setWishlistItems([])
+    }
+  }
+
   const handleAddToCart = async (courseId) => {
     try {
-      if (!userDatas || !userDatas._id) {
+      if (!userDatas?._id) {
         toast.error("Please log in to add items to cart.")
         return
       }
       await axiosInstance.post(`/user/data/addcart/${courseId}`, { userId: userDatas._id })
       setCartItems(prevItems => [...prevItems, courseId])
-      incrementCartCount();
+      incrementCartCount()
       toast.success('Course added to cart successfully!')
     } catch (error) {
       console.error("Error adding course to cart:", error)
       toast.error('Failed to add course to cart')
+    }
+  }
+
+  const handleAddToWishlist = async (courseId) => {
+    if (!userDatas?._id) {
+      toast.error("Please log in to add items to wishlist.")
+      return
+    }
+    try {
+      const response = await axiosInstance.post(`/user/data/addtowishlist/${courseId}/${userDatas._id}`)
+      if (response.data.message.includes("successfully")) {
+        setWishlistItems(prev => [...prev, courseId])
+        toast.success("Course added to wishlist successfully!")
+      } else {
+        toast.error("Failed to add course to wishlist. Please try again.")
+      }
+    } catch (error) {
+      console.error("Error adding to wishlist:", error)
+      toast.error("Failed to add course to wishlist. Please try again.")
+    }
+  }
+
+  const handleRemoveFromWishlist = async (courseId) => {
+    if (!userDatas?._id) {
+      toast.error("Please log in to remove items from wishlist.")
+      return
+    }
+    try {
+      const response = await axiosInstance.delete(`/user/data/removefromwishlist/${courseId}/${userDatas._id}`)
+      if (response.data.message.includes("successfully")) {
+        setWishlistItems(prev => prev.filter(id => id !== courseId))
+        toast.success("Course removed from wishlist successfully!")
+      } else {
+        toast.error("Failed to remove course from wishlist. Please try again.")
+      }
+    } catch (error) {
+      console.error("Error removing from wishlist:", error)
+      toast.error("Failed to remove course from wishlist. Please try again.")
     }
   }
 
@@ -168,11 +209,22 @@ const ViewTutor = () => {
               <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
                 {currentCourses.map(course => (
                   <Card key={course._id} className="flex flex-col overflow-hidden transition-shadow hover:shadow-lg border-none shadow-md">
-                    <img
-                      src={course.thumbnail || "/placeholder.svg?height=180&width=320"}
-                      alt={course.coursetitle}
-                      className="w-full h-40 sm:h-48 object-cover"
-                    />
+                    <div className="relative">
+                      <img
+                        src={course.thumbnail || "/placeholder.svg?height=180&width=320"}
+                        alt={course.coursetitle}
+                        className="w-full h-40 sm:h-48 object-cover"
+                      />
+                      {!isPurchased(course._id) && (
+                        <button 
+                          onClick={() => wishlistItems.includes(course._id) ? handleRemoveFromWishlist(course._id) : handleAddToWishlist(course._id)}
+                          className="absolute top-2 right-2 p-2 rounded-full bg-white/80 hover:bg-white transition-colors"
+                        >
+                          <Heart className={`w-5 h-5 ${wishlistItems.includes(course._id) ? 'text-red-500 fill-current' : 'text-gray-600'}`} />
+                          <span className="sr-only">{wishlistItems.includes(course._id) ? 'Remove from favorites' : 'Add to favorites'}</span>
+                        </button>
+                      )}
+                    </div>
                     <CardHeader className="p-3 pb-0">
                       <CardTitle className="text-base sm:text-lg line-clamp-2">{course.coursetitle}</CardTitle>
                     </CardHeader>

@@ -66,12 +66,12 @@ export default function ViewAllTutors() {
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center bg-gray-200">
-                      <User className="w-16 h-16 text-gray-500" /> {/* Default avatar icon */}
+                      <User className="w-16 h-16 text-gray-500" />
                     </div>
                   )}
                 </div>
                 <p className="font-semibold text-xl text-gray-800 mb-2">{tutor.name}</p>
-                <p className="text-gray-600">{tutor.specialization}</p> {/* Tutor's specialization */}
+                <p className="text-gray-600">{tutor.specialization}</p>
               </div>
             ))}
           </div>

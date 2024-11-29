@@ -146,57 +146,86 @@ export default function AddCourse() {
 
 
 
-  const handleImageUpload = async (e) => {
-    const file = e.target.files[0]
-    if (!file) return
+  const validateImage = (file) => {
+    return new Promise((resolve, reject) => {
+      // Check file type
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+      if (!allowedTypes.includes(file.type)) {
+        reject(new Error('Invalid file type. Please upload a JPEG, PNG, or WebP image.'));
+      }
 
-    setIsUploading(true)
-    setUploadProgress(0)
+      // Check file size (max 5MB)
+      const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+      if (file.size > maxSize) {
+        reject(new Error('File size exceeds 5MB. Please upload a smaller image.'));
+      }
+
+      // Check image dimensions
+      const img = new Image();
+      img.onload = () => {
+        if (img.width < 1280 || img.height < 720) {
+          reject(new Error('Image dimensions should be at least 1280x720 pixels.'));
+        } else {
+          resolve();
+        }
+      };
+      img.onerror = () => reject(new Error('Failed to load image. Please try again.'));
+      img.src = URL.createObjectURL(file);
+    });
+  };
+
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
 
     try {
-      const formData = new FormData()
-      formData.append('file', file)
-      formData.append('upload_preset', 'skillfinity_media')
-      formData.append('cloud_name', 'dwxnxuuht')
+      await validateImage(file);
+      setIsUploading(true);
+      setUploadProgress(0);
+
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('upload_preset', 'skillfinity_media');
+      formData.append('cloud_name', 'dwxnxuuht');
       
-      const xhr = new XMLHttpRequest()
-      xhr.open('POST', 'https://api.cloudinary.com/v1_1/dwxnxuuht/image/upload')
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', 'https://api.cloudinary.com/v1_1/dwxnxuuht/image/upload');
       
       xhr.upload.onprogress = (event) => {
         if (event.lengthComputable) {
-          const percentComplete = (event.loaded / event.total) * 100
-          setUploadProgress(percentComplete)
+          const percentComplete = (event.loaded / event.total) * 100;
+          setUploadProgress(percentComplete);
         }
-      }
+      };
 
       xhr.onload = function() {
         if (xhr.status === 200) {
-          const response = JSON.parse(xhr.responseText)
+          const response = JSON.parse(xhr.responseText);
           setCourseData(prevData => ({
             ...prevData,
             thumbnail: response.secure_url
-          }))
-          setThumbnailPreview(response.secure_url)
-          toast.success('Thumbnail uploaded successfully')
+          }));
+          setThumbnailPreview(response.secure_url);
+          toast.success('Thumbnail uploaded successfully');
         } else {
-          throw new Error('Failed to upload image')
+          throw new Error('Failed to upload image');
         }
-        setIsUploading(false)
-      }
+        setIsUploading(false);
+      };
 
       xhr.onerror = function() {
-        console.error('Image upload error')
-        toast.error('Failed to upload thumbnail')
-        setIsUploading(false)
-      }
+        console.error('Image upload error');
+        toast.error('Failed to upload thumbnail');
+        setIsUploading(false);
+      };
 
-      xhr.send(formData)
+      xhr.send(formData);
     } catch (error) {
-      console.error('Image upload error:', error)
-      toast.error('Failed to upload thumbnail')
-      setIsUploading(false)
+      console.error('Image validation error:', error);
+      toast.error(error.message || 'Failed to upload thumbnail');
+      setIsUploading(false);
     }
-  }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault()

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
-import { Menu, Upload, FileText, Loader2, PlusCircle, X } from 'lucide-react';
+import { Menu, Upload, FileText, Loader2, PlusCircle, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -100,19 +100,83 @@ export default function AddLesson() {
     }));
   };
 
-  const handleVideoChange = (e) => {
+  const validateVideo = (file) => {
+    return new Promise((resolve, reject) => {
+      // Check file type
+      const allowedTypes = ['video/mp4', 'video/webm', 'video/ogg'];
+      if (!allowedTypes.includes(file.type)) {
+        reject(new Error('Invalid file type. Please upload an MP4, WebM, or OGG video.'));
+      }
+
+      // Check file size (max 100MB)
+      const maxSize = 100 * 1024 * 1024; // 100MB in bytes
+      if (file.size > maxSize) {
+        reject(new Error('File size exceeds 100MB. Please upload a smaller video.'));
+      }
+
+      // Check video duration (max 30 minutes)
+      const video = document.createElement('video');
+      video.preload = 'metadata';
+      video.onloadedmetadata = function() {
+        window.URL.revokeObjectURL(video.src);
+        if (video.duration > 1800) { // 30 minutes in seconds
+          reject(new Error('Video duration exceeds 30 minutes. Please upload a shorter video.'));
+        } else {
+          resolve();
+        }
+      }
+      video.src = URL.createObjectURL(file);
+    });
+  };
+
+  const validatePdf = (file) => {
+    return new Promise((resolve, reject) => {
+      // Check file type
+      if (file.type !== 'application/pdf') {
+        reject(new Error('Invalid file type. Please upload a PDF document.'));
+      }
+
+      // Check file size (max 10MB)
+      const maxSize = 10 * 1024 * 1024; // 10MB in bytes
+      if (file.size > maxSize) {
+        reject(new Error('File size exceeds 10MB. Please upload a smaller PDF.'));
+      }
+
+      resolve();
+    });
+  };
+
+  const handleVideoChange = async (e) => {
     const file = e.target.files[0];
-    setVideoFile(file);
     if (file) {
-      const videoUrl = URL.createObjectURL(file);
-      setVideoPreview(videoUrl);
+      try {
+        await validateVideo(file);
+        setVideoFile(file);
+        const videoUrl = URL.createObjectURL(file);
+        setVideoPreview(videoUrl);
+      } catch (error) {
+        toast.error(error.message);
+        e.target.value = ''; // Reset the file input
+      }
     } else {
+      setVideoFile(null);
       setVideoPreview(null);
     }
   };
 
-  const handlePdfChange = (e) => {
-    setPdfFile(e.target.files[0]);
+  const handlePdfChange = async (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      try {
+        await validatePdf(file);
+        setPdfFile(file);
+      } catch (error) {
+        toast.error(error.message);
+        e.target.value = ''; // Reset the file input
+      }
+    } else {
+      setPdfFile(null);
+    }
   };
 
   const uploadFile = async (file, uploadType) => {
@@ -227,10 +291,16 @@ export default function AddLesson() {
 
       if (quizQuestions.length > 0) {
         try {
-          console.log('Sending quiz data:', { courseId, questions: quizQuestions });
-          const quizResponse = await axiosInstance.post(`/user/data/addquiz/${courseId}`, {
-            questions: quizQuestions
+          console.log("Sending quiz data:", {
+            courseId,
+            questions: quizQuestions,
           });
+          const quizResponse = await axiosInstance.post(
+            `/user/data/addquiz/${courseId}`,
+            {
+              questions: quizQuestions,
+            }
+          );
           console.log("Quiz added successfully:", quizResponse.data);
           toast.success("Quiz added successfully");
         } catch (quizError) {
@@ -239,7 +309,10 @@ export default function AddLesson() {
         }
       }
 
-      setAddedLessons([...addedLessons, { ...response.data.lesson, quizQuestions }]);
+      setAddedLessons([
+        ...addedLessons,
+        { ...response.data.lesson, quizQuestions },
+      ]);
       toast.success("Lesson added successfully");
 
       setLessonData({
@@ -265,7 +338,6 @@ export default function AddLesson() {
       setUploadProgress(0);
     }
   };
-
 
   const handleFinishCourse = () => {
     navigate("/tutor/courses");
@@ -328,8 +400,8 @@ export default function AddLesson() {
                       required
                       className="w-full min-h-[150px] bg-rose-50 border-none"
                     />
-                
-{errors.description && (
+
+                    {errors.description && (
                       <p className="text-red-500 text-sm mt-1">
                         {errors.description}
                       </p>
@@ -364,12 +436,24 @@ export default function AddLesson() {
                       {quizQuestions.length > 0 ? (
                         <div className="space-y-4">
                           {quizQuestions.map((question, index) => (
-                            <div key={index} className="bg-white p-4 rounded-lg shadow-sm relative">
-                              <h4 className="font-semibold mb-2">Question {index + 1}</h4>
+                            <div
+                              key={index}
+                              className="bg-white p-4 rounded-lg shadow-sm relative"
+                            >
+                              <h4 className="font-semibold mb-2">
+                                Question {index + 1}
+                              </h4>
                               <p>{question.questionText}</p>
                               <ul className="list-disc pl-5 mt-2">
                                 {question.options.map((option, optionIndex) => (
-                                  <li key={optionIndex} className={option === question.correctAnswer ? "font-bold" : ""}>
+                                  <li
+                                    key={optionIndex}
+                                    className={
+                                      option === question.correctAnswer
+                                        ? "font-bold"
+                                        : ""
+                                    }
+                                  >
                                     {option}
                                   </li>
                                 ))}
@@ -398,7 +482,9 @@ export default function AddLesson() {
                         onClick={handleAddQuiz}
                         className="mt-4 w-full bg-purple-500 hover:bg-purple-600 text-white"
                       >
-                        {quizQuestions.length > 0 ? "Add More Questions" : "Add Quiz"}
+                        {quizQuestions.length > 0
+                          ? "Add More Questions"
+                          : "Add Quiz"}
                       </Button>
                     </div>
                   </div>
@@ -512,11 +598,12 @@ export default function AddLesson() {
                     <span>{index + 1}</span>
                     <span>{lesson.title}</span>
                     <span>{lesson.duration} minutes</span>
-                    {lesson.quizQuestions && lesson.quizQuestions.length > 0 && (
-                      <span className="text-purple-500">
-                        {lesson.quizQuestions.length} quiz questions
-                      </span>
-                    )}
+                    {lesson.quizQuestions &&
+                      lesson.quizQuestions.length > 0 && (
+                        <span className="text-purple-500">
+                          {lesson.quizQuestions.length} quiz questions
+                        </span>
+                      )}
                   </li>
                 ))}
               </ul>
@@ -551,4 +638,3 @@ export default function AddLesson() {
     </div>
   );
 }
-

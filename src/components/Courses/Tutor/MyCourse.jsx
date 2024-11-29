@@ -1,85 +1,95 @@
-import React, { useState, useEffect } from 'react'
-import { Pencil, Trash2, Menu, ChevronLeft, ChevronRight } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
-import { toast } from 'sonner'
-import SideBar from '../../../pages/Tutor/SideBar'
-import axiosInstance from '../../../AxiosConfig'
-import ConfirmationDialog from '../../common/ConfirmationDialog'
-import { useSelector } from 'react-redux'
+import React, { useState, useEffect } from "react";
+import { Pencil, Trash2, Menu, ChevronLeft, ChevronRight } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
+import SideBar from "../../../pages/Tutor/SideBar";
+import axiosInstance from "../../../AxiosConfig";
+import ConfirmationDialog from "../../common/ConfirmationDialog";
+import { useSelector } from "react-redux";
 
 const MyCourses = () => {
-  const [currentPage, setCurrentPage] = useState(1)
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
-  const [courses, setCourses] = useState([])
-  const [totalPages, setTotalPages] = useState(1)
-  const [isLoading, setIsLoading] = useState(true)
-  const navigate = useNavigate()
+  const [currentPage, setCurrentPage] = useState(1);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [courses, setCourses] = useState([]);
+  const [totalPages, setTotalPages] = useState(1);
+  const [isLoading, setIsLoading] = useState(true);
+  const navigate = useNavigate();
   const tuorDatas = useSelector((store) => store.tutor.tutorDatas);
-  console.log(tuorDatas._id)
-  const itemsPerPage = 4
-  
+  console.log(tuorDatas._id);
+  const itemsPerPage = 5;
+
   useEffect(() => {
-    fetchCourses()
-  }, [currentPage])
+    fetchCourses();
+  }, [currentPage]);
 
   const fetchCourses = async () => {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
-      const response = await axiosInstance.get(`/tutor/course/viewcourse/${tuorDatas._id}`)
-      const allCourses = response.data.courses
-      setTotalPages(Math.ceil(allCourses.length / itemsPerPage))
-      
-      const startIndex = (currentPage - 1) * itemsPerPage
-      const endIndex = startIndex + itemsPerPage
-      setCourses(allCourses.slice(startIndex, endIndex))
+      const response = await axiosInstance.get(
+        `/tutor/course/viewcourse/${tuorDatas._id}`
+      );
+      const allCourses = response.data.courses;
+      setTotalPages(Math.ceil(allCourses.length / itemsPerPage));
+
+      const startIndex = (currentPage - 1) * itemsPerPage;
+      const endIndex = startIndex + itemsPerPage;
+      setCourses(allCourses.slice(startIndex, endIndex));
     } catch (error) {
-      console.error('Error fetching courses:', error)
-      toast.error('Failed to fetch courses')
+      console.error("Error fetching courses:", error);
+      toast.error("Failed to fetch courses");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleEdit = (courseId) => {
-    navigate(`/tutor/editcourse/${courseId}`)
-  }
+    navigate(`/tutor/editcourse/${courseId}`);
+  };
 
   const handleDelete = async (courseId) => {
     const { showConfirmation } = ConfirmationDialog({
-      title: 'Are you sure?',
+      title: "Are you sure?",
       text: "You won't be able to revert this!",
-      icon: 'warning',
-      confirmButtonText: 'Yes, delete it!',
+      icon: "warning",
+      confirmButtonText: "Yes, delete it!",
       onConfirm: async () => {
         try {
-          await axiosInstance.delete(`/tutor/course/viewcourse/`,{params:{
-            tutorId:tuorDatas._id,
-            courseId,
-          }})
-          toast.success('Course deleted successfully')
-          setCourses((prevCourses) => prevCourses.filter(course => course._id !== courseId))
+          await axiosInstance.delete(`/tutor/course/viewcourse/`, {
+            params: {
+              tutorId: tuorDatas._id,
+              courseId,
+            },
+          });
+          toast.success("Course deleted successfully");
+          setCourses((prevCourses) =>
+            prevCourses.filter((course) => course._id !== courseId)
+          );
           if (courses.length === 1 && currentPage > 1) {
-            setCurrentPage(prev => prev - 1)
+            setCurrentPage((prev) => prev - 1);
           } else {
-            fetchCourses()
+            fetchCourses();
           }
         } catch (error) {
-          console.error('Error deleting course:', error)
-          toast.error('Failed to delete course')
+          console.error("Error deleting course:", error);
+          toast.error("Failed to delete course");
         }
-      }
-    })
+      },
+    });
 
-    showConfirmation()
-  }
+    showConfirmation();
+  };
 
   const handlePageChange = (newPage) => {
-    setCurrentPage(newPage)
-  }
+    setCurrentPage(newPage);
+  };
 
   return (
     <div className="flex h-screen bg-gray-100">
-      <SideBar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} activeItem="Courses" />
+      <SideBar
+        isOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
+        activeItem="Courses"
+      />
 
       <div className="flex-1 flex flex-col overflow-hidden">
         <header className="bg-white shadow-sm z-10">
@@ -108,7 +118,7 @@ const MyCourses = () => {
                   >
                     <div className="w-full sm:w-32 h-24 rounded-lg overflow-hidden flex-shrink-0">
                       <img
-                        src={course.thumbnail || '/placeholder-course.png'}
+                        src={course.thumbnail || "/placeholder-course.png"}
                         alt={course.coursetitle}
                         className="w-full h-full object-cover"
                       />
@@ -118,9 +128,15 @@ const MyCourses = () => {
                       <h3 className="text-lg font-semibold text-gray-900">
                         {course.coursetitle}
                       </h3>
-                      <p className="text-sm text-gray-600"><b>Category: {course.category.title}</b></p>
-                      <p className="text-sm text-gray-600"><i>Difficulty: {course.difficulty}</i></p>
-                      <p className="text-sm text-gray-600"><i>Price: ₹{course.price}</i></p>
+                      <p className="text-sm text-gray-600">
+                        <b>Category: {course.category?.title}</b>
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        <i>Difficulty: {course.difficulty}</i>
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        <i>Price: ₹{course.price}</i>
+                      </p>
                     </div>
 
                     <div className="flex gap-2 w-full sm:w-auto">
@@ -146,7 +162,10 @@ const MyCourses = () => {
 
             {/* Pagination */}
             <div className="mt-6 flex justify-center">
-              <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+              <nav
+                className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px"
+                aria-label="Pagination"
+              >
                 <button
                   onClick={() => handlePageChange(currentPage - 1)}
                   disabled={currentPage === 1}
@@ -161,8 +180,8 @@ const MyCourses = () => {
                     onClick={() => handlePageChange(index + 1)}
                     className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
                       currentPage === index + 1
-                        ? 'z-10 bg-indigo-50 border-indigo-500 text-indigo-600'
-                        : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
+                        ? "z-10 bg-indigo-50 border-indigo-500 text-indigo-600"
+                        : "bg-white border-gray-300 text-gray-500 hover:bg-gray-50"
                     }`}
                   >
                     {index + 1}
@@ -182,7 +201,7 @@ const MyCourses = () => {
         </main>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default MyCourses
+export default MyCourses;

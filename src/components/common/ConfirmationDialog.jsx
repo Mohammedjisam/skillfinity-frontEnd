@@ -1,13 +1,13 @@
-import React from 'react';
-import PropTypes from 'prop-types';
-import Swal from 'sweetalert2';
+import React from "react";
+import PropTypes from "prop-types";
+import Swal from "sweetalert2";
 
 const ConfirmationDialog = ({
   title,
   text,
   icon,
   confirmButtonText,
-  onConfirm
+  onConfirm,
 }) => {
   const showConfirmation = () => {
     Swal.fire({
@@ -17,7 +17,7 @@ const ConfirmationDialog = ({
       showCancelButton: true,
       confirmButtonColor: "#3085d6",
       cancelButtonColor: "#d33",
-      confirmButtonText
+      confirmButtonText,
     }).then((result) => {
       if (result.isConfirmed) {
         onConfirm();
@@ -31,9 +31,10 @@ const ConfirmationDialog = ({
 ConfirmationDialog.propTypes = {
   title: PropTypes.string.isRequired,
   text: PropTypes.string.isRequired,
-  icon: PropTypes.oneOf(['warning', 'error', 'success', 'info', 'question']).isRequired,
+  icon: PropTypes.oneOf(["warning", "error", "success", "info", "question"])
+    .isRequired,
   confirmButtonText: PropTypes.string.isRequired,
-  onConfirm: PropTypes.func.isRequired
+  onConfirm: PropTypes.func.isRequired,
 };
 
 export default ConfirmationDialog;

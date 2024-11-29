@@ -49,6 +49,20 @@ export default function Profile() {
     const file = e.target.files[0]
     if (!file) return
 
+    // Image validation
+    const validTypes = ['image/jpeg', 'image/png', 'image/gif']
+    const maxSize = 5 * 1024 * 1024 // 5MB
+
+    if (!validTypes.includes(file.type)) {
+      toast.error('Invalid file type. Please upload a JPEG, PNG, or GIF image.')
+      return
+    }
+
+    if (file.size > maxSize) {
+      toast.error('File is too large. Please upload an image smaller than 5MB.')
+      return
+    }
+
     setIsUploading(true)
 
     try {
@@ -77,7 +91,7 @@ export default function Profile() {
       }
     } catch (error) {
       console.error('Image upload error:', error)
-      toast.error('Failed to update profile image')
+      toast.error('Failed to update profile image: ' + (error.response?.data?.message || error.message))
     } finally {
       setIsUploading(false)
     }
@@ -191,3 +205,4 @@ export default function Profile() {
     </div>
   )
 }
+

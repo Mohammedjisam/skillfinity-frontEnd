@@ -17,7 +17,6 @@ export const CartProvider = ({ children }) => {
 
   const updateCartCount = async () => {
     try {
-      // Replace userData._id with the actual user ID as per your application context
       const response = await axiosInstance.post(`/user/data/cartcount/${userDatas._id}`);
       setCartCount(response.data.totalItems);
     } catch (error) {

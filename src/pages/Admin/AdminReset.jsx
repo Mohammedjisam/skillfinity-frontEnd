@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { EyeIcon, EyeOffIcon } from "lucide-react"; // Ensure lucide-react is installed
+import { EyeIcon, EyeOffIcon } from "lucide-react"; 
 import axiosInstance from '@/AxiosConfig';
 
 const AdminReset = () => {

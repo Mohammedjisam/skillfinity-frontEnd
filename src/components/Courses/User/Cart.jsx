@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import axiosInstance from '../../../AxiosConfig';
-import { toast } from 'sonner';
-import { useSelector } from 'react-redux';
-import { useCart } from '@/context/CartContext';
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import axiosInstance from "../../../AxiosConfig";
+import { toast } from "sonner";
+import { useSelector } from "react-redux";
+import { useCart } from "@/context/CartContext";
 
 const Cart = () => {
   const [cartItems, setCartItems] = useState([]);
@@ -16,7 +16,9 @@ const Cart = () => {
   useEffect(() => {
     const fetchCart = async () => {
       try {
-        const response = await axiosInstance.post(`/user/data/cart`, { userId: userDatas._id });
+        const response = await axiosInstance.post(`/user/data/cart`, {
+          userId: userDatas._id,
+        });
         console.log("Cart response:", response.data);
         setCartItems(response.data.cart.items);
       } catch (error) {
@@ -36,9 +38,11 @@ const Cart = () => {
         params: {
           userId: userDatas._id,
           courseId,
-        }
+        },
       });
-      setCartItems((prevItems) => prevItems.filter((item) => item.courseId?._id !== courseId));
+      setCartItems((prevItems) =>
+        prevItems.filter((item) => item.courseId?._id !== courseId)
+      );
       decrementCartCount();
       toast.success("Course removed from cart successfully!");
     } catch (error) {
@@ -49,16 +53,16 @@ const Cart = () => {
     }
   };
 
-
   const calculateTotal = () => {
     return cartItems.reduce((total, item) => total + (item.price || 0), 0);
   };
 
   const handleBuyAll = () => {
-    const courseIds = cartItems.map(item => item.courseId._id);
-    navigate('/buyallcourses', { state: { courseIds, totalAmount: calculateTotal() } });
+    const courseIds = cartItems.map((item) => item.courseId._id);
+    navigate("/buyallcourses", {
+      state: { courseIds, totalAmount: calculateTotal() },
+    });
   };
-
 
   if (loading) {
     return (
@@ -79,7 +83,9 @@ const Cart = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold mb-6">Shopping Cart ({cartItems.length} items)</h1>
+      <h1 className="text-2xl font-bold mb-6">
+        Shopping Cart ({cartItems.length} items)
+      </h1>
 
       <div className="grid grid-cols-1 gap-6 mb-8">
         {cartItems.map((item) => {
@@ -87,14 +93,19 @@ const Cart = () => {
           if (!course || !course._id) return null;
 
           return (
-            <div key={course._id} className="bg-gray-100 rounded-lg shadow-xl p-6 flex flex-col sm:flex-row items-center gap-4">
+            <div
+              key={course._id}
+              className="bg-gray-100 rounded-lg shadow-xl p-6 flex flex-col sm:flex-row items-center gap-4"
+            >
               <img
-                src={course.thumbnail || '/placeholder.svg'}
-                alt={course.coursetitle || 'Course Thumbnail'}
+                src={course.thumbnail || "/placeholder.svg"}
+                alt={course.coursetitle || "Course Thumbnail"}
                 className="w-full sm:w-48 h-32 object-cover rounded-lg"
               />
               <div className="flex-1 min-w-0">
-                <h3 className="text-xl font-semibold mb-2">{course.coursetitle || 'Course Title'}</h3>
+                <h3 className="text-xl font-semibold mb-2">
+                  {course.coursetitle || "Course Title"}
+                </h3>
                 <p className="font-bold text-lg mb-2">₹{item.price}</p>
               </div>
               <div className="flex flex-col sm:flex-col gap-2 w-full sm:w-auto">
@@ -114,7 +125,9 @@ const Cart = () => {
       <div className="bg-white rounded-lg shadow-sm p-6">
         <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
           <div>
-            <h3 className="text-xl font-semibold mb-2">Total: ₹{calculateTotal()}</h3>
+            <h3 className="text-xl font-semibold mb-2">
+              Total: ₹{calculateTotal()}
+            </h3>
             <p className="text-gray-600">Total items: {cartItems.length}</p>
           </div>
           <button

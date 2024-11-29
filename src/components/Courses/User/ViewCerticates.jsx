@@ -9,7 +9,7 @@ import Sidebar from '../../../pages/User/Sidebar'
 import { Button } from "../../../components/ui/button"
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
-import { Alert, AlertDescription, AlertTitle } from "../../../components/ui/alert"
+
 
 
 export default function ViewCertificates() {
@@ -136,12 +136,15 @@ export default function ViewCertificates() {
 
     if (error === 'fetch_failed') {
       return (
-        <Alert variant="destructive">
-          <AlertTitle>Error</AlertTitle>
-          <AlertDescription>
-            Failed to fetch certificates. Please try again later or contact support if the problem persists.
-          </AlertDescription>
-        </Alert>
+        <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-lg">
+      <div className="font-bold text-lg mb-2">No Certificates</div>
+      <div className="text-base">
+        You did not achieve any certificates. First, complete the lessons, 
+        attend the quizzes, and achieve at least 90% marks to earn the course 
+        completion certificate.
+      </div>
+    </div>
+
       )
     }
 

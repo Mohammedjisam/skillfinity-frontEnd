@@ -7,8 +7,8 @@ const TutorReset = () => {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [showNewPassword, setShowNewPassword] = useState(false); // State for new password visibility
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false); // State for confirm password visibility
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false); 
   const { token } = useParams();
   const navigate = useNavigate();
 
@@ -50,7 +50,7 @@ const TutorReset = () => {
               />
               <button
                 type="button"
-                onClick={() => setShowNewPassword((prev) => !prev)} // Toggle function
+                onClick={() => setShowNewPassword((prev) => !prev)} 
                 className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500"
               >
                 {showNewPassword ? "Hide" : "Show"}
@@ -72,7 +72,7 @@ const TutorReset = () => {
               />
               <button
                 type="button"
-                onClick={() => setShowConfirmPassword((prev) => !prev)} // Toggle function
+                onClick={() => setShowConfirmPassword((prev) => !prev)}
                 className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500"
               >
                 {showConfirmPassword ? "Hide" : "Show"}

@@ -3,7 +3,7 @@ import { Pencil, Menu, Camera } from 'lucide-react';
 import TutorSidebar from './SideBar';
 import { useSelector, useDispatch } from 'react-redux';
 import { toast } from 'sonner';
-import { updateTutor, addTutor } from '@/redux/slice/TutorSlice'; // Use addTutor instead of setTutorData
+import { updateTutor, addTutor } from '@/redux/slice/TutorSlice'; 
 import axiosInstance from '@/AxiosConfig';
 
 export default function TutorProfile() {
@@ -61,6 +61,20 @@ export default function TutorProfile() {
   const handleImageUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
+
+    // Image validation
+    const validTypes = ['image/jpeg', 'image/png', 'image/gif'];
+    const maxSize = 5 * 1024 * 1024; // 5MB
+
+    if (!validTypes.includes(file.type)) {
+      toast.error('Invalid file type. Please upload a JPEG, PNG, or GIF image.');
+      return;
+    }
+
+    if (file.size > maxSize) {
+      toast.error('File is too large. Please upload an image smaller than 5MB.');
+      return;
+    }
 
     setIsUploading(true);
 

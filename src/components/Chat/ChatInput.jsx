@@ -23,7 +23,7 @@ export default function ChatInput({ handleSendMsg }) {
           className="text-gray-500 hover:text-gray-600"
           aria-label="Attach file"
         >
-          <Paperclip size={20} />
+          
         </button>
         <input
           type="text"
@@ -37,7 +37,7 @@ export default function ChatInput({ handleSendMsg }) {
           className="text-gray-500 hover:text-gray-600"
           aria-label="Add emoji"
         >
-          <Smile size={20} />
+          
         </button>
         <button 
           type="submit"

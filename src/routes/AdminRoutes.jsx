@@ -18,6 +18,7 @@ import CourseManagement from '@/components/Courses/Admin/CourseManagement'
 import ViewCourseDetails from '@/components/Courses/Admin/ViewCourseDetails'
 import ViewLessons from '@/components/Courses/Admin/ViewLessons'
 import AdminOrders from '../components/Courses/Admin/AdminOrders'
+import CourseReports from '@/components/Courses/Admin/CourseReports'
 
 function AdminRoutes() {
   return (
@@ -39,6 +40,7 @@ function AdminRoutes() {
         <Route path='courses/:id' element={<ProtectedAdminRoutes><ViewCourseDetails/></ProtectedAdminRoutes>}/>
         <Route path='courses/:courseId/lessons' element={<ProtectedAdminRoutes><ViewLessons/></ProtectedAdminRoutes>}/>
         <Route path='orders' element={<ProtectedAdminRoutes><AdminOrders /></ProtectedAdminRoutes>}/>
+        <Route path='courses/:courseId/reports' element={<ProtectedAdminRoutes><CourseReports /></ProtectedAdminRoutes>}/>
       </Routes>
       <Footer />
     </div>

@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { Save, ArrowLeft, Upload, Menu } from 'lucide-react';
-import axiosInstance from '../../../AxiosConfig';
-import SideBar from '../../../pages/Tutor/SideBar';
-import { toast } from 'sonner'; 
-import { useSelector } from 'react-redux'; 
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { Save, ArrowLeft, Upload, Menu } from "lucide-react";
+import axiosInstance from "../../../AxiosConfig";
+import SideBar from "../../../pages/Tutor/SideBar";
+import { toast } from "sonner";
+import { useSelector } from "react-redux";
 
 export default function EditLesson() {
   const [lessonData, setLessonData] = useState(null);
@@ -14,37 +14,38 @@ export default function EditLesson() {
   const tutorData = useSelector((store) => store.tutor.tutorDatas);
   const { lessonId } = useParams();
   const navigate = useNavigate();
-  const tutorDatas=useSelector((store)=>store.tutor.tutorDatas)
+  const tutorDatas = useSelector((store) => store.tutor.tutorDatas);
 
   useEffect(() => {
     const fetchLessonData = async () => {
       try {
-        const response = await axiosInstance.get(`/tutor/course/editlesson`,{params:{
-          lessonId,
-          tutorId:tutorDatas._id,
-        }});
-        
+        const response = await axiosInstance.get(`/tutor/course/editlesson`, {
+          params: {
+            lessonId,
+            tutorId: tutorDatas._id,
+          },
+        });
+
         if (response.data && response.data.lesson) {
           setLessonData(response.data.lesson);
         }
       } catch (error) {
-        console.error('Error fetching lesson data:', error);
-        toast.error('Failed to fetch lesson data');
+        console.error("Error fetching lesson data:", error);
+        toast.error("Failed to fetch lesson data");
       }
     };
-  
+
     if (lessonId) {
       fetchLessonData();
     }
   }, [lessonId]);
-  
 
   const handleInputChange = (field, value) => {
-    if (field === 'lessontitle' && value.length > 22) {
-      toast.error('Lesson title cannot exceed 22 characters.');
+    if (field === "lessontitle" && value.length > 22) {
+      toast.error("Lesson title cannot exceed 22 characters.");
       return;
     }
-  
+
     setLessonData((prevData) => ({
       ...prevData,
       [field]: value,
@@ -53,24 +54,24 @@ export default function EditLesson() {
 
   const handleFileChange = (event, fileType) => {
     const file = event.target.files[0];
-    if (fileType === 'video') {
+    if (fileType === "video") {
       setVideoFile(file);
-    } else if (fileType === 'pdf') {
+    } else if (fileType === "pdf") {
       setPdfFile(file);
     }
   };
 
   const uploadToCloudinary = async (file, resourceType) => {
     const formData = new FormData();
-    formData.append('file', file);
-    formData.append('upload_preset', 'skillfinity_media');
-    formData.append('cloud_name', 'dwxnxuuht');
+    formData.append("file", file);
+    formData.append("upload_preset", "skillfinity_media");
+    formData.append("cloud_name", "dwxnxuuht");
 
     try {
       const response = await fetch(
         `https://api.cloudinary.com/v1_1/dwxnxuuht/${resourceType}/upload`,
         {
-          method: 'POST',
+          method: "POST",
           body: formData,
         }
       );
@@ -88,12 +89,12 @@ export default function EditLesson() {
       let updatedData = { ...lessonData };
 
       if (videoFile) {
-        const videoUrl = await uploadToCloudinary(videoFile, 'video');
+        const videoUrl = await uploadToCloudinary(videoFile, "video");
         updatedData.Video = videoUrl;
       }
 
       if (pdfFile) {
-        const pdfUrl = await uploadToCloudinary(pdfFile, 'raw');
+        const pdfUrl = await uploadToCloudinary(pdfFile, "raw");
         updatedData.pdfnotes = pdfUrl;
       }
 
@@ -106,27 +107,35 @@ export default function EditLesson() {
         tutorId: tutorData._id,
       };
 
-      const response = await axiosInstance.put('/tutor/course/editlesson',{
+      const response = await axiosInstance.put("/tutor/course/editlesson", {
         lessonId,
-        tutorId:tutorDatas._id,
-        ...dataToSend
+        tutorId: tutorDatas._id,
+        ...dataToSend,
       });
-      console.log('Lesson updated:', response.data);
-      toast.success('Lesson updated successfully');
+      console.log("Lesson updated:", response.data);
+      toast.success("Lesson updated successfully");
       navigate(`/tutor/editcourse/${lessonData.course}`);
     } catch (error) {
-      console.error('Error updating lesson:', error);
-      toast.error('Failed to update lesson');
+      console.error("Error updating lesson:", error);
+      toast.error("Failed to update lesson");
     }
   };
 
   if (!lessonData) {
-    return <div className="flex justify-center items-center h-screen">Loading...</div>;
+    return (
+      <div className="flex justify-center items-center h-screen">
+        Loading...
+      </div>
+    );
   }
   return (
     <div className="flex h-screen bg-gray-100">
-      <SideBar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} activeItem="Courses" />
-      
+      <SideBar
+        isOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
+        activeItem="Courses"
+      />
+
       <div className="flex-1 flex flex-col overflow-hidden">
         <header className="bg-white shadow-sm z-10">
           <div className="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
@@ -145,47 +154,62 @@ export default function EditLesson() {
           <div className="max-w-6xl mx-auto p-6 pb-6">
             <div className="bg-white shadow-md rounded-lg overflow-hidden">
               <div className="p-6 space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Lesson Title</label>
-                <input
-                  type="text"
-                  value={lessonData.lessontitle}
-                  onChange={(e) => handleInputChange('lessontitle', e.target.value)}
-                  className="w-full p-2 border rounded border-dashed border-gray-300 bg-rose-50"
-                  placeholder="Lesson Title"
-                />
-                <p className="text-sm text-gray-500 mt-1">
-                  {lessonData.lessontitle ? lessonData.lessontitle.length : 0} / 22 characters
-                </p>
-              </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Lesson Title
+                  </label>
+                  <input
+                    type="text"
+                    value={lessonData.lessontitle}
+                    onChange={(e) =>
+                      handleInputChange("lessontitle", e.target.value)
+                    }
+                    className="w-full p-2 border rounded border-dashed border-gray-300 bg-rose-50"
+                    placeholder="Lesson Title"
+                  />
+                  <p className="text-sm text-gray-500 mt-1">
+                    {lessonData.lessontitle ? lessonData.lessontitle.length : 0}{" "}
+                    / 22 characters
+                  </p>
+                </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Duration</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Duration
+                  </label>
                   <input
                     type="text"
                     value={lessonData.duration}
-                    onChange={(e) => handleInputChange('duration', e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange("duration", e.target.value)
+                    }
                     className="w-full p-2 border rounded border-dashed border-gray-300 bg-rose-50"
                     placeholder="Duration (e.g. 10:30)"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Description
+                  </label>
                   <textarea
                     value={lessonData.description}
-                    onChange={(e) => handleInputChange('description', e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange("description", e.target.value)
+                    }
                     className="w-full p-2 border rounded border-dashed border-gray-300 bg-rose-50"
                     placeholder="Lesson Description"
                     rows="3"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Video</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Video
+                  </label>
                   <div className="flex items-center space-x-2">
                     <input
                       type="file"
                       accept="video/*"
-                      onChange={(e) => handleFileChange(e, 'video')}
+                      onChange={(e) => handleFileChange(e, "video")}
                       className="hidden"
                       id="video-upload"
                     />
@@ -196,30 +220,36 @@ export default function EditLesson() {
                       <Upload className="w-4 h-4 mr-2 inline-block" />
                       Change Video
                     </label>
-                    {videoFile && <span className="text-sm text-gray-600">{videoFile.name}</span>}
+                    {videoFile && (
+                      <span className="text-sm text-gray-600">
+                        {videoFile.name}
+                      </span>
+                    )}
                   </div>
                   {lessonData.Video && (
-                     <video 
-                     controls
-                     controlsList="nodownload" 
-                     disablePictureInPicture
-                     className="mt-2 w-full max-w-md rounded-lg bg-black"
-                     style={{
-                       '--video-border-radius': '0.5rem',
-                     } }
-                   >
+                    <video
+                      controls
+                      controlsList="nodownload"
+                      disablePictureInPicture
+                      className="mt-2 w-full max-w-md rounded-lg bg-black"
+                      style={{
+                        "--video-border-radius": "0.5rem",
+                      }}
+                    >
                       <source src={lessonData.Video} type="video/mp4" />
                       Your browser does not support the video tag.
                     </video>
                   )}
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">PDF Notes</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    PDF Notes
+                  </label>
                   <div className="flex items-center space-x-2">
                     <input
                       type="file"
                       accept=".pdf"
-                      onChange={(e) => handleFileChange(e, 'pdf')}
+                      onChange={(e) => handleFileChange(e, "pdf")}
                       className="hidden"
                       id="pdf-upload"
                     />
@@ -230,10 +260,19 @@ export default function EditLesson() {
                       <Upload className="w-4 h-4 mr-2 inline-block" />
                       Change PDF
                     </label>
-                    {pdfFile && <span className="text-sm text-gray-600">{pdfFile.name}</span>}
+                    {pdfFile && (
+                      <span className="text-sm text-gray-600">
+                        {pdfFile.name}
+                      </span>
+                    )}
                   </div>
                   {lessonData.pdfnotes && (
-                    <a href={lessonData.pdfnotes} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline mt-2 inline-block">
+                    <a
+                      href={lessonData.pdfnotes}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-500 hover:underline mt-2 inline-block"
+                    >
                       View Current PDF
                     </a>
                   )}
@@ -260,5 +299,5 @@ export default function EditLesson() {
         </main>
       </div>
     </div>
-  )
+  );
 }

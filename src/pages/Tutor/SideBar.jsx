@@ -51,7 +51,7 @@ const SideBar = ({ isOpen, onClose }) => {
   const [activeItem, setActiveItem] = useState('Dashboard');
 
   const handleNavigation = (path, itemName) => {
-    setActiveItem(itemName); // Update active item
+    setActiveItem(itemName); 
     navigate(path);
     onClose?.();
   };
@@ -70,7 +70,6 @@ const SideBar = ({ isOpen, onClose }) => {
           onClose?.();
           toast.success('Logged out successfully!');
         } catch (error) {
-          // Handle any errors that occur during the API call
           console.error("Error during logout:", error);
           toast.error('Logout failed. Please try again.');
         }

@@ -14,7 +14,7 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
 
-  // Validation function similar to signup page
+
   const validate = () => {
     const errors = {};
 
