@@ -1,7 +1,5 @@
-'use client'
-
 import { useState, useEffect } from 'react'
-import { ChevronLeft, ChevronRight, Menu, X, Search } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Menu, X, Search, Plus } from 'lucide-react'
 import AdminSidebar from './AdminSidebar'
 import axiosInstance from '@/AxiosConfig'
 import { useDispatch, useSelector } from 'react-redux'
@@ -9,6 +7,7 @@ import { updateCategory, deleteCategory, setCategories } from '@/redux/slice/Cat
 import { toast } from 'sonner'
 import { Input } from "@/components/ui/input"
 import Swal from 'sweetalert2'
+import { useNavigate } from 'react-router-dom'
 
 export default function CategoryManagement() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -19,6 +18,7 @@ export default function CategoryManagement() {
   const [searchTerm, setSearchTerm] = useState('')
   const itemsPerPage = 5
   const dispatch = useDispatch()
+  const navigate=useNavigate()
   const categories = useSelector(state => state.category.categoryDatas)
 
   useEffect(() => {
@@ -57,6 +57,9 @@ export default function CategoryManagement() {
     setIsEditing(true)
   }
 
+  const handleaddcategory=()=>{
+    navigate('/admin/addcategory')
+  }
   const handleSaveEdit = async () => {
     try {
       const response = await axiosInstance.put(`/admin/category/${editData._id}`, {
@@ -114,6 +117,7 @@ export default function CategoryManagement() {
   if (isLoading) {
     return <div className="flex justify-center items-center h-screen">Loading...</div>
   }
+
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-100">
@@ -187,34 +191,98 @@ export default function CategoryManagement() {
             </div>
           </div>
 
-          {filteredCategories.length > 0 && (
-            <div className="flex flex-wrap items-center justify-between mt-4 gap-2">
+          {categories.length === 0 ? (
+            <div className="text-center py-10">
+              <h2 className="text-xl font-semibold text-gray-700 mb-2">No Categories Yet</h2>
+              <p className="text-gray-500 mb-4">Get started by adding your first category.</p>
               <button
-                onClick={() => handlePageChange(currentPage - 1)}
-                disabled={currentPage === 1}
-                className="px-2 py-1 rounded bg-gray-200 text-gray-600 hover:bg-gray-300 disabled:opacity-50 text-sm"
+                onClick={() => {handleaddcategory}}
+                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition duration-300 flex items-center justify-center mx-auto"
               >
-                <ChevronLeft className="w-4 h-4" />
-              </button>
-              <div className="flex flex-wrap gap-2">
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                  <button
-                    key={page}
-                    onClick={() => handlePageChange(page)}
-                    className={`px-2 py-1 rounded text-sm ${currentPage === page ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-600 hover:bg-gray-300'}`}
-                  >
-                    {page}
-                  </button>
-                ))}
-              </div>
-              <button
-                onClick={() => handlePageChange(currentPage + 1)}
-                disabled={currentPage === totalPages}
-                className="px-2 py-1 rounded bg-gray-200 text-gray-600 hover:bg-gray-300 disabled:opacity-50 text-sm"
-              >
-                <ChevronRight className="w-4 h-4" />
+                <Plus className="w-5 h-5 mr-2" />
+                Add Category
               </button>
             </div>
+          ) : (
+            <>
+              <div className="bg-white shadow-md rounded-lg overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full table-auto divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sl. No.</th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category Name</th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {paginatedCategories.length === 0 ? (
+                        <tr>
+                          <td colSpan={4} className="px-4 py-2 text-sm text-gray-500 text-center">
+                            {searchTerm ? 'No categories found matching your search.' : 'No categories available.'}
+                          </td>
+                        </tr>
+                      ) : (
+                        paginatedCategories.map((category, index) => (
+                          <tr key={category._id} className="cursor-pointer hover:bg-gray-50">
+                            <td className="px-4 py-2 text-sm text-gray-500">{index + 1 + (currentPage - 1) * itemsPerPage}</td>
+                            <td className="px-4 py-2 text-sm text-gray-900">{category.title}</td>
+                            <td className="px-4 py-2 text-sm text-gray-500">{category.description}</td>
+                            <td className="px-4 py-2 text-sm font-medium">
+                              <div className="flex space-x-2">
+                                <button
+                                  className="w-24 px-4 py-2 rounded-md text-white bg-blue-600 hover:bg-blue-700 transition duration-300"
+                                  onClick={() => handleEdit(category)}
+                                >
+                                  Edit
+                                </button>
+                                <button
+                                  className="w-24 px-4 py-2 rounded-md text-white bg-red-600 hover:bg-red-700 transition duration-300"
+                                  onClick={() => handleDelete(category._id)}
+                                >
+                                  Delete
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {filteredCategories.length > 0 && (
+                <div className="flex flex-wrap items-center justify-between mt-4 gap-2">
+                  <button
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    className="px-2 py-1 rounded bg-gray-200 text-gray-600 hover:bg-gray-300 disabled:opacity-50 text-sm"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
+                  <div className="flex flex-wrap gap-2">
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                      <button
+                        key={page}
+                        onClick={() => handlePageChange(page)}
+                        className={`px-2 py-1 rounded text-sm ${currentPage === page ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-600 hover:bg-gray-300'}`}
+                      >
+                        {page}
+                      </button>
+                    ))}
+                  </div>
+                  <button
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    className="px-2 py-1 rounded bg-gray-200 text-gray-600 hover:bg-gray-300 disabled:opacity-50 text-sm"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
+            </>
           )}
 
           {isEditing && (
@@ -252,3 +320,4 @@ export default function CategoryManagement() {
     </div>
   )
 }
+

@@ -1,8 +1,6 @@
-"use client";
-
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronLeft, ChevronRight, Menu, X, Search } from "lucide-react";
+import { ChevronLeft, ChevronRight, Menu, X, Search } from 'lucide-react';
 import AdminSidebar from "./AdminSidebar";
 import { logoutTutor } from "@/redux/slice/TutorSlice";
 import { useDispatch } from "react-redux";
@@ -164,135 +162,144 @@ export default function TutorManagement() {
             />
           </div>
 
-          <div className="bg-white shadow-md rounded-lg overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full table-auto divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Sl. No.
-                    </th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Tutor_ID
-                    </th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Tutor Name
-                    </th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Tutor Mail
-                    </th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Courses Taken
-                    </th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Action
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {paginatedTutors.length === 0 ? (
-                    <tr>
-                      <td
-                        colSpan={7}
-                        className="px-4 py-2 text-sm text-gray-500 text-center"
-                      >
-                        No tutors found
-                      </td>
-                    </tr>
-                  ) : (
-                    paginatedTutors.map((tutor, index) => (
-                      <tr
-                        key={tutor._id}
-                        className="cursor-pointer hover:bg-gray-50"
-                      >
-                        <td className="px-4 py-2 text-sm text-gray-500">
-                          {index + 1 + (currentPage - 1) * itemsPerPage}
-                        </td>
-                        <td className="px-4 py-2 text-sm text-gray-500">
-                          {tutor.user_id}
-                        </td>
-                        <td className="px-4 py-2 text-sm text-gray-900">
-                          {tutor.name}
-                        </td>
-                        <td className="px-4 py-2 text-sm text-gray-900">
-                          {tutor.email}
-                        </td>
-                        <td className="px-4 py-2 text-sm text-gray-500">
-                          {typeof tutor.coursesTaken === "number"
-                            ? tutor.coursesTaken > 0
-                              ? `${tutor.coursesTaken} Course${
-                                  tutor.coursesTaken > 1 ? "s" : ""
-                                }`
-                              : "No Courses"
-                            : "No Courses"}
-                        </td>
-                        <td className="px-4 py-2 text-sm text-gray-500">
-                          {tutor.isActive ? "Active" : "Inactive"}
-                        </td>
-                        <td className="px-4 py-2 text-sm font-medium">
-                          <button
-                            className={`text-white px-4 py-2 rounded-md hover:opacity-90 transition duration-300 ${
-                              tutor.isActive ? "bg-red-600" : "bg-blue-600"
-                            }`}
-                            onClick={() =>
-                              tutor.isActive
-                                ? handleUnlist(tutor._id)
-                                : handleList(tutor._id)
-                            }
-                            style={{ width: "80px" }}
-                          >
-                            {tutor.isActive ? "Block" : "Unblock"}
-                          </button>
-                        </td>
+          {tutors.length === 0 ? (
+            <div className="bg-white shadow-md rounded-lg p-6 text-center">
+              <h2 className="text-xl font-semibold text-gray-800 mb-2">No Tutors Found</h2>
+              <p className="text-gray-600">There are currently no tutors registered in the system.</p>
+            </div>
+          ) : (
+            <>
+              <div className="bg-white shadow-md rounded-lg overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full table-auto divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Sl. No.
+                        </th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Tutor_ID
+                        </th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Tutor Name
+                        </th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Tutor Mail
+                        </th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Courses Taken
+                        </th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Status
+                        </th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Action
+                        </th>
                       </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          {filteredTutors.length > 0 && (
-            <div className="flex flex-wrap items-center justify-between mt-4 gap-2">
-              <button
-                onClick={() => handlePageChange(currentPage - 1)}
-                disabled={currentPage === 1}
-                className="px-2 py-1 rounded bg-gray-200 text-gray-600 hover:bg-gray-300 disabled:opacity-50 text-sm"
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </button>
-              <div className="flex flex-wrap gap-2">
-                {Array.from(
-                  { length: Math.ceil(filteredTutors.length / itemsPerPage) },
-                  (_, i) => i + 1
-                ).map((page) => (
-                  <button
-                    key={page}
-                    onClick={() => handlePageChange(page)}
-                    className={`px-2 py-1 rounded text-sm ${
-                      currentPage === page
-                        ? "bg-blue-500 text-white"
-                        : "bg-gray-200 text-gray-600 hover:bg-gray-300"
-                    }`}
-                  >
-                    {page}
-                  </button>
-                ))}
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {paginatedTutors.length === 0 ? (
+                        <tr>
+                          <td
+                            colSpan={7}
+                            className="px-4 py-2 text-sm text-gray-500 text-center"
+                          >
+                            No tutors found matching your search criteria
+                          </td>
+                        </tr>
+                      ) : (
+                        paginatedTutors.map((tutor, index) => (
+                          <tr
+                            key={tutor._id}
+                            className="cursor-pointer hover:bg-gray-50"
+                          >
+                            <td className="px-4 py-2 text-sm text-gray-500">
+                              {index + 1 + (currentPage - 1) * itemsPerPage}
+                            </td>
+                            <td className="px-4 py-2 text-sm text-gray-500">
+                              {tutor.user_id}
+                            </td>
+                            <td className="px-4 py-2 text-sm text-gray-900">
+                              {tutor.name}
+                            </td>
+                            <td className="px-4 py-2 text-sm text-gray-900">
+                              {tutor.email}
+                            </td>
+                            <td className="px-4 py-2 text-sm text-gray-500">
+                              {typeof tutor.coursesTaken === "number"
+                                ? tutor.coursesTaken > 0
+                                  ? `${tutor.coursesTaken} Course${
+                                      tutor.coursesTaken > 1 ? "s" : ""
+                                    }`
+                                  : "No Courses"
+                                : "No Courses"}
+                            </td>
+                            <td className="px-4 py-2 text-sm text-gray-500">
+                              {tutor.isActive ? "Active" : "Inactive"}
+                            </td>
+                            <td className="px-4 py-2 text-sm font-medium">
+                              <button
+                                className={`text-white px-4 py-2 rounded-md hover:opacity-90 transition duration-300 ${
+                                  tutor.isActive ? "bg-red-600" : "bg-blue-600"
+                                }`}
+                                onClick={() =>
+                                  tutor.isActive
+                                    ? handleUnlist(tutor._id)
+                                    : handleList(tutor._id)
+                                }
+                                style={{ width: "80px" }}
+                              >
+                                {tutor.isActive ? "Block" : "Unblock"}
+                              </button>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
               </div>
-              <button
-                onClick={() => handlePageChange(currentPage + 1)}
-                disabled={
-                  currentPage ===
-                  Math.ceil(filteredTutors.length / itemsPerPage)
-                }
-                className="px-2 py-1 rounded bg-gray-200 text-gray-600 hover:bg-gray-300 disabled:opacity-50 text-sm"
-              >
-                <ChevronRight className="w-4 h-4" />
-              </button>
-            </div>
+
+              {filteredTutors.length > 0 && (
+                <div className="flex flex-wrap items-center justify-between mt-4 gap-2">
+                  <button
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    className="px-2 py-1 rounded bg-gray-200 text-gray-600 hover:bg-gray-300 disabled:opacity-50 text-sm"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
+                  <div className="flex flex-wrap gap-2">
+                    {Array.from(
+                      { length: Math.ceil(filteredTutors.length / itemsPerPage) },
+                      (_, i) => i + 1
+                    ).map((page) => (
+                      <button
+                        key={page}
+                        onClick={() => handlePageChange(page)}
+                        className={`px-2 py-1 rounded text-sm ${
+                          currentPage === page
+                            ? "bg-blue-500 text-white"
+                            : "bg-gray-200 text-gray-600 hover:bg-gray-300"
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    ))}
+                  </div>
+                  <button
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={
+                      currentPage ===
+                      Math.ceil(filteredTutors.length / itemsPerPage)
+                    }
+                    className="px-2 py-1 rounded bg-gray-200 text-gray-600 hover:bg-gray-300 disabled:opacity-50 text-sm"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
+            </>
           )}
         </main>
       </div>

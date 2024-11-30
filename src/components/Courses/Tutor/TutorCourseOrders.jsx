@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import axiosInstance from "@/AxiosConfig";
-import { ShoppingCart, ChevronLeft, ChevronRight, Menu } from "lucide-react";
+import { ShoppingCart, ChevronLeft, ChevronRight, Menu, PackageX } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -19,7 +19,7 @@ export default function TutorCourseOrders() {
   const [filteredOrders, setFilteredOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth >= 1024);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
   const [totalRevenue, setTotalRevenue] = useState(0);
@@ -28,7 +28,16 @@ export default function TutorCourseOrders() {
   const tutorId = useSelector((state) => state.tutor.tutorDatas._id);
   const ordersPerPage = 20;
 
-  const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
+  useEffect(() => {
+    const handleResize = () => {
+      setIsSidebarOpen(window.innerWidth >= 1024);
+    };
+
+    window.addEventListener('resize', handleResize);
+    handleResize();
+
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     fetchOrders();
@@ -39,6 +48,8 @@ export default function TutorCourseOrders() {
       filterOrders();
     }
   }, [orders, filterOption]);
+
+  const toggleSidebar = () => setIsSidebarOpen(prev => !prev);
 
   const fetchOrders = async () => {
     try {
@@ -115,15 +126,9 @@ export default function TutorCourseOrders() {
       return (
         <div className="grid grid-cols-1 gap-6">
           {[...Array(5)].map((_, index) => (
-            <Card key={`skeleton-${index}`} className="w-full">
-              <CardHeader className="space-y-2">
-                <Skeleton className="h-4 w-1/2" />
-                <Skeleton className="h-4 w-3/4" />
-              </CardHeader>
-              <CardContent>
-                <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-4 w-2/3 mt-2" />
-              </CardContent>
+            <Card key={`skeleton-${index}`} className="w-full p-6">
+              <Skeleton className="h-4 w-1/2 mb-4" />
+              <Skeleton className="h-4 w-3/4" />
             </Card>
           ))}
         </div>
@@ -131,11 +136,25 @@ export default function TutorCourseOrders() {
     }
 
     if (error) {
-      return <p className="text-center text-red-600">{error}</p>;
+      return (
+        <div className="text-center py-12">
+          <p className="text-red-600">{error}</p>
+        </div>
+      );
     }
 
     if (filteredOrders.length === 0) {
-      return <p className="text-center text-gray-600">No orders found.</p>;
+      return (
+        <div className="bg-white rounded-lg p-12 text-center">
+          <div className="flex flex-col items-center justify-center">
+            <ShoppingCart className="h-16 w-16 text-gray-300 mb-4" />
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">No Orders Found</h3>
+            <p className="text-gray-500 max-w-md">
+              You haven't received any course orders yet. When students purchase your courses, they will appear here.
+            </p>
+          </div>
+        </div>
+      );
     }
 
     return (
@@ -147,7 +166,7 @@ export default function TutorCourseOrders() {
           >
             <CardHeader>
               <CardTitle className="text-xl font-semibold text-gray-800">
-                Order #{order._id.slice(0, 8)}*%$@#{" "}
+                Order #{order._id.slice(0, 8)}
               </CardTitle>
               <p className="text-sm text-gray-600">
                 {new Date(order.createdAt).toLocaleString()}
@@ -163,14 +182,14 @@ export default function TutorCourseOrders() {
                 <ul className="list-disc list-inside">
                   {order.items?.map((item) => (
                     <li key={item.courseId} className="text-gray-700">
-                      {item.courseName || "Unknown Course"} - $
+                      {item.courseName || "Unknown Course"} - ₹
                       {item.coursePrice?.toFixed(2) || "0.00"}
                     </li>
                   ))}
                 </ul>
               </div>
               <p className="mt-2 text-gray-700">
-                <span className="font-semibold">Order Total:</span> $
+                <span className="font-semibold">Order Total:</span> ₹
                 {order.totalAmount?.toFixed(2) || "0.00"}
               </p>
             </CardContent>
@@ -246,32 +265,34 @@ export default function TutorCourseOrders() {
     <div className="flex h-screen bg-gray-100 overflow-hidden">
       <TutorSidebar
         isOpen={isSidebarOpen}
-        toggleSidebar={toggleSidebar}
+        onClose={() => setIsSidebarOpen(false)}
         activeItem="Revenue"
       />
       <div className="flex-1 flex flex-col overflow-hidden">
         <header className="bg-white shadow-sm lg:hidden">
-          <div className="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8">
+          <div className="py-4 px-4">
             <button
-              onClick={toggleSidebar}
+              onClick={() => setIsSidebarOpen(true)}
               className="p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
-              aria-label="Toggle sidebar"
             >
               <Menu className="h-6 w-6" aria-hidden="true" />
             </button>
           </div>
         </header>
-        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <div className="flex justify-between items-center mb-8">
-              <h1 className="text-3xl font-bold text-gray-900">
-                Course Orders
-              </h1>
-              <div className="text-xl font-semibold text-gray-700">
-                Total Revenue: ${filteredTotalRevenue.toFixed(2)}
+        
+        <main className="flex-1 overflow-y-auto bg-gray-100">
+          <div className="py-8 px-8">
+            <div className="flex justify-between items-center mb-2">
+              <h1 className="text-2xl font-bold text-gray-900">Course Orders</h1>
+              <div className="text-gray-700">
+                Total Revenue: ₹{filteredTotalRevenue.toFixed(2)}
               </div>
             </div>
-            <div className="mb-6">
+            <p className="text-sm text-gray-500 mb-6">
+              Manage and track your course sales
+            </p>
+            
+            <div className="mb-8">
               <Select
                 value={filterOption}
                 onValueChange={(value) => {
@@ -279,10 +300,10 @@ export default function TutorCourseOrders() {
                   setCurrentPage(1);
                 }}
               >
-                <SelectTrigger className="w-[180px] bg-gray-200 border-none">
+                <SelectTrigger className="w-[180px] bg-white">
                   <SelectValue placeholder="Filter by" />
                 </SelectTrigger>
-                <SelectContent className="bg-pink-50 border-none">
+                <SelectContent>
                   <SelectItem value="all">All Time</SelectItem>
                   <SelectItem value="lastDay">Last 24 Hours</SelectItem>
                   <SelectItem value="lastWeek">Last 7 Days</SelectItem>
@@ -291,11 +312,45 @@ export default function TutorCourseOrders() {
                 </SelectContent>
               </Select>
             </div>
+
             {renderOrders()}
-            {renderPagination()}
+            
+            {!loading && filteredOrders.length > 0 && (
+              <div className="mt-6 flex justify-center">
+                <nav className="flex items-center gap-2" aria-label="Pagination">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                    disabled={currentPage === 1}
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  {[...Array(totalPages)].map((_, i) => (
+                    <Button
+                      key={i}
+                      variant={currentPage === i + 1 ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setCurrentPage(i + 1)}
+                    >
+                      {i + 1}
+                    </Button>
+                  ))}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                    disabled={currentPage === totalPages}
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </nav>
+              </div>
+            )}
           </div>
         </main>
       </div>
     </div>
   );
 }
+

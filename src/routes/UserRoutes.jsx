@@ -27,6 +27,7 @@ import WishlistCourses from '@/components/Courses/User/WishlistCourses'
 import CourseQuiz  from '@/components/Courses/User/CourseQuiz'
 import CourseCertificate from '@/components/Courses/User/CourseCertificate'
 import UserCertificates from '@/components/Courses/User/ViewCerticates'
+import UserChat from '@/pages/Chat/UserChat'
 
 function UserRoutes() {
   return (
@@ -58,6 +59,7 @@ function UserRoutes() {
         <Route path='/quiz/:courseId' element={<ProtectedUserRoutes><CourseQuiz /></ProtectedUserRoutes>}/>
         <Route path='/certificate/:courseId' element={<ProtectedUserRoutes><CourseCertificate /></ProtectedUserRoutes>}/>
         <Route path='/certifications' element={<ProtectedUserRoutes><UserCertificates /></ProtectedUserRoutes>}/>
+        <Route path='/chats' element={<ProtectedUserRoutes><UserChat /></ProtectedUserRoutes>}/>
        </Routes>
        <Footer />
        

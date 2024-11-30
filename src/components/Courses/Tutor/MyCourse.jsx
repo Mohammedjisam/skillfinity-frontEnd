@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Pencil, Trash2, Menu, ChevronLeft, ChevronRight } from "lucide-react";
+import { Pencil, Trash2, Menu, ChevronLeft, ChevronRight, BookOpen } from 'lucide-react';
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import SideBar from "../../../pages/Tutor/SideBar";
@@ -14,19 +14,18 @@ const MyCourses = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
-  const tuorDatas = useSelector((store) => store.tutor.tutorDatas);
-  console.log(tuorDatas._id);
+  const tutorData = useSelector((store) => store.tutor.tutorDatas);
   const itemsPerPage = 5;
 
   useEffect(() => {
     fetchCourses();
-  }, [currentPage]);
+  }, [currentPage, tutorData._id]);
 
   const fetchCourses = async () => {
     setIsLoading(true);
     try {
       const response = await axiosInstance.get(
-        `/tutor/course/viewcourse/${tuorDatas._id}`
+        `/tutor/course/viewcourse/${tutorData._id}`
       );
       const allCourses = response.data.courses;
       setTotalPages(Math.ceil(allCourses.length / itemsPerPage));
@@ -56,7 +55,7 @@ const MyCourses = () => {
         try {
           await axiosInstance.delete(`/tutor/course/viewcourse/`, {
             params: {
-              tutorId: tuorDatas._id,
+              tutorId: tutorData._id,
               courseId,
             },
           });
@@ -94,7 +93,7 @@ const MyCourses = () => {
       <div className="flex-1 flex flex-col overflow-hidden">
         <header className="bg-white shadow-sm z-10">
           <div className="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
-            <h1 className="text-2xl font-bold text-gray-900">My Courses </h1>
+            <h1 className="text-2xl font-bold text-gray-900">My Courses</h1>
             <button
               onClick={() => setIsSidebarOpen(true)}
               className="p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500 lg:hidden"
@@ -108,7 +107,26 @@ const MyCourses = () => {
         <main className="flex-1 overflow-y-auto bg-gray-50 p-4 sm:p-6 lg:p-8">
           <div className="max-w-6xl mx-auto">
             {isLoading ? (
-              <div className="text-center">Loading courses...</div>
+              <div className="text-center py-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
+                <p className="mt-4 text-gray-600">Loading courses...</p>
+              </div>
+            ) : courses.length === 0 ? (
+              <div className="text-center py-12 bg-white rounded-lg shadow-sm border border-gray-200">
+                <BookOpen className="mx-auto h-12 w-12 text-gray-400" />
+                <h3 className="mt-2 text-lg font-semibold text-gray-900">No courses yet</h3>
+                <p className="mt-1 text-sm text-gray-500">Get started by creating your first course.</p>
+                <div className="mt-6">
+                  <button
+                    type="button"
+                    onClick={() => navigate('/tutor/addcourse')}
+                    className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                  >
+                    <Pencil className="-ml-1 mr-2 h-5 w-5" aria-hidden="true" />
+                    Create New Course
+                  </button>
+                </div>
+              </div>
             ) : (
               <div className="space-y-4">
                 {courses.map((course) => (
@@ -161,42 +179,44 @@ const MyCourses = () => {
             )}
 
             {/* Pagination */}
-            <div className="mt-6 flex justify-center">
-              <nav
-                className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px"
-                aria-label="Pagination"
-              >
-                <button
-                  onClick={() => handlePageChange(currentPage - 1)}
-                  disabled={currentPage === 1}
-                  className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+            {!isLoading && courses.length > 0 && (
+              <div className="mt-6 flex justify-center">
+                <nav
+                  className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px"
+                  aria-label="Pagination"
                 >
-                  <span className="sr-only">Previous</span>
-                  <ChevronLeft className="h-5 w-5" aria-hidden="true" />
-                </button>
-                {[...Array(totalPages)].map((_, index) => (
                   <button
-                    key={index}
-                    onClick={() => handlePageChange(index + 1)}
-                    className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
-                      currentPage === index + 1
-                        ? "z-10 bg-indigo-50 border-indigo-500 text-indigo-600"
-                        : "bg-white border-gray-300 text-gray-500 hover:bg-gray-50"
-                    }`}
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {index + 1}
+                    <span className="sr-only">Previous</span>
+                    <ChevronLeft className="h-5 w-5" aria-hidden="true" />
                   </button>
-                ))}
-                <button
-                  onClick={() => handlePageChange(currentPage + 1)}
-                  disabled={currentPage === totalPages}
-                  className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
-                >
-                  <span className="sr-only">Next</span>
-                  <ChevronRight className="h-5 w-5" aria-hidden="true" />
-                </button>
-              </nav>
-            </div>
+                  {[...Array(totalPages)].map((_, index) => (
+                    <button
+                      key={index}
+                      onClick={() => handlePageChange(index + 1)}
+                      className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
+                        currentPage === index + 1
+                          ? "z-10 bg-indigo-50 border-indigo-500 text-indigo-600"
+                          : "bg-white border-gray-300 text-gray-500 hover:bg-gray-50"
+                      }`}
+                    >
+                      {index + 1}
+                    </button>
+                  ))}
+                  <button
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <span className="sr-only">Next</span>
+                    <ChevronRight className="h-5 w-5" aria-hidden="true" />
+                  </button>
+                </nav>
+              </div>
+            )}
           </div>
         </main>
       </div>
@@ -205,3 +225,4 @@ const MyCourses = () => {
 };
 
 export default MyCourses;
+

@@ -1,14 +1,7 @@
 import { useState, useEffect } from "react";
-import {
-  ChevronRight,
-  Menu,
-  X,
-  Search,
-  User,
-  ShoppingCart,
-} from "lucide-react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import { ChevronRight, Menu, X, Search, User, ShoppingCart } from 'lucide-react';
 import axiosInstance from "@/AxiosConfig";
 import { useCart } from "../../context/CartContext";
 import { Badge } from "@/components/ui/badge";
@@ -22,11 +15,8 @@ const Header = () => {
   const userData = useSelector((store) => store.user.userDatas);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { isAuthenticated, setIsAuthenticated } = useAuth();
-  const toggleAuth = () => setIsAuthenticated(!isAuthenticated);
   const navigate = useNavigate();
   const { cartCount, updateCartCount } = useCart();
-
-  console.log("userdataaaa----->>", userData);
 
   useEffect(() => {
     if (userData && userData._id) {
@@ -36,43 +26,44 @@ const Header = () => {
 
   const fetchCartCount = async () => {
     try {
-      console.log("Fetching cart count...");
-      const response = await axiosInstance.post(
-        `/user/data/cartcount/${userData._id}`
-      );
-      console.log("Cart count response:", response.data);
+      const response = await axiosInstance.post(`/user/data/cartcount/${userData._id}`);
       updateCartCount(response.data.totalItems);
     } catch (error) {
       console.error("Error fetching cart count:", error);
     }
   };
 
-  const handleProfileClick = () => {
-    navigate("/profile");
-  };
-
-  const handleSignUpClick = () => {
-    navigate("/signup");
-  };
-
-  const handleLoginClick = () => {
-    navigate("/login");
-  };
-
-  const handleCartClick = () => {
-    navigate("/cart");
+  const handleNavigation = (path) => {
+    navigate(path);
+    setIsMenuOpen(false);
   };
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
 
+  const renderNavItems = () => (
+    <>
+      <button onClick={() => handleNavigation("/home")} className="text-gray-700 hover:text-gray-900 py-2">
+        Home
+      </button>
+      <button onClick={() => handleNavigation("/allcourse")} className="text-gray-700 hover:text-gray-900 py-2">
+        Courses
+      </button>
+      <button onClick={() => handleNavigation("/viewallcategories")} className="text-gray-700 hover:text-gray-900 py-2">
+        Categories
+      </button>
+      <button onClick={() => handleNavigation("/viewalltutors")} className="text-gray-700 hover:text-gray-900 py-2">
+        Tutors
+      </button>
+    </>
+  );
+
   return (
     <header className="font-sans">
       <div className="bg-gray-600 text-white py-2 px-4 text-center rounded-[5px] mx-auto w-[98.75%] mt-[7px]">
         <p className="text-sm flex items-center justify-center">
-          Free Courses <span className="text-yellow-300 mx-1">★</span> Sale Ends
-          Soon. Get It Now
+          Free Courses <span className="text-yellow-300 mx-1">★</span> Sale Ends Soon. Get It Now
           <ChevronRight className="ml-2 h-4 w-4" />
         </p>
       </div>
@@ -90,30 +81,7 @@ const Header = () => {
             {userData ? (
               <>
                 <nav className="hidden md:flex space-x-6">
-                  <button
-                    onClick={() => navigate("/home")}
-                    className="text-gray-700 hover:text-gray-900"
-                  >
-                    Home
-                  </button>
-                  <button
-                    onClick={() => navigate("/allcourse")}
-                    className="text-gray-700 hover:text-gray-900"
-                  >
-                    Courses
-                  </button>
-                  <button
-                    onClick={() => navigate("/viewallcategories")}
-                    className="text-gray-700 hover:text-gray-900"
-                  >
-                    Categories
-                  </button>
-                  <button
-                    onClick={() => navigate("/viewalltutors")}
-                    className="text-gray-700 hover:text-gray-900"
-                  >
-                    Tutors
-                  </button>
+                  {renderNavItems()}
                 </nav>
                 <div className="hidden md:flex items-center space-x-4">
                   <div className="relative">
@@ -124,20 +92,21 @@ const Header = () => {
                     />
                     <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                   </div>
-                  <div className="relative flex items-center space-x-2">
-                    <button
-                      className="rounded-full bg-gray-200 p-1"
-                      onClick={handleCartClick}
-                    >
-                      <ShoppingCart className="h-6 w-6 text-gray-600" />
-                      {cartCount > 0 && (
-                        <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                          {cartCount}
-                        </span>
-                      )}
-                    </button>
-                  </div>
-                  <button className="rounded-full" onClick={handleProfileClick}>
+                  <button
+                    className="rounded-full bg-gray-200 p-1 relative"
+                    onClick={() => handleNavigation("/cart")}
+                  >
+                    <ShoppingCart className="h-6 w-6 text-gray-600" />
+                    {cartCount > 0 && (
+                      <Badge
+                        variant="destructive"
+                        className="absolute -top-2 -right-2 px-2 py-1 text-xs"
+                      >
+                        {cartCount}
+                      </Badge>
+                    )}
+                  </button>
+                  <button className="rounded-full" onClick={() => handleNavigation("/profile")}>
                     {userData.profileImage ? (
                       <img
                         src={userData.profileImage}
@@ -153,13 +122,13 @@ const Header = () => {
             ) : (
               <div className="hidden md:flex items-center space-x-3">
                 <button
-                  onClick={handleLoginClick}
+                  onClick={() => handleNavigation("/login")}
                   className="px-3 py-2 text-gray-700 hover:text-gray-900"
                 >
                   Log in
                 </button>
                 <button
-                  onClick={handleSignUpClick}
+                  onClick={() => handleNavigation("/signup")}
                   className="px-3 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-500"
                 >
                   Sign Up
@@ -180,37 +149,8 @@ const Header = () => {
         <div className="md:hidden bg-white shadow-lg">
           {userData ? (
             <>
-              <nav className="px-4 pt-2 pb-4 space-y-2">
-                <a
-                  href="#"
-                  className="block py-2 text-gray-700 hover:text-gray-900"
-                >
-                  Home
-                </a>
-                <a
-                  href="#"
-                  className="block py-2 text-gray-700 hover:text-gray-900"
-                >
-                  Courses
-                </a>
-                <a
-                  href="#"
-                  className="block py-2 text-gray-700 hover:text-gray-900"
-                >
-                  About Us
-                </a>
-                <a
-                  href="#"
-                  className="block py-2 text-gray-700 hover:text-gray-900"
-                >
-                  Tutors
-                </a>
-                <a
-                  href="#"
-                  className="block py-2 text-gray-700 hover:text-gray-900"
-                >
-                  Contact
-                </a>
+              <nav className="px-4 pt-2 pb-4 space-x-14">
+                {renderNavItems()}
               </nav>
               <div className="px-4 py-4 space-y-2">
                 <div className="relative">
@@ -221,11 +161,12 @@ const Header = () => {
                   />
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                 </div>
-                <div className="relative flex items-center space-x-2">
-                  <button
-                    className="rounded-full bg-gray-200 p-1 relative"
-                    onClick={handleCartClick}
-                  >
+                <button
+                  className="w-full px-4 py-2 text-left text-gray-700 hover:text-gray-900 bg-gray-100 rounded-md flex items-center justify-between"
+                  onClick={() => handleNavigation("/cart")}
+                >
+                  <span>Cart</span>
+                  <div className="relative">
                     <ShoppingCart className="h-6 w-6 text-gray-600" />
                     {cartCount > 0 && (
                       <Badge
@@ -235,12 +176,11 @@ const Header = () => {
                         {cartCount}
                       </Badge>
                     )}
-                  </button>
-                </div>
-
+                  </div>
+                </button>
                 <button
                   className="w-full px-4 py-2 text-left text-gray-700 hover:text-gray-900 bg-gray-100 rounded-md flex items-center"
-                  onClick={handleProfileClick}
+                  onClick={() => handleNavigation("/profile")}
                 >
                   {userData.profileImage ? (
                     <img
@@ -258,13 +198,13 @@ const Header = () => {
           ) : (
             <div className="px-4 py-4 space-y-2">
               <button
-                onClick={handleLoginClick}
+                onClick={() => handleNavigation("/login")}
                 className="w-full px-4 py-2 text-gray-700 hover:text-gray-900 border border-gray-300 rounded-md"
               >
                 Log in
               </button>
               <button
-                onClick={handleSignUpClick}
+                onClick={() => handleNavigation("/signup")}
                 className="w-full px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-500"
               >
                 Sign Up
@@ -279,3 +219,4 @@ const Header = () => {
 };
 
 export default Header;
+

@@ -1,8 +1,6 @@
-"use client";
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronLeft, ChevronRight, Menu, X, Search } from "lucide-react";
+import { ChevronLeft, ChevronRight, Menu, X, Search } from 'lucide-react';
 import AdminSidebar from "./AdminSidebar";
 import { logoutUser } from "@/redux/slice/UserSlice";
 import { useDispatch } from "react-redux";
@@ -164,139 +162,149 @@ export default function StudentManagement() {
             />
           </div>
 
-          <div className="bg-white shadow-md rounded-lg overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full table-auto divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Sl. No.
-                    </th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Student_ID
-                    </th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Student Name
-                    </th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Student Email
-                    </th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Courses Purchased
-                    </th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Action
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {paginatedStudents.length === 0 ? (
-                    <tr>
-                      <td
-                        colSpan={7}
-                        className="px-4 py-2 text-sm text-gray-500 text-center"
-                      >
-                        No students found
-                      </td>
-                    </tr>
-                  ) : (
-                    paginatedStudents.map((student, index) => (
-                      <tr
-                        key={student._id}
-                        className="cursor-pointer hover:bg-gray-50"
-                      >
-                        <td className="px-4 py-2 text-sm text-gray-500">
-                          {index + 1 + (currentPage - 1) * itemsPerPage}
-                        </td>
-                        <td className="px-4 py-2 text-sm text-gray-900">
-                          {student.user_id}
-                        </td>
-                        <td className="px-4 py-2 text-sm text-gray-900">
-                          {student.name}
-                        </td>
-                        <td className="px-4 py-2 text-sm text-gray-500">
-                          {student.email}
-                        </td>
-                        <td className="px-4 py-2 text-sm text-gray-500">
-                          {typeof student.coursePurchased === "number"
-                            ? student.coursePurchased > 0
-                              ? `${student.coursePurchased} Course${
-                                  student.coursePurchased > 1 ? "s " : ""
-                                }`
-                              : "No Courses"
-                            : "No Courses"}
-                        </td>
-                        <td className="px-4 py-2 text-sm text-gray-500">
-                          {student.isActive ? "Active" : "Inactive"}
-                        </td>
-                        <td className="px-4 py-2 text-sm font-medium">
-                          <button
-                            className={`w-24 px-6 py-2 rounded-md text-white transition duration-300 ${
-                              student.isActive
-                                ? "bg-red-600 hover:bg-red-700"
-                                : "bg-blue-600 hover:bg-blue-700"
-                            }`}
-                            onClick={() =>
-                              student.isActive
-                                ? handleBlock(student._id)
-                                : handleUnblock(student._id)
-                            }
-                          >
-                            {student.isActive ? "Block" : "Unblock"}
-                          </button>
-                        </td>
+          {students.length === 0 ? (
+            <div className="bg-white shadow-md rounded-lg p-6 text-center">
+              <h2 className="text-xl font-semibold text-gray-800 mb-2">No Students Found</h2>
+              <p className="text-gray-600">There are currently no students registered in the system.</p>
+            </div>
+          ) : (
+            <>
+              <div className="bg-white shadow-md rounded-lg overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full table-auto divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Sl. No.
+                        </th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Student_ID
+                        </th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Student Name
+                        </th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Student Email
+                        </th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Courses Purchased
+                        </th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Status
+                        </th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Action
+                        </th>
                       </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          {filteredStudents.length > 0 && (
-            <div className="flex flex-wrap items-center justify-between mt-4 gap-2">
-              <button
-                onClick={() => handlePageChange(currentPage - 1)}
-                disabled={currentPage === 1}
-                className="px-2 py-1 rounded bg-gray-200 text-gray-600 hover:bg-gray-300 disabled:opacity-50 text-sm"
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </button>
-              <div className="flex flex-wrap gap-2">
-                {Array.from(
-                  { length: Math.ceil(filteredStudents.length / itemsPerPage) },
-                  (_, i) => i + 1
-                ).map((page) => (
-                  <button
-                    key={page}
-                    onClick={() => handlePageChange(page)}
-                    className={`px-2 py-1 rounded text-sm ${
-                      currentPage === page
-                        ? "bg-blue-500 text-white"
-                        : "bg-gray-200 text-gray-600 hover:bg-gray-300"
-                    }`}
-                  >
-                    {page}
-                  </button>
-                ))}
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {paginatedStudents.length === 0 ? (
+                        <tr>
+                          <td
+                            colSpan={7}
+                            className="px-4 py-2 text-sm text-gray-500 text-center"
+                          >
+                            No students found matching your search criteria
+                          </td>
+                        </tr>
+                      ) : (
+                        paginatedStudents.map((student, index) => (
+                          <tr
+                            key={student._id}
+                            className="cursor-pointer hover:bg-gray-50"
+                          >
+                            <td className="px-4 py-2 text-sm text-gray-500">
+                              {index + 1 + (currentPage - 1) * itemsPerPage}
+                            </td>
+                            <td className="px-4 py-2 text-sm text-gray-900">
+                              {student.user_id}
+                            </td>
+                            <td className="px-4 py-2 text-sm text-gray-900">
+                              {student.name}
+                            </td>
+                            <td className="px-4 py-2 text-sm text-gray-500">
+                              {student.email}
+                            </td>
+                            <td className="px-4 py-2 text-sm text-gray-500">
+                              {typeof student.coursePurchased === "number"
+                                ? student.coursePurchased > 0
+                                  ? `${student.coursePurchased} Course${
+                                      student.coursePurchased > 1 ? "s " : ""
+                                    }`
+                                  : "No Courses"
+                                : "No Courses"}
+                            </td>
+                            <td className="px-4 py-2 text-sm text-gray-500">
+                              {student.isActive ? "Active" : "Inactive"}
+                            </td>
+                            <td className="px-4 py-2 text-sm font-medium">
+                              <button
+                                className={`w-24 px-6 py-2 rounded-md text-white transition duration-300 ${
+                                  student.isActive
+                                    ? "bg-red-600 hover:bg-red-700"
+                                    : "bg-blue-600 hover:bg-blue-700"
+                                }`}
+                                onClick={() =>
+                                  student.isActive
+                                    ? handleBlock(student._id)
+                                    : handleUnblock(student._id)
+                                }
+                              >
+                                {student.isActive ? "Block" : "Unblock"}
+                              </button>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
               </div>
-              <button
-                onClick={() => handlePageChange(currentPage + 1)}
-                disabled={
-                  currentPage ===
-                  Math.ceil(filteredStudents.length / itemsPerPage)
-                }
-                className="px-2 py-1 rounded bg-gray-200 text-gray-600 hover:bg-gray-300 disabled:opacity-50 text-sm"
-              >
-                <ChevronRight className="w-4 h-4" />
-              </button>
-            </div>
+
+              {filteredStudents.length > 0 && (
+                <div className="flex flex-wrap items-center justify-between mt-4 gap-2">
+                  <button
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    className="px-2 py-1 rounded bg-gray-200 text-gray-600 hover:bg-gray-300 disabled:opacity-50 text-sm"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
+                  <div className="flex flex-wrap gap-2">
+                    {Array.from(
+                      { length: Math.ceil(filteredStudents.length / itemsPerPage) },
+                      (_, i) => i + 1
+                    ).map((page) => (
+                      <button
+                        key={page}
+                        onClick={() => handlePageChange(page)}
+                        className={`px-2 py-1 rounded text-sm ${
+                          currentPage === page
+                            ? "bg-blue-500 text-white"
+                            : "bg-gray-200 text-gray-600 hover:bg-gray-300"
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    ))}
+                  </div>
+                  <button
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={
+                      currentPage ===
+                      Math.ceil(filteredStudents.length / itemsPerPage)
+                    }
+                    className="px-2 py-1 rounded bg-gray-200 text-gray-600 hover:bg-gray-300 disabled:opacity-50 text-sm"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
+            </>
           )}
         </main>
       </div>
     </div>
   );
 }
+

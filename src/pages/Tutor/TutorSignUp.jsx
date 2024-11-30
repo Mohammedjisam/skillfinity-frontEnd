@@ -101,7 +101,7 @@ const TutorSignup = () => {
       });
       dispatch(addTutor(response.data.tutorData)); 
       toast.success(response.data.message);
-      navigate("/tutor");
+      navigate("/tutor/dashboard");
       setIsOTPDialogOpen(false);
     } catch (err) {
       handleOtpError(err);
@@ -133,13 +133,12 @@ const TutorSignup = () => {
   
   const handleGoogleSuccess = async (credentialResponse) => {
     try {
-      // Send the token as 'token' in the request body, matching backend expectations
       const response = await axiosInstance.post(`/auth/google`, 
         { token: credentialResponse.credential }, 
         { withCredentials: true }
       );
       dispatch(addTutor(response.data.user));
-      navigate("/dashboard");
+      navigate("/tutor/dashboard");
       toast.success("Login successful!");
     } catch (err) {
       const errorMessage = err.response?.data?.message || 'Google Login failed';

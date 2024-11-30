@@ -3,7 +3,8 @@ import { useSelector } from 'react-redux';
 import TutorRevenueChart from '../../components/Courses/Tutor/TutorRevenueChart';
 import axiosInstance from '@/AxiosConfig';
 import TutorSidebar from './SideBar';
-import { DollarSign, BookOpen, Users, ShoppingCart } from 'lucide-react';
+import { DollarSign, BookOpen, Users, ShoppingCart, Menu } from 'lucide-react';
+import EmptyRevenueChart from './EmptyRevenue';
 
 const Dashboard = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -24,12 +25,6 @@ const Dashboard = () => {
       fetchDashboardData();
     }
   }, [tutorId]);
-
-  const toggleSidebar = () => {
-    if (window.innerWidth < 1024) {
-      setIsSidebarOpen(!isSidebarOpen);
-    }
-  };
 
   const fetchDashboardData = async () => {
     setIsLoading(true);
@@ -66,13 +61,29 @@ const Dashboard = () => {
   ];
 
   return (
-    <div className="flex h-screen bg-gray-100 overflow-hidden">
-      <TutorSidebar isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
+    <div className="flex h-screen bg-gray-100">
+      <TutorSidebar
+        isOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
+        activeItem="Dashboard"
+      />
+
       <div className="flex-1 flex flex-col overflow-hidden">
-        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <h1 className="text-2xl font-bold mb-6">Dashboard</h1>
-            
+        <header className="bg-white shadow-sm z-10">
+          <div className="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
+            <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+            <button
+              onClick={() => setIsSidebarOpen(true)}
+              className="p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500 lg:hidden"
+            >
+              <span className="sr-only">Open sidebar</span>
+              <Menu className="h-6 w-6" aria-hidden="true" />
+            </button>
+          </div>
+        </header>
+
+        <main className="flex-1 overflow-y-auto bg-gray-50 p-4 sm:p-6 lg:p-8">
+          <div className="max-w-7xl mx-auto">
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
               {statsCards.map((item, index) => (
@@ -111,8 +122,10 @@ const Dashboard = () => {
                   <div className="flex justify-center items-center h-64">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
                   </div>
-                ) : (
+                ) : revenueData.length > 0 ? (
                   <TutorRevenueChart data={revenueData} timeFilter={selectedPeriod} />
+                ) : (
+                  <EmptyRevenueChart />
                 )}
               </div>
             </div>
@@ -124,3 +137,4 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
+

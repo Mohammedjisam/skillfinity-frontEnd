@@ -3,7 +3,7 @@ import { Pencil, Menu, Camera } from 'lucide-react';
 import TutorSidebar from './SideBar';
 import { useSelector, useDispatch } from 'react-redux';
 import { toast } from 'sonner';
-import { updateTutor, addTutor } from '@/redux/slice/TutorSlice'; 
+import { updateTutor } from '@/redux/slice/TutorSlice'; 
 import axiosInstance from '@/AxiosConfig';
 
 export default function TutorProfile() {
@@ -16,19 +16,21 @@ export default function TutorProfile() {
 
   useEffect(() => {
     const handleResize = () => {
-      setIsSidebarOpen(window.innerWidth >= 1024);
+      if (window.innerWidth >= 1024) {
+        setIsSidebarOpen(true);
+      } else {
+        setIsSidebarOpen(false);
+      }
     };
 
     window.addEventListener('resize', handleResize);
-    handleResize();
+    handleResize(); // Call it initially
 
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   const toggleSidebar = () => {
-    if (window.innerWidth < 1024) {
-      setIsSidebarOpen(!isSidebarOpen);
-    }
+    setIsSidebarOpen(prevState => !prevState);
   };
 
   const handleEdit = (field, value) => {
@@ -119,7 +121,11 @@ export default function TutorProfile() {
 
   return (
     <div className="flex h-screen bg-gray-100 overflow-hidden">
-      <TutorSidebar isOpen={isSidebarOpen} toggleSidebar={toggleSidebar}/>
+      <TutorSidebar 
+        isOpen={isSidebarOpen} 
+        onClose={() => setIsSidebarOpen(false)}
+        activeItem="Profile"
+      />
       <div className="flex-1 flex flex-col overflow-hidden">
         <header className="bg-white shadow-sm lg:hidden">
           <div className="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8">
@@ -219,3 +225,4 @@ export default function TutorProfile() {
     </div>
   );
 }
+

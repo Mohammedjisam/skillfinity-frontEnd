@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { useSelector } from "react-redux";
 import axiosInstance from "@/AxiosConfig";
-import { ShoppingCart, ChevronLeft, ChevronRight, Menu } from 'lucide-react';
+import { ShoppingCart, ChevronLeft, ChevronRight, Menu, PackageX } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -131,11 +130,30 @@ export default function AdminOrders() {
     }
 
     if (error) {
-      return <p className="text-center text-red-600">{error}</p>;
+      return (
+        <div className="flex flex-col items-center justify-center p-8 bg-white rounded-lg shadow-sm">
+          <div className="text-red-500 mb-4">
+            <PackageX className="h-12 w-12 mx-auto" />
+          </div>
+          <p className="text-lg font-semibold text-red-600 text-center">{error}</p>
+        </div>
+      );
     }
 
     if (filteredOrders.length === 0) {
-      return <p className="text-center text-gray-600">No orders found.</p>;
+      return (
+        <div className="flex flex-col items-center justify-center p-12 bg-white rounded-lg shadow-sm">
+          <div className="text-gray-400 mb-4">
+            <ShoppingCart className="h-16 w-16" />
+          </div>
+          <h3 className="text-xl font-semibold text-gray-900 mb-2">No Orders Found</h3>
+          <p className="text-gray-500 text-center max-w-md">
+            {filterOption === 'all' 
+              ? "There are currently no orders in the system. When customers make purchases, they will appear here."
+              : "No orders found for the selected time period. Try adjusting the filter to see more results."}
+          </p>
+        </div>
+      );
     }
 
     return (

@@ -182,168 +182,179 @@ export default function CourseManagement() {
               </CardTitle>
             </CardHeader>
             <CardContent className="p-6">
-              <div className="flex flex-col md:flex-row justify-between items-center mb-6 space-y-4 md:space-y-0 md:space-x-4">
-                <div className="relative w-full md:w-1/2">
-                  <Input
-                    type="text"
-                    placeholder="Search courses..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10 pr-4 py-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-400 focus:border-transparent"
-                  />
-                  <Search
-                    className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-                    size={18}
-                  />
+              {courses.length === 0 ? (
+                <div className="text-center py-8">
+                  <h2 className="text-xl font-semibold text-gray-700 mb-2">No Courses Available</h2>
+                  <p className="text-gray-500">There are currently no courses in the system.</p>
                 </div>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="w-full md:w-auto bg-white text-gray-700 border-gray-300 hover:bg-gray-100"
-                    >
-                      <SlidersHorizontal className="mr-2 h-4 w-4" />
-                      Filter
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent
-                    align="end"
-                    className="w-48 bg-pink-100 border-none"
-                  >
-                    {getUniqueCategories().map((category) => (
-                      <DropdownMenuItem
-                        key={category}
-                        onClick={() => setCategoryFilter(category)}
-                        className={
-                          categoryFilter === category ? "bg-gray-300" : ""
-                        }
+              ) : (
+                <>
+                  <div className="flex flex-col md:flex-row justify-between items-center mb-6 space-y-4 md:space-y-0 md:space-x-4">
+                    <div className="relative w-full md:w-1/2">
+                      <Input
+                        type="text"
+                        placeholder="Search courses..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="pl-10 pr-4 py-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-400 focus:border-transparent"
+                      />
+                      <Search
+                        className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                        size={18}
+                      />
+                    </div>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className="w-full md:w-auto bg-white text-gray-700 border-gray-300 hover:bg-gray-100"
+                        >
+                          <SlidersHorizontal className="mr-2 h-4 w-4" />
+                          Filter
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent
+                        align="end"
+                        className="w-48 bg-pink-100 border-none"
                       >
-                        {category}
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
+                        {getUniqueCategories().map((category) => (
+                          <DropdownMenuItem
+                            key={category}
+                            onClick={() => setCategoryFilter(category)}
+                            className={
+                              categoryFilter === category ? "bg-gray-300" : ""
+                            }
+                          >
+                            {category}
+                          </DropdownMenuItem>
+                        ))}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
 
-              <div className="rounded-lg border-2 border-dashed border-gray-100 overflow-hidden bg-white ">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="bg-gray-50 border-b-2 border-dashed border-gray-100">
-                      <TableHead className="w-20 font-semibold text-gray-600">
-                        Sl. No.
-                      </TableHead>
-                      <TableHead className="font-semibold text-gray-600">
-                        Course Name
-                      </TableHead>
-                      <TableHead className="font-semibold text-gray-600">
-                        Category
-                      </TableHead>
-                      <TableHead className="font-semibold text-gray-600">
-                        Tutor Name
-                      </TableHead>
-                      <TableHead className="font-semibold text-gray-600 text-center">
-                        Lessons
-                      </TableHead>
-                      <TableHead className="font-semibold text-gray-600">
-                        Status
-                      </TableHead>
-                      <TableHead className="font-semibold text-gray-600">
-                        Action
-                      </TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {paginatedCourses.length === 0 ? (
-                      <TableRow>
-                        <TableCell
-                          colSpan={7}
-                          className="text-center text-gray-500"
-                        >
-                          No courses found
-                        </TableCell>
-                      </TableRow>
-                    ) : (
-                      paginatedCourses.map((course, index) => (
-                        <TableRow
-                          key={course._id}
-                          className="hover:bg-gray-50 transition-colors duration-150 border-b-2 border-dashed border-gray-100 cursor-pointer"
-                          onClick={() => handleCourseClick(course._id)}
-                        >
-                          <TableCell className="font-medium text-gray-900">
-                            {index + 1 + (currentPage - 1) * itemsPerPage}
-                          </TableCell>
-                          <TableCell className="font-medium text-gray-900">
-                            {course.coursetitle}
-                          </TableCell>
-                          <TableCell className="text-gray-600">
-                            {course.category ? course.category.title : "N/A"}
-                          </TableCell>
-                          <TableCell className="text-gray-600">
-                            {course.tutor.name}
-                          </TableCell>
-                          <TableCell className="text-center text-gray-600">
-                            {course.lessons.length}
-                          </TableCell>
-                          <TableCell>
-                            <span
-                              className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                                course.isVisible
-                                  ? "bg-green-100 text-green-800"
-                                  : "bg-gray-100 text-gray-800"
-                              }`}
-                            >
-                              {course.isVisible ? "Visible" : "Hidden"}
-                            </span>
-                          </TableCell>
-                          <TableCell>
-                            <Button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleToggleVisibility(
-                                  course._id,
-                                  course.isVisible
-                                );
-                              }}
-                              variant={
-                                course.isVisible ? "destructive" : "outline"
-                              }
-                              size="icon"
-                            >
-                              {course.isVisible ? (
-                                <EyeOff className="h-4 w-4" />
-                              ) : (
-                                <Eye className="h-4 w-4" />
-                              )}
-                            </Button>
-                          </TableCell>
+                  <div className="rounded-lg border-2 border-dashed border-gray-100 overflow-hidden bg-white ">
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="bg-gray-50 border-b-2 border-dashed border-gray-100">
+                          <TableHead className="w-20 font-semibold text-gray-600">
+                            Sl. No.
+                          </TableHead>
+                          <TableHead className="font-semibold text-gray-600">
+                            Course Name
+                          </TableHead>
+                          <TableHead className="font-semibold text-gray-600">
+                            Category
+                          </TableHead>
+                          <TableHead className="font-semibold text-gray-600">
+                            Tutor Name
+                          </TableHead>
+                          <TableHead className="font-semibold text-gray-600 text-center">
+                            Lessons
+                          </TableHead>
+                          <TableHead className="font-semibold text-gray-600">
+                            Status
+                          </TableHead>
+                          <TableHead className="font-semibold text-gray-600">
+                            Action
+                          </TableHead>
                         </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
+                      </TableHeader>
+                      <TableBody>
+                        {paginatedCourses.length === 0 ? (
+                          <TableRow>
+                            <TableCell
+                              colSpan={7}
+                              className="text-center text-gray-500"
+                            >
+                              No courses found matching your criteria
+                            </TableCell>
+                          </TableRow>
+                        ) : (
+                          paginatedCourses.map((course, index) => (
+                            <TableRow
+                              key={course._id}
+                              className="hover:bg-gray-50 transition-colors duration-150 border-b-2 border-dashed border-gray-100 cursor-pointer"
+                              onClick={() => handleCourseClick(course._id)}
+                            >
+                              <TableCell className="font-medium text-gray-900">
+                                {index + 1 + (currentPage - 1) * itemsPerPage}
+                              </TableCell>
+                              <TableCell className="font-medium text-gray-900">
+                                {course.coursetitle}
+                              </TableCell>
+                              <TableCell className="text-gray-600">
+                                {course.category ? course.category.title : "N/A"}
+                              </TableCell>
+                              <TableCell className="text-gray-600">
+                                {course.tutor.name}
+                              </TableCell>
+                              <TableCell className="text-center text-gray-600">
+                                {course.lessons.length}
+                              </TableCell>
+                              <TableCell>
+                                <span
+                                  className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                                    course.isVisible
+                                      ? "bg-green-100 text-green-800"
+                                      : "bg-gray-100 text-gray-800"
+                                  }`}
+                                >
+                                  {course.isVisible ? "Visible" : "Hidden"}
+                                </span>
+                              </TableCell>
+                              <TableCell>
+                                <Button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleToggleVisibility(
+                                      course._id,
+                                      course.isVisible
+                                    );
+                                  }}
+                                  variant={
+                                    course.isVisible ? "destructive" : "outline"
+                                  }
+                                  size="icon"
+                                >
+                                  {course.isVisible ? (
+                                    <EyeOff className="h-4 w-4" />
+                                  ) : (
+                                    <Eye className="h-4 w-4" />
+                                  )}
+                                </Button>
+                              </TableCell>
+                            </TableRow>
+                          ))
+                        )}
+                      </TableBody>
+                    </Table>
+                  </div>
 
-              <div className="flex justify-between items-center mt-6">
-                <Button
-                  variant="ghost"
-                  onClick={() => handlePageChange(currentPage - 1)}
-                  disabled={currentPage === 1}
-                >
-                  <ChevronLeft className="mr-2 h-4 w-4" />
-                  Previous
-                </Button>
-                <p className="text-sm text-gray-600">
-                  Page {currentPage} of {totalPages}
-                </p>
-                <Button
-                  variant="ghost"
-                  onClick={() => handlePageChange(currentPage + 1)}
-                  disabled={currentPage === totalPages}
-                >
-                  Next
-                  <ChevronRight className="ml-2 h-4 w-4" />
-                </Button>
-              </div>
+                  {filteredCourses.length > 0 && (
+                    <div className="flex justify-between items-center mt-6">
+                      <Button
+                        variant="ghost"
+                        onClick={() => handlePageChange(currentPage - 1)}
+                        disabled={currentPage === 1}
+                      >
+                        <ChevronLeft className="mr-2 h-4 w-4" />
+                        Previous
+                      </Button>
+                      <p className="text-sm text-gray-600">
+                        Page {currentPage} of {totalPages}
+                      </p>
+                      <Button
+                        variant="ghost"
+                        onClick={() => handlePageChange(currentPage + 1)}
+                        disabled={currentPage === totalPages}
+                      >
+                        Next
+                        <ChevronRight className="ml-2 h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
+                </>
+              )}
             </CardContent>
           </Card>
         </main>
@@ -351,3 +362,4 @@ export default function CourseManagement() {
     </div>
   );
 }
+

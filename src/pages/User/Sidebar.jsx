@@ -1,5 +1,5 @@
 import React from 'react'
-import { User, BookOpen, Award, ShoppingBag, Heart, LogOut, X } from 'lucide-react'
+import { User, BookOpen, Award, ShoppingBag, Heart, LogOut, X, MessageCircle } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useSelector, useDispatch } from 'react-redux'
 import { logoutUser } from '@/redux/slice/UserSlice'
@@ -43,7 +43,6 @@ const Sidebar = ({ isOpen, toggleSidebar, activeItem = 'Profile' }) => {
     toggleSidebar()
   }
 
-
   const handleLogout = () => {
     const { showConfirmation } = ConfirmationDialog({
       title: "Logout Confirmation",
@@ -52,16 +51,16 @@ const Sidebar = ({ isOpen, toggleSidebar, activeItem = 'Profile' }) => {
       confirmButtonText: "Yes, log out",
       onConfirm: async () => {
         try {
-        await axiosInstance.post('/user/logout');
-        dispatch(logoutUser())
-        navigate("/")
-        toggleSidebar()
-        toast.success('Logged out successfully!')
-      }catch (error) {
-        console.error("Error during logout:", error);
-        toast.error('Logout failed. Please try again.');
+          await axiosInstance.post('/user/logout');
+          dispatch(logoutUser())
+          navigate("/")
+          toggleSidebar()
+          toast.success('Logged out successfully!')
+        } catch (error) {
+          console.error("Error during logout:", error);
+          toast.error('Logout failed. Please try again.');
+        }
       }
-    }
     });
 
     showConfirmation();
@@ -73,6 +72,7 @@ const Sidebar = ({ isOpen, toggleSidebar, activeItem = 'Profile' }) => {
     { name: 'Certifications', icon: Award, path: '/certifications' },
     { name: 'My Orders', icon: ShoppingBag, path: '/purchasehistory' },
     { name: 'Wishlist', icon: Heart, path: '/wishlist' },
+    { name: 'Chat', icon: MessageCircle, path: '/chats' },
   ]
 
   return (
@@ -125,3 +125,4 @@ const Sidebar = ({ isOpen, toggleSidebar, activeItem = 'Profile' }) => {
 }
 
 export default Sidebar
+

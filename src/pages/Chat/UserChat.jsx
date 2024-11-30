@@ -1,62 +1,30 @@
-import { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { io } from "socket.io-client";
 import { host } from "../../lib/APIRoutes";
 import NoConversationFallback from "@/components/Chat/NoConversationFallback";
-import Contacts from "@/components/Chat/Contacts";
-import ChatContainer from "@/components/Chat/ChatContainer";
+import UserContacts from "@/components/Chat/UserContacts";
+import UserChatContainer from "@/components/Chat/UserChatContainer";
 import { useSelector } from "react-redux";
 import axiosInstance from "@/AxiosConfig";
-import SideBar from "../Tutor/SideBar";
+import Sidebar from "../User/Sidebar";
 import { Menu, X, Users } from 'lucide-react';
 
-export default function Chat() {
-  const tutorData = useSelector((store) => store.tutor.tutorDatas);
+export default function UserChat() {
+  const userData = useSelector((store) => store.user.userDatas);
   const navigate = useNavigate();
   const socket = useRef();
   const [contacts, setContacts] = useState([]);
   const [currentChat, setCurrentChat] = useState(undefined);
-  const [currentUser, setCurrentUser] = useState(undefined);
   const [loading, setLoading] = useState(true);
   const [showContacts, setShowContacts] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  const getCurrentUser = async () => {
-    if (tutorData) {
-      setCurrentUser(tutorData);
-    }
-  };
-
-  const getContacts = async () => {
-    if (!currentUser) return;
-
-    if (currentUser) {
-      try {
-        const { data } = await axiosInstance(
-          `/tutor/getStudents/${currentUser._id}`
-        );
-        setContacts(data);
-      } catch (error) {
-        console.error("Error fetching contacts:", error);
-      }
-    } else {
-      navigate("/setAvatar");
-    }
-  };
-
   useEffect(() => {
-    const fetchUser = async () => {
-      await getCurrentUser();
-      setLoading(false);
-    };
-    fetchUser();
-  }, []);
-
-  useEffect(() => {
-    if (currentUser) {
+    if (userData) {
       socket.current = io(host, {
         transports: ["websocket"],
-        auth: { userId: currentUser._id }
+        auth: { userId: userData._id }
       });
 
       socket.current.on("connect", () => {
@@ -67,11 +35,25 @@ export default function Chat() {
         console.error("Error during socket connection:", err);
       });
     }
-  }, [currentUser]);
+  }, [userData]);
 
   useEffect(() => {
-    getContacts();
-  }, [currentUser]);
+    const fetchContacts = async () => {
+      try {
+        const { data } = await axiosInstance.get("/user/purchasedcoursetutors");
+        console.log("Fetched tutors:", data.tutors);
+        setContacts(data.tutors);
+      } catch (error) {
+        console.error("Error fetching contacts:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (userData) {
+      fetchContacts();
+    }
+  }, [userData]);
 
   const handleChatChange = (chat) => {
     setCurrentChat(chat);
@@ -91,13 +73,15 @@ export default function Chat() {
   return (
     <div className="flex h-screen bg-gray-50 overflow-hidden">
       {/* Sidebar */}
-      <div className={`fixed inset-y-0 left-0 transform ${
-        isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
-      } lg:relative lg:translate-x-0 transition duration-200 ease-in-out z-30`}>
-        <SideBar
-          activeItem="Chat & Video"
+      <div
+        className={`fixed inset-y-0 left-0 transform ${
+          isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+        } lg:relative lg:translate-x-0 transition duration-200 ease-in-out z-30`}
+      >
+        <Sidebar
+          activeItem="Chat"
           isOpen={isSidebarOpen}
-          onClose={() => setIsSidebarOpen(false)}
+          toggleSidebar={() => setIsSidebarOpen(false)}
         />
       </div>
 
@@ -141,7 +125,7 @@ export default function Chat() {
                     showContacts ? 'block' : 'hidden'
                   } md:block w-full md:w-80 lg:w-96 border-r border-gray-200 bg-white`}
                 >
-                  <Contacts 
+                  <UserContacts 
                     contacts={contacts} 
                     changeChat={handleChatChange}
                     className="h-full overflow-y-auto"
@@ -157,7 +141,7 @@ export default function Chat() {
                   {currentChat === undefined ? (
                     <NoConversationFallback />
                   ) : (
-                    <ChatContainer 
+                    <UserChatContainer 
                       currentChat={currentChat} 
                       socket={socket}
                       className="h-full flex flex-col"
@@ -180,4 +164,3 @@ export default function Chat() {
     </div>
   );
 }
-
