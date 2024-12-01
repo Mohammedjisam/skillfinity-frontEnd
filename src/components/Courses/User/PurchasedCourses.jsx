@@ -106,7 +106,7 @@ export default function PurchasedCourses() {
             <CardFooter>
             <Button
               className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-              onClick={() => navigate(`/course/${course._id}/lessons`)} >
+              onClick={() => navigate(`/coursedetails/${course._id}`)} >
                 <BookOpen className="w-4 h-4 mr-2" /> Continue Learning
               </Button>
             </CardFooter>

@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useRef, useCallback } from 'react';
+import ReactPlayer from 'react-player';
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import {
@@ -13,7 +14,7 @@ import {
 } from "lucide-react";
 
 const CustomVideoPlayer = ({ src }) => {
-  const videoRef = useRef(null);
+  const playerRef = useRef(null);
   const containerRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -25,88 +26,41 @@ const CustomVideoPlayer = ({ src }) => {
   const [showControls, setShowControls] = useState(true);
   const [showSettings, setShowSettings] = useState(false);
 
-  useEffect(() => {
-    const video = videoRef.current;
-    if (video) {
-      video.addEventListener("timeupdate", handleTimeUpdate);
-      video.addEventListener("loadedmetadata", handleLoadedMetadata);
-
-      const hideControlsTimer = setTimeout(() => {
-        if (isPlaying) setShowControls(false);
-      }, 3000);
-
-      return () => {
-        video.removeEventListener("timeupdate", handleTimeUpdate);
-        video.removeEventListener("loadedmetadata", handleLoadedMetadata);
-        clearTimeout(hideControlsTimer);
-      };
-    }
+  const togglePlay = useCallback(() => {
+    setIsPlaying(!isPlaying);
   }, [isPlaying]);
 
-  const handleTimeUpdate = () => {
-    if (videoRef.current) {
-      setCurrentTime(videoRef.current.currentTime);
-    }
-  };
+  const handleProgress = useCallback((state) => {
+    setCurrentTime(state.playedSeconds);
+  }, []);
 
-  const handleLoadedMetadata = () => {
-    if (videoRef.current) {
-      setDuration(videoRef.current.duration);
-    }
-  };
+  const handleDuration = useCallback((duration) => {
+    setDuration(duration);
+  }, []);
 
-  const togglePlay = () => {
-    if (videoRef.current) {
-      if (isPlaying) {
-        videoRef.current.pause();
-      } else {
-        videoRef.current.play();
-      }
-      setIsPlaying(!isPlaying);
-    }
-  };
-
-  const handleSeek = (value) => {
+  const handleSeek = useCallback((value) => {
     const newTime = value[0];
-    if (videoRef.current) {
-      videoRef.current.currentTime = newTime;
-      setCurrentTime(newTime);
-    }
-  };
+    playerRef.current.seekTo(newTime);
+    setCurrentTime(newTime);
+  }, []);
 
-  const handleVolumeChange = (value) => {
+  const handleVolumeChange = useCallback((value) => {
     const newVolume = value[0];
-    if (videoRef.current) {
-      videoRef.current.volume = newVolume;
-      setVolume(newVolume);
-      setIsMuted(newVolume === 0);
-    }
-  };
+    setVolume(newVolume);
+    setIsMuted(newVolume === 0);
+  }, []);
 
-  const toggleMute = () => {
-    if (videoRef.current) {
-      const newMutedState = !isMuted;
-      videoRef.current.muted = newMutedState;
-      setIsMuted(newMutedState);
-      if (newMutedState) {
-        setVolume(0);
-      } else {
-        setVolume(1);
-        videoRef.current.volume = 1;
-      }
-    }
-  };
+  const toggleMute = useCallback(() => {
+    setIsMuted(!isMuted);
+    setVolume(isMuted ? 1 : 0);
+  }, [isMuted]);
 
-  const handleSpeedChange = (value) => {
-    const newSpeed = parseFloat(value);
-    if (videoRef.current) {
-      videoRef.current.playbackRate = newSpeed;
-      setPlaybackRate(newSpeed);
-      setShowSettings(false);
-    }
-  };
+  const handleSpeedChange = useCallback((speed) => {
+    setPlaybackRate(speed);
+    setShowSettings(false);
+  }, []);
 
-  const toggleFullscreen = () => {
+  const toggleFullscreen = useCallback(() => {
     if (!document.fullscreenElement) {
       containerRef.current.requestFullscreen();
       setIsFullscreen(true);
@@ -114,27 +68,22 @@ const CustomVideoPlayer = ({ src }) => {
       document.exitFullscreen();
       setIsFullscreen(false);
     }
-  };
+  }, []);
 
-  const formatTime = (time) => {
+  const formatTime = useCallback((time) => {
     const minutes = Math.floor(time / 60);
     const seconds = Math.floor(time % 60);
     return `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`;
-  };
+  }, []);
 
-  const skipForward = () => {
-    if (videoRef.current) {
-      videoRef.current.currentTime += 10;
-    }
-  };
+  const skipForward = useCallback(() => {
+    playerRef.current.seekTo(currentTime + 10);
+  }, [currentTime]);
 
-  const skipBackward = () => {
-    if (videoRef.current) {
-      videoRef.current.currentTime -= 10;
-    }
-  };
+  const skipBackward = useCallback(() => {
+    playerRef.current.seekTo(currentTime - 10);
+  }, [currentTime]);
 
-  
   return (
     <div
       ref={containerRef}
@@ -142,11 +91,18 @@ const CustomVideoPlayer = ({ src }) => {
       onMouseMove={() => setShowControls(true)}
       onMouseLeave={() => isPlaying && setShowControls(false)}
     >
-      <video
-        ref={videoRef}
-        src={src}
-        className="w-full h-full"
-        onClick={togglePlay}
+      <ReactPlayer
+        ref={playerRef}
+        url={src}
+        width="100%"
+        height="100%"
+        playing={isPlaying}
+        volume={volume}
+        muted={isMuted}
+        playbackRate={playbackRate}
+        onProgress={handleProgress}
+        onDuration={handleDuration}
+        className="absolute top-0 left-0"
       />
 
       {/* Center Play Button */}
@@ -291,3 +247,4 @@ const CustomVideoPlayer = ({ src }) => {
 };
 
 export default CustomVideoPlayer;
+

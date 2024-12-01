@@ -157,9 +157,11 @@ const AllCourse = () => {
     return purchasedCourses.includes(courseId);
   };
 
+  const filteredCourses = courses.filter(course => !isPurchased(course._id));
   const indexOfLastCourse = currentPage * coursesPerPage;
   const indexOfFirstCourse = indexOfLastCourse - coursesPerPage;
-  const currentCourses = courses.slice(indexOfFirstCourse, indexOfLastCourse);
+  const currentCourses = filteredCourses.slice(indexOfFirstCourse, indexOfLastCourse);
+  const totalFilteredPages = Math.ceil(filteredCourses.length / coursesPerPage);
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
@@ -199,15 +201,13 @@ const AllCourse = () => {
                       alt={course.coursetitle}
                       className="w-full h-48 object-cover"
                     />
-                    {!isPurchased(course._id) && (
-                      <button 
-                        onClick={() => wishlistItems.includes(course._id) ? handleRemoveFromWishlist(course._id) : handleAddToWishlist(course._id)}
-                        className="absolute top-2 right-2 p-2 rounded-full bg-white/80 hover:bg-white transition-colors"
-                      >
-                        <Heart className={`w-5 h-5 ${wishlistItems.includes(course._id) ? 'text-red-500 fill-current' : 'text-gray-600'}`} />
-                        <span className="sr-only">{wishlistItems.includes(course._id) ? 'Remove from favorites' : 'Add to favorites'}</span>
-                      </button>
-                    )}
+                    <button 
+                      onClick={() => wishlistItems.includes(course._id) ? handleRemoveFromWishlist(course._id) : handleAddToWishlist(course._id)}
+                      className="absolute top-2 right-2 p-2 rounded-full bg-white/80 hover:bg-white transition-colors"
+                    >
+                      <Heart className={`w-5 h-5 ${wishlistItems.includes(course._id) ? 'text-red-500 fill-current' : 'text-gray-600'}`} />
+                      <span className="sr-only">{wishlistItems.includes(course._id) ? 'Remove from favorites' : 'Add to favorites'}</span>
+                    </button>
                   </div>
                   <div className="p-4">
                     <h3 className="font-semibold text-lg mb-2">
@@ -237,15 +237,7 @@ const AllCourse = () => {
                       >
                         View Details
                       </Button>
-                      {isPurchased(course._id) ? (
-                        <Button
-                          onClick={() => handleWatchLessons(course._id)}
-                          className="flex-1 bg-gray-500 hover:bg-gray-600"
-                        >
-                          <Play className="w-4 h-4 mr-2" />
-                          Watch Lessons
-                        </Button>
-                      ) : isInCart(course._id) ? (
+                      {isInCart(course._id) ? (
                         <Button
                           onClick={handleGoToCart}
                           className="flex-1 bg-yellow-500 hover:bg-yellow-600"
@@ -269,7 +261,7 @@ const AllCourse = () => {
             </div>
             <div className="flex justify-center mt-8">
               <nav className="inline-flex rounded-md shadow">
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                {Array.from({ length: totalFilteredPages }, (_, i) => i + 1).map(
                   (number) => (
                     <Button
                       key={number}

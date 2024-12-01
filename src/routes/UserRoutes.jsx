@@ -11,7 +11,6 @@ import ResetPassword from '@/pages/User/ResetPassword'
 import Profile from '@/pages/User/Profile'
 import ProtectedUserLogin from '@/private/user/ProtectedUserLogin'
 import ProtectedUserRoutes from '@/private/user/ProtectedUserRoutes'
-import BestSellerCourse from '@/components/Courses/User/BestSellerCourse'
 import Category from '@/components/Courses/User/Category'
 import AllCourse from '../components/Courses/User/AllCourse'
 import CourseDetails from '../components/Courses/User/CourseDetails'
@@ -44,7 +43,6 @@ function UserRoutes() {
         <Route path='profile' element={<ProtectedUserRoutes><Profile/></ProtectedUserRoutes>}/>
         <Route path='allcourse' element={<ProtectedUserRoutes><AllCourse/></ProtectedUserRoutes>}/>
         <Route path='coursedetails/:courseId' element={<ProtectedUserRoutes><CourseDetails/></ProtectedUserRoutes>}/>
-        <Route path='bestsellercourse' element={<ProtectedUserRoutes><BestSellerCourse/></ProtectedUserRoutes>}/>
         <Route path='category/:categoryId' element={<ProtectedUserRoutes><Category /></ProtectedUserRoutes>}/>
         <Route path='cart' element={<ProtectedUserRoutes><Cart /></ProtectedUserRoutes>}/>
         <Route path='viewallcategories' element={<ProtectedUserRoutes><ViewAllCategory /></ProtectedUserRoutes>}/>

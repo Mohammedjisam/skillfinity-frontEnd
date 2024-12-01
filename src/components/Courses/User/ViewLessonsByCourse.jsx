@@ -1,288 +1,531 @@
-import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import axiosInstance from "@/AxiosConfig";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import {
-  Play,
-  FileText,
-  Clock,
-  ChevronLeft,
-  MessageCircle,
-  ClipboardList,
-} from "lucide-react";
-import { toast } from "sonner";
-import ChatForUser from "@/pages/Chat/ChatForUser";
-import { useSelector } from "react-redux";
-import CustomVideoPlayer from "./CustomVideoPlayer"
-import Sidebar from "../../../pages/User/Sidebar";
+import React, { useState, useEffect, useRef, useCallback } from "react"
+import { useParams, useNavigate } from "react-router-dom"
+import ReactPlayer from "react-player"
+import axiosInstance from "@/AxiosConfig"
+import { Button } from "@/components/ui/button"
+import { Progress } from "@/components/ui/progress"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { Play, Pause, Volume2, VolumeX, Maximize, Settings, SkipBack, SkipForward, ChevronLeft, Clock, CheckCircle2, Circle, FileText, Download, MessageCircle, ClipboardList } from 'lucide-react'
+import { Slider } from "@/components/ui/slider"
+import { toast } from "sonner"
+import { useSelector, useDispatch } from "react-redux"
+import { updateCourseProgress } from '../../../redux/slice/CourseSlice'
+import ChatForUser from "@/pages/Chat/ChatForUser"
 
-const ViewLessonsByCourse = () => {
-  const [lessons, setLessons] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [courseTitle, setCourseTitle] = useState("");
-  const [selectedVideo, setSelectedVideo] = useState(null);
-  const [isChatOpen, setIsChatOpen] = useState(false);
-  const [hasCertificate, setHasCertificate] = useState(false);
-  const { courseId } = useParams();
-  const [tutor, setTutor] = useState(null);
-  const navigate = useNavigate();
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+export default function ViewLessonsByCourse() {
+  const [lessons, setLessons] = useState([])
+  const [watchedLessons, setWatchedLessons] = useState({})
+  const [loading, setLoading] = useState(true)
+  const [courseTitle, setCourseTitle] = useState("")
+  const [selectedVideo, setSelectedVideo] = useState(null)
+  const [selectedLesson, setSelectedLesson] = useState(null)
+  const [progress, setProgress] = useState(0)
+  const [lessonProgressMap, setLessonProgressMap] = useState({})
+  const { courseId } = useParams()
+  const navigate = useNavigate()
   const userId = useSelector((store) => store.user.userDatas._id)
+  const dispatch = useDispatch()
+  const debounceTimeoutRef = useRef(null)
 
-  const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
+  const [isChatOpen, setIsChatOpen] = useState(false)
+  const [isFullCourseCompleted, setIsFullCourseCompleted] = useState(false)
+
+  // Video player states
+  const playerRef = useRef(null)
+  const [isPlaying, setIsPlaying] = useState(false)
+  const [currentTime, setCurrentTime] = useState(0)
+  const [duration, setDuration] = useState(0)
+  const [volume, setVolume] = useState(1)
+  const [isMuted, setIsMuted] = useState(false)
+  const [playbackRate, setPlaybackRate] = useState(1)
+  const [showSettings, setShowSettings] = useState(false)
 
   useEffect(() => {
-    fetchLessons();
-    checkCertificate();
-  }, [courseId]);
+    fetchLessons()
+  }, [courseId])
 
   const fetchLessons = async () => {
     try {
-      const response = await axiosInstance.get(`/user/data/viewcourselessons/${courseId}`);
-      setTutor(response.data.lessons[0].tutor);
-      setLessons(response.data.lessons);
-      if (response.data.lessons.length > 0) {
-        setCourseTitle(response.data.lessons[0].course.coursetitle);
+      // Fetch lessons
+      const lessonsResponse = await axiosInstance.get(`/user/data/viewcourselessons/${courseId}`)
+      setLessons(lessonsResponse.data.lessons)
+      
+      if (lessonsResponse.data.lessons.length > 0) {
+        setCourseTitle(lessonsResponse.data.lessons[0].course.coursetitle)
+        setSelectedVideo(lessonsResponse.data.lessons[0].Video)
+        setSelectedLesson(lessonsResponse.data.lessons[0])
       }
-    } catch (error) {
-      console.error("Error fetching lessons:", error);
-      toast.error("Failed to load lessons. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
 
-  const checkCertificate = async () => {
-    try {
-      const response = await axiosInstance.get(`/user/data/certificate/check/${userId}/${courseId}`);
-      setHasCertificate(response.data.exists);
+      // Fetch lesson progress
+      const progressResponse = await axiosInstance.get(`/user/courseProgress/${userId}/${courseId}`)
+      
+      // Create a map of lesson progress
+      const progressMap = progressResponse.data.lessonProgress.reduce((acc, lessonProgress) => {
+        acc[lessonProgress.lesson] = {
+          percentWatched: lessonProgress.percentWatched || 0,
+          isCompleted: lessonProgress.isCompleted || false,
+          totalWatchTime: lessonProgress.totalWatchTime || 0
+        }
+        return acc
+      }, {})
+
+      setLessonProgressMap(progressMap)
+      setProgress(progressResponse.data.courseProgressPercentage)
+
+      // Check if all lessons are completed
+      const allLessonsCompleted = lessonsResponse.data.lessons.every(
+        lesson => progressMap[lesson._id]?.isCompleted
+      )
+      setIsFullCourseCompleted(allLessonsCompleted)
+
     } catch (error) {
-      console.error("Error checking certificate:", error);
-      toast.error("Failed to check certificate status.");
+      console.error("Error fetching lessons or progress:", error)
+      toast.error("Failed to load course content. Please try again.")
+    } finally {
+      setLoading(false)
     }
-  };
+  }
+
+  const updateLessonProgress = useCallback(async (lessonId, progressData) => {
+    try {
+      const payload = {
+        percentWatched: progressData.percentWatched,
+        totalWatchTime: progressData.totalWatchTime,
+        isCompleted: progressData.percentWatched >= 90
+      }
+  
+      const response = await axiosInstance.post('/user/updateLessonProgress', {
+        userId,
+        courseId,
+        lessonId,
+        progress: payload
+      })
+  
+      // Update local lesson progress map
+      setLessonProgressMap(prev => ({
+        ...prev,
+        [lessonId]: {
+          ...payload,
+          isCompleted: payload.isCompleted
+        }
+      }))
+  
+      // Update Redux store with new progress
+      dispatch(updateCourseProgress({
+        courseId,
+        lessonId,
+        progress: payload
+      }))
+  
+      // Refetch course progress to update overall progress
+      const progressResponse = await axiosInstance.get(`/user/courseProgress/${userId}/${courseId}`)
+      setProgress(progressResponse.data.courseProgressPercentage)
+
+      // Check if all lessons are completed
+      const allLessonsCompleted = lessons.every(
+        lesson => lessonProgressMap[lesson._id]?.isCompleted || (lesson._id === lessonId && payload.isCompleted)
+      )
+      setIsFullCourseCompleted(allLessonsCompleted)
+
+    } catch (error) {
+      console.error("Error updating lesson progress:", error)
+      toast.error("Failed to update lesson progress. Please try again.")
+    }
+  }, [userId, courseId, dispatch, lessons, lessonProgressMap])
+
+  const handleProgress = useCallback((state) => {
+    setCurrentTime(state.playedSeconds)
+    
+    if (selectedLesson) {
+      const percentWatched = Math.round(state.played * 100)
+      const totalWatchTime = Math.round(state.playedSeconds)
+      
+      // Clear existing timeout
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current)
+      }
+
+      // Set new timeout
+      debounceTimeoutRef.current = setTimeout(() => {
+        const currentProgress = lessonProgressMap[selectedLesson._id]?.percentWatched || 0
+        const currentWatchTime = lessonProgressMap[selectedLesson._id]?.totalWatchTime || 0
+
+        // Only update if the new progress is higher
+        if (percentWatched > currentProgress || totalWatchTime > currentWatchTime) {
+          updateLessonProgress(selectedLesson._id, {
+            percentWatched: Math.max(percentWatched, currentProgress),
+            totalWatchTime: Math.max(totalWatchTime, currentWatchTime)
+          })
+        }
+      }, 1000) // Debounce for 1 second
+    }
+  }, [selectedLesson, lessonProgressMap, updateLessonProgress])
 
   const handleBack = () => {
-    navigate(-1);
-  };
+    navigate(-1)
+  }
 
-  const handleWatchVideo = (videoUrl) => {
-    setSelectedVideo(videoUrl);
-  };
+  const handleLessonSelect = (lesson) => {
+    setSelectedVideo(lesson.Video)
+    setSelectedLesson(lesson)
+    setIsPlaying(true)
+  }
+
+  // Video player functions
+  const togglePlay = () => {
+    setIsPlaying(!isPlaying)
+  }
+
+  const renderLessonList = () => {
+    return lessons.map((lesson) => {
+      const lessonProgress = lessonProgressMap[lesson._id] || {}
+      const isWatched = lessonProgress.isCompleted
+
+      return (
+        <button
+          key={lesson._id}
+          onClick={() => handleLessonSelect(lesson)}
+          className={`w-full text-left p-3 rounded-lg mb-2 flex items-start gap-3 transition-colors ${
+            selectedLesson?._id === lesson._id
+              ? "bg-blue-50 text-blue-600 shadow-md"
+              : "hover:bg-gray-50 text-gray-700"
+          }`}
+        >
+          <div className="mt-1">
+            {isWatched ? (
+              <CheckCircle2 className="h-5 w-5 text-primary" />
+            ) : (
+              <Circle className="h-5 w-5 text-gray-400" />
+            )}
+          </div>
+          <div className="flex-1">
+            <p className="font-medium text-gray-900">{lesson.lessontitle}</p>
+            <div className="flex items-center justify-between text-sm text-gray-500 mt-1">
+              <div className="flex items-center">
+                <Clock className="h-4 w-4 mr-1" />
+                {lesson.duration} min
+              </div>
+              {lessonProgress.percentWatched > 0 && (
+                <span className="text-xs px-2 py-1 bg-blue-100 text-blue-800 rounded-full">
+                  {lessonProgress.percentWatched}% watched
+                </span>
+              )}
+            </div>
+          </div>
+        </button>
+      )
+    })
+  }
+
+  const handleDuration = (duration) => {
+    setDuration(duration)
+  }
+
+  const handleSeek = (value) => {
+    const newTime = value[0]
+    playerRef.current.seekTo(newTime)
+    setCurrentTime(newTime)
+  }
+
+  const handleVolumeChange = (value) => {
+    const newVolume = value[0]
+    setVolume(newVolume)
+    setIsMuted(newVolume === 0)
+  }
+
+  const toggleMute = () => {
+    setIsMuted(!isMuted)
+    setVolume(isMuted ? 1 : 0)
+  }
+
+  const handleSpeedChange = (speed) => {
+    setPlaybackRate(speed)
+    setShowSettings(false)
+  }
+
+  const skipForward = () => {
+    playerRef.current.seekTo(currentTime + 10)
+  }
+
+  const skipBackward = () => {
+    playerRef.current.seekTo(currentTime - 10)
+  }
+
+  const formatTime = (time) => {
+    const minutes = Math.floor(time / 60)
+    const seconds = Math.floor(time % 60)
+    return `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`
+  }
+
+  const handleViewPdf = () => {
+    if (selectedLesson && selectedLesson.pdfnotes) {
+      window.open(selectedLesson.pdfnotes, '_blank')
+    } else {
+      toast.error("PDF notes are not available for this lesson.")
+    }
+  }
+
+  const handleDownloadPdf = async () => {
+    if (selectedLesson && selectedLesson.pdfnotes) {
+      try {
+        const response = await fetch(selectedLesson.pdfnotes)
+        const blob = await response.blob()
+        const url = window.URL.createObjectURL(blob)
+        const link = document.createElement('a')
+        link.href = url
+        link.download = `${selectedLesson.lessontitle}.pdf`
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+        window.URL.revokeObjectURL(url)
+      } catch (error) {
+        console.error("Error downloading PDF:", error)
+        toast.error("Failed to download PDF. Please try again.")
+      }
+    } else {
+      toast.error("PDF notes are not available for this lesson.")
+    }
+  }
 
   const handleAttendQuiz = () => {
-    navigate(`/quiz/${courseId}`);
-  };
-
-  const handleDownloadPdf = async (pdfUrl) => {
-    try {
-      if (!pdfUrl) {
-        toast.error("PDF URL is not available");
-        return;
-      }
-      const downloadUrl = pdfUrl.includes("cloudinary")
-        ? `${pdfUrl}?fl_attachment=true`
-        : pdfUrl;
-      const response = await fetch(downloadUrl, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/pdf",
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const contentDisposition = response.headers.get("content-disposition");
-      let filename = "lesson_notes.pdf";
-      if (contentDisposition) {
-        const filenameMatch = contentDisposition.match(/filename="(.+)"/);
-        if (filenameMatch) {
-          filename = filenameMatch[1];
-        }
-      }
-
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = filename;
-
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
-
-      toast.success("PDF downloaded successfully");
-    } catch (error) {
-      console.error("Error downloading PDF:", error);
-      toast.error("Failed to download PDF. Please try again.");
-    }
-  };
-
-  const formatDuration = (minutes) => {
-    if (!minutes) return "Duration not specified";
-    
-    if (minutes < 60) {
-      return `${minutes} minutes`;
-    } else {
-      const hours = Math.floor(minutes / 60);
-      const remainingMinutes = minutes % 60;
-      
-      if (remainingMinutes === 0) {
-        return `${hours} hour${hours === 1 ? '' : 's'}`;
-      }
-      
-      return `${hours} hour${hours === 1 ? '' : 's'} ${remainingMinutes} minute${remainingMinutes === 1 ? '' : 's'}`;
-    }
-  };
-
-  if (isChatOpen) {
-    return <ChatForUser tutor={tutor} />;
+    // Implement quiz logic here
+    console.log("Attending quiz")
   }
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-screen bg-gradient-to-b from-gray-50 to-gray-100">
-        <div className="animate-spin rounded-full h-20 w-20 border-t-4 border-b-4 border-gray-900"></div>
+      <div className="flex justify-center items-center h-screen bg-gray-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
       </div>
-    );
+    )
   }
 
   return (
-    <div className="flex h-screen bg-gray-100 overflow-hidden">
-      <Sidebar isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} activeItem="Courses" />
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <header className="bg-white shadow-sm lg:hidden">
-          <div className="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8">
-            <button
-              onClick={toggleSidebar}
-              className="p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
-              aria-label="Toggle sidebar"
-            >
-              <ChevronLeft className="h-6 w-6" aria-hidden="true" />
-            </button>
-          </div>
-        </header>
-        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
-          <div className="max-w-4xl mx-auto">
-            <div className="flex justify-between items-center mb-6">
-              <Button
-                onClick={handleBack}
-                variant="ghost"
-                className="hover:bg-gray-200 text-gray-800 shadow-sm transition-all duration-300 bg-gray-100"
-              >
-                <ChevronLeft className="mr-2 h-5 w-5" /> Back to Course
-              </Button>
-              <div className="flex space-x-4">
-                <Button
-                  onClick={() => setIsChatOpen(true)}
-                  variant="outline"
-                  className="bg-white hover:bg-blue-50 text-blue-600 border border-blue-200 shadow-sm transition-all duration-300 flex items-center"
-                >
-                  <MessageCircle className="mr-2 h-5 w-5" />
-                  Chat with Tutor
-                </Button>
-                {!hasCertificate && (
-                  <Button
-                    onClick={handleAttendQuiz}
-                    className="bg-green-600 hover:bg-green-700 text-white shadow-md hover:shadow-lg transition-all duration-300 flex items-center"
-                  >
-                    <ClipboardList className="mr-2 h-5 w-5" />
-                    Attend Quiz
-                  </Button>
-                )}
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <header className="bg-white shadow-md">
+        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
+          <Button
+            onClick={handleBack}
+            variant="ghost"
+            className="text-gray-600 hover:text-gray-900"
+          >
+            <ChevronLeft className="h-5 w-5 mr-2" />
+            Back
+          </Button>
+          <h1 className="text-xl font-semibold text-gray-900">{courseTitle}</h1>
+          <div className="w-20" /> {/* Spacer for alignment */}
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <div className="container mx-auto px-4 py-6">
+        <div className="flex gap-6">
+          {/* Sidebar */}
+          <div className="w-80 bg-white rounded-lg shadow-lg">
+            <div className="p-4 border-b">
+              <h2 className="text-lg font-semibold text-gray-900">{courseTitle}</h2>
+              <div className="flex items-center justify-between mt-2 text-sm text-gray-500">
+                <span>{lessons.length} lessons</span>
+                <span>{Math.round(progress)}% completed</span>
+              </div>
+              <div className="mt-2">
+                <Progress value={progress} className="h-2 bg-blue-100" indicatorClassName="bg-blue-500" />
+                <p className="text-sm text-gray-500 mt-1">{progress}% Complete</p>
               </div>
             </div>
-            <Card className="bg-white shadow-xl border-none rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-2xl">
-              <CardHeader className="bg-gradient-to-r from-gray-100 to-gray-200 p-8">
-                <CardTitle className="text-4xl font-bold text-gray-800 tracking-tight">
-                  {courseTitle}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-6">
-                <Accordion type="single" collapsible className="w-full space-y-4">
-                  {lessons.map((lesson, index) => (
-                    <AccordionItem
-                      key={lesson._id}
-                      value={`item-${index}`}
-                      className="mb-4 rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-all duration-300 border-none data-[state=open]:bg-gray-50"
-                    >
-                      <AccordionTrigger className="text-left py-6 px-6 bg-white hover:bg-gray-50 transition-colors duration-200 [&[data-state=open]>div]:text-gray-900 [&[data-state=open]]:bg-gray-50 hover:no-underline">
-                        <div className="flex items-center w-full group">
-                          <span className="text-xl font-semibold text-gray-800 group-hover:text-gray-900">
-                            {lesson.lessontitle}
-                          </span>
-                          <span className="ml-auto text-sm text-gray-500 flex items-center">
-                            <Clock className="w-5 h-5 mr-2" />
-                            {formatDuration(lesson.duration)}
-                          </span>
-                        </div>
-                      </AccordionTrigger>
-                      <AccordionContent className="px-6 pb-6">
-                        <p className="mb-6 text-gray-700 leading-relaxed">
-                          {lesson.description}
-                        </p>
-                        <div className="flex flex-wrap gap-4">
-                          <Dialog>
-                            <DialogTrigger asChild>
-                              <Button
-                                className="flex items-center bg-gray-800 hover:bg-gray-700 text-white shadow-md hover:shadow-lg transition-all duration-300"
-                                onClick={() => handleWatchVideo(lesson.Video)}
-                              >
-                                <Play className="mr-2 h-5 w-5" /> Watch Video
-                              </Button>
-                            </DialogTrigger>
-                            <DialogContent className="sm:max-w-[800px] bg-white rounded-2xl p-0 overflow-hidden border-none">
-                              <DialogHeader className="p-6 bg-gradient-to-r from-gray-100 to-gray-200">
-                                <DialogTitle className="flex justify-between items-center text-gray-800 text-2xl font-bold">
-                                  <span>{lesson.lessontitle}</span>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => setSelectedVideo(null)}
-                                    className="text-gray-500 hover:text-gray-700 hover:bg-gray-200 rounded-full"
-                                  ></Button>
-                                </DialogTitle>
-                              </DialogHeader>
-                              <div className="p-6">
-                                <CustomVideoPlayer src={selectedVideo} />
-                              </div>
-                            </DialogContent>
-                          </Dialog>
-                          <Button
-                            variant="outline"
-                            className="flex items-center bg-white hover:bg-gray-100 text-gray-800 shadow-md hover:shadow-lg transition-all duration-300 border-none"
-                            onClick={() => handleDownloadPdf(lesson.pdfnotes)}
-                          >
-                            <FileText className="mr-2 h-5 w-5" /> Download PDF Notes
-                          </Button>
-                        </div>
-                      </AccordionContent>
-                    </AccordionItem>
-                  ))}
-                </Accordion>
-              </CardContent>
-            </Card>
+            <ScrollArea className="h-[calc(100vh-13rem)]">
+              <div className="p-4">
+                {renderLessonList()}
+              </div>
+            </ScrollArea>
           </div>
-        </main>
-      </div>
-    </div>
-  );
-};
 
-export default ViewLessonsByCourse;
+          {/* Video Player and Controls */}
+          <div className="flex-1">
+            {/* Chat and Quiz Buttons */}
+            <div className="mb-4 flex justify-end space-x-4">
+              <Button
+                onClick={() => setIsChatOpen(true)}
+                variant="outline"
+                className="bg-white hover:bg-blue-50 text-blue-600 shadow-sm transition-all duration-300 flex items-center"
+              >
+                <MessageCircle className="mr-2 h-5 w-5" />
+                Chat with Tutor
+              </Button>
+              {isFullCourseCompleted && (
+                <Button
+                  onClick={handleAttendQuiz}
+                  className="bg-green-500 hover:bg-green-600 text-white shadow-md hover:shadow-lg transition-all duration-300 flex items-center"
+                >
+                  <ClipboardList className="mr-2 h-5 w-5" />
+                  Attend Quiz
+                </Button>
+              )}
+            </div>
+
+            {/* Video Player */}
+            <div className="relative bg-black rounded-lg overflow-hidden aspect-video shadow-xl">
+              <ReactPlayer
+                ref={playerRef}
+                url={selectedVideo}
+                width="100%"
+                height="100%"
+                playing={isPlaying}
+                volume={volume}
+                muted={isMuted}
+                playbackRate={playbackRate}
+                onProgress={handleProgress}
+                onDuration={handleDuration}
+              />
+
+              {/* Video Controls */}
+              <div className="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-black via-black/70 to-transparent opacity-0 hover:opacity-100 transition-opacity">
+                {/* Progress Bar */}
+                <div className="px-4 pt-8">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-white/80">{formatTime(currentTime)}</span>
+                    <Slider
+                      value={[currentTime]}
+                      max={duration}
+                      step={1}
+                      onValueChange={handleSeek}
+                      className="w-full"
+                    />
+                    <span className="text-xs text-white/80">{formatTime(duration)}</span>
+                  </div>
+                </div>
+
+                {/* Controls Bar */}
+                <div className="flex items-center justify-between px-4 py-3">
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-1">
+                      <Button
+                        onClick={toggleMute}
+                        variant="ghost"
+                        size="icon"
+                        className="text-white hover:bg-white/10"
+                      >
+                        {isMuted ? (
+                          <VolumeX className="h-5 w-5" />
+                        ) : (
+                          <Volume2 className="h-5 w-5" />
+                        )}
+                      </Button>
+                      <Slider
+                        value={[volume]}
+                        max={1}
+                        step={0.1}
+                        onValueChange={handleVolumeChange}
+                        className="w-20"
+                      />
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        onClick={skipBackward}
+                        variant="ghost"
+                        size="icon"
+                        className="text-white hover:bg-white/10"
+                      >
+                        <SkipBack className="h-5 w-5" />
+                      </Button>
+                      <Button
+                        onClick={togglePlay}
+                        variant="ghost"
+                        size="icon"
+                        className="text-white hover:bg-white/10"
+                      >
+                        {isPlaying ? (
+                          <Pause className="h-5 w-5" />
+                        ) : (
+                          <Play className="h-5 w-5" />
+                        )}
+                      </Button>
+                      <Button
+                        onClick={skipForward}
+                        variant="ghost"
+                        size="icon"
+                        className="text-white hover:bg-white/10"
+                      >
+                        <SkipForward className="h-5 w-5" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <div className="relative">
+                      <Button
+                        onClick={() => setShowSettings(!showSettings)}
+                        variant="ghost"
+                        size="icon"
+                        className="text-white hover:bg-white/10"
+                      >
+                        <Settings className="h-5 w-5" />
+                      </Button>
+                      {showSettings && (
+                        <div className="absolute bottom-full right-0 mb-2 p-3 bg-black/90 rounded-lg min-w-[200px]">
+                          <div className="text-sm text-white mb-2">Playback Speed</div>
+                          <div className="grid grid-cols-4 gap-1">
+                            {[0.5, 1, 1.5, 2].map((speed) => (
+                              <button
+                                key={speed}
+                                onClick={() => handleSpeedChange(speed)}
+                                className={`px-2 py-1 rounded ${
+                                  playbackRate === speed
+                                    ? "bg-white/20"
+                                    : "hover:bg-white/10"
+                                } text-white text-sm`}
+                              >
+                                {speed}x
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    <Button
+                      onClick={() => {
+                        if (playerRef.current) {
+                          playerRef.current.getInternalPlayer().requestFullscreen()
+                        }
+                      }}
+                      variant="ghost"
+                      size="icon"
+                      className="text-white hover:bg-white/10"
+                    >
+                      <Maximize className="h-5 w-5" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Lesson Info */}
+            {selectedLesson && (
+              <div className="mt-6 bg-white rounded-lg p-6 shadow-lg">
+                <h2 className="text-2xl font-semibold text-gray-900 mb-2">
+                  {selectedLesson.lessontitle}
+                </h2>
+                <p className="text-gray-600 mb-6">{selectedLesson.description}</p>
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <Button onClick={handleViewPdf} className="flex items-center justify-center bg-blue-500 hover:bg-blue-600 text-white flex-1 shadow-md">
+                    <FileText className="mr-2 h-4 w-4" />
+                    View PDF Notes
+                  </Button>
+                  <Button onClick={handleDownloadPdf} variant="outline" className="flex items-center justify-center bg-white hover:bg-gray-50 text-blue-500 shadow-md flex-1">
+                    <Download className="mr-2 h-4 w-4" />
+                    Download PDF Notes
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+      {isChatOpen && (
+        <ChatForUser onClose={() => setIsChatOpen(false)} />
+      )}
+    </div>
+  )
+}
+

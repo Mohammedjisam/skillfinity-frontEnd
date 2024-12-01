@@ -86,26 +86,26 @@ const TutorLogin = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
       <div className="max-w-4xl w-full bg-white shadow-lg rounded-lg overflow-hidden flex flex-col md:flex-row">
-        <div className="md:w-1/2">
+        <div className="md:w-1/2 h-48 md:h-auto">
           <img
             src="/pexels-karolina-grabowska-6958515[1].jpg"
             alt="Login visual"
-            className="w-full h-full object-cover rounded-t-lg md:rounded-none md:rounded-l-lg"
+            className="w-full h-full object-cover"
           />
         </div>
-        <div className="md:w-1/2 p-8 flex flex-col justify-center">
-          <h2 className="text-3xl font-semibold mb-4">Tutor Login</h2>
-          <p className="mb-4 text-gray-500">
+        <div className="md:w-1/2 p-6 md:p-8 flex flex-col justify-center">
+          <h2 className="text-2xl md:text-3xl font-semibold mb-4">Tutor Login</h2>
+          <p className="mb-4 text-sm md:text-base text-gray-500">
             Welcome back! Please log in to access your tutor account.
           </p>
           <form className="space-y-4" onSubmit={handleSubmit}>
             <div>
-              <label className="block text-gray-700 font-medium">Email</label>
+              <label className="block text-gray-700 text-sm font-medium mb-1">Email</label>
               <input
                 type="email"
-                className="w-full border border-gray-300 p-3 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full border border-gray-300 p-2 md:p-3 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Enter your Email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -113,13 +113,13 @@ const TutorLogin = () => {
               />
             </div>
             <div>
-              <label className="block text-gray-700 font-medium">
+              <label className="block text-gray-700 text-sm font-medium mb-1">
                 Password
               </label>
               <div className="relative">
                 <input
                   type={showPassword ? "text" : "password"}
-                  className="w-full border border-gray-300 p-3 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full border border-gray-300 p-2 md:p-3 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Enter your Password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -144,24 +144,24 @@ const TutorLogin = () => {
                   e.preventDefault();
                   navigate("/tutor/forgot-password");
                 }}
-                className="text-blue-500 hover:underline cursor-pointer"
+                className="text-blue-500 hover:underline cursor-pointer text-sm"
               >
                 Forgot Password?
               </a>
             </div>
             <button
               type="submit"
-              className="w-full bg-gray-600 text-white p-3 rounded-md hover:bg-gray-700 transition duration-300"
+              className="w-full bg-gray-600 text-white p-2 md:p-3 rounded-md text-sm hover:bg-gray-700 transition duration-300"
             >
               Login as Tutor
             </button>
             <GoogleLogin
-              className="w-full bg-gray-100 text-gray-800 p-3 rounded-md hover:bg-gray-200 transition duration-300"
+              className="w-full bg-gray-100 text-gray-800 p-2 md:p-3 rounded-md text-sm hover:bg-gray-200 transition duration-300"
               onSuccess={handleGoogleSuccess}
               onError={handleGoogleFailure}
             />
           </form>
-          <p className="mt-4 text-center">
+          <p className="mt-4 text-center text-sm">
             Don't have an account?{" "}
             <a
               onClick={(e) => {
@@ -180,3 +180,4 @@ const TutorLogin = () => {
 };
 
 export default TutorLogin;
+

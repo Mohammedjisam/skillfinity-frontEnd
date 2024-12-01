@@ -50,30 +50,30 @@ export default function OtpVerification({ email = "user@example.com", onVerify, 
   }
 
   return (
-    <div >
-      <div className="w-full max-w-2xl bg-white rounded-lg shadow-md">
+    <div className="flex items-center justify-center  p-4">
+      <div className="w-full max-w-2xl bg-white rounded-lg shadow-md overflow-hidden">
         <div className="flex flex-col md:flex-row">
-          <div className="md:w-1/2 p-4 flex items-center justify-center bg-primary rounded-l-lg">
-            <div className="relative w-full h-40 md:h-full">
+          <div className="md:w-1/2 p-4 bg-primary">
+            <div className="relative w-full h-40 sm:h-48 md:h-full">
               <img
                 src="/2942004.jpg"
                 alt="OTP Verification"
-                className="object-cover rounded-lg shadow-sm"
+                className="object-cover w-full h-full rounded-lg shadow-sm"
               />
-              <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
+              <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center rounded-lg">
                 <Mail className="text-white w-12 h-12" />
               </div>
             </div>
           </div>
-          <div className="md:w-1/2 p-4">
-            <div className="mb-4">
-              <h2 className="text-xl font-bold text-center text-primary"><br/>OTP Verification</h2>
+          <div className="md:w-1/2 p-6">
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold text-center text-primary">OTP Verification</h2>
             </div>
-            <p className="text-center mb-4 text-sm text-gray-600">
+            <p className="text-center mb-6 text-sm text-gray-600">
               We've sent an email with an activation code to <span className="font-semibold">{email}</span>
             </p>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="flex justify-center space-x-1">
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="flex justify-center space-x-2 sm:space-x-4">
                 {otp.map((digit, index) => (
                   <input
                     key={index}
@@ -84,28 +84,28 @@ export default function OtpVerification({ email = "user@example.com", onVerify, 
                     onChange={(e) => handleChange(index, e.target.value)}
                     onKeyDown={(e) => handleKeyDown(index, e)}
                     ref={(el) => (inputRefs.current[index] = el)}
-                    className="w-10 h-10 text-center text-lg font-bold border border-gray-300 rounded-md focus:outline-none focus:border-primary"
+                    className="w-10 h-12 sm:w-12 sm:h-14 text-center text-lg sm:text-xl font-bold border-2 border-gray-300 rounded-md focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200"
                   />
                 ))}
               </div>
               <button
-              type="submit"
-              className="w-full bg-gray-500 text-white py-1.5 rounded-md hover:bg-gray-600 transition duration-200 ease-in-out focus:outline-none"
+                type="submit"
+                className="w-full bg-gray-500 text-white py-3 rounded-md text-lg font-semibold hover:bg-primary-dark transition duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary/20"
               >
-              Verify OTP
+                Verify OTP
               </button>
             </form>
-            <div className="text-center mt-4">
+            <div className="text-center mt-6">
               {timer > 0 ? (
-                <p className="text-xs text-gray-600 flex items-center justify-center">
-                  <Clock className="w-4 h-4 mr-1" />
+                <p className="text-sm text-gray-600 flex items-center justify-center">
+                  <Clock className="w-5 h-5 mr-2" />
                   Resend OTP in {Math.floor(timer / 60).toString().padStart(2, "0")}:
                   {(timer % 60).toString().padStart(2, "0")}
                 </p>
               ) : (
                 <button
                   onClick={handleResend}
-                  className="text-primary hover:text-primary-dark focus:outline-none text-xs"
+                  className="text-primary hover:text-primary-dark focus:outline-none text-sm font-medium transition duration-200"
                 >
                   Resend OTP
                 </button>
@@ -117,3 +117,4 @@ export default function OtpVerification({ email = "user@example.com", onVerify, 
     </div>
   )
 }
+

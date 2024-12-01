@@ -5,7 +5,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Loader2, Book, DollarSign, Mail, ShoppingCart, ChevronLeft, ChevronRight, Play, User, Heart } from 'lucide-react'
+import { Loader2, Book, DollarSign, Mail, ShoppingCart, ChevronLeft, ChevronRight, User, Heart } from 'lucide-react'
 import { toast } from 'sonner'
 import { useSelector } from 'react-redux'
 import { useCart } from "@/context/CartContext"
@@ -140,10 +140,6 @@ const ViewTutor = () => {
     navigate('/cart')
   }
 
-  const handleWatchLessons = (courseId) => {
-    navigate(`/course/${courseId}/lessons`)
-  }
-
   const isPurchased = (courseId) => {
     return purchasedCourses.includes(courseId)
   }
@@ -160,10 +156,10 @@ const ViewTutor = () => {
     </div>
   )
 
-  const totalPages = tutor ? Math.ceil(tutor.courses.length / ITEMS_PER_PAGE) : 0
+  const totalPages = tutor ? Math.ceil(tutor.courses.filter(course => !isPurchased(course._id)).length / ITEMS_PER_PAGE) : 0
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE
   const endIndex = startIndex + ITEMS_PER_PAGE
-  const currentCourses = tutor ? tutor.courses.slice(startIndex, endIndex) : []
+  const currentCourses = tutor ? tutor.courses.filter(course => !isPurchased(course._id)).slice(startIndex, endIndex) : []
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-100 to-gray-200 py-6 sm:py-8 md:py-12">
@@ -215,15 +211,13 @@ const ViewTutor = () => {
                         alt={course.coursetitle}
                         className="w-full h-40 sm:h-48 object-cover"
                       />
-                      {!isPurchased(course._id) && (
-                        <button 
-                          onClick={() => wishlistItems.includes(course._id) ? handleRemoveFromWishlist(course._id) : handleAddToWishlist(course._id)}
-                          className="absolute top-2 right-2 p-2 rounded-full bg-white/80 hover:bg-white transition-colors"
-                        >
-                          <Heart className={`w-5 h-5 ${wishlistItems.includes(course._id) ? 'text-red-500 fill-current' : 'text-gray-600'}`} />
-                          <span className="sr-only">{wishlistItems.includes(course._id) ? 'Remove from favorites' : 'Add to favorites'}</span>
-                        </button>
-                      )}
+                      <button 
+                        onClick={() => wishlistItems.includes(course._id) ? handleRemoveFromWishlist(course._id) : handleAddToWishlist(course._id)}
+                        className="absolute top-2 right-2 p-2 rounded-full bg-white/80 hover:bg-white transition-colors"
+                      >
+                        <Heart className={`w-5 h-5 ${wishlistItems.includes(course._id) ? 'text-red-500 fill-current' : 'text-gray-600'}`} />
+                        <span className="sr-only">{wishlistItems.includes(course._id) ? 'Remove from favorites' : 'Add to favorites'}</span>
+                      </button>
                     </div>
                     <CardHeader className="p-3 pb-0">
                       <CardTitle className="text-base sm:text-lg line-clamp-2">{course.coursetitle}</CardTitle>
@@ -235,20 +229,12 @@ const ViewTutor = () => {
                       <p className="text-base sm:text-lg font-semibold text-green-600">₹{course.price}</p>
                     </CardContent>
                     <CardFooter className="p-3 pt-0 flex flex-col sm:flex-row gap-2">
-                      <Button asChild variant="outline" className="w-full sm:w-1/2 text-xs sm:text-sm py-1">
+                      <Button asChild variant="outline" className="w-full sm:w-1/2 text-xs sm:text-sm py-1 bg-blue-500 text-white hover:bg-blue-600 transition-colors duration-200">
                         <Link to={`/coursedetails/${course._id}`}>View Course</Link>
                       </Button>
-                      {isPurchased(course._id) ? (
+                      {cartItems.includes(course._id) ? (
                         <Button 
-                          className="w-full sm:w-1/2 bg-gray-500 hover:bg-gray-600 text-xs sm:text-sm py-1"
-                          onClick={() => handleWatchLessons(course._id)}
-                        >
-                          <Play className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-                          Watch Lessons
-                        </Button>
-                      ) : cartItems.includes(course._id) ? (
-                        <Button 
-                          className="w-full sm:w-1/2 bg-orange-500 hover:bg-orange-600 text-xs sm:text-sm py-1"
+                          className="w-full sm:w-1/2 bg-orange-500 hover:bg-orange-600 text-white text-xs sm:text-sm py-1 transition-colors duration-200"
                           onClick={goToCart}
                         >
                           <ShoppingCart className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
@@ -256,7 +242,7 @@ const ViewTutor = () => {
                         </Button>
                       ) : (
                         <Button 
-                          className="w-full sm:w-1/2 bg-green-600 hover:bg-green-700 text-xs sm:text-sm py-1"
+                          className="w-full sm:w-1/2 bg-green-600 hover:bg-green-700 text-white text-xs sm:text-sm py-1 transition-colors duration-200"
                           onClick={() => handleAddToCart(course._id)}
                         >
                           <ShoppingCart className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />

@@ -45,6 +45,28 @@ export default function Profile() {
     }
   }
 
+  const uploadImage = async (file) => {
+    const formData = new FormData()
+    formData.append('file', file)
+    formData.append('upload_preset', 'skillfinity_media')
+    formData.append('cloud_name', 'dwxnxuuht')
+
+    try {
+      const response = await fetch('https://api.cloudinary.com/v1_1/dwxnxuuht/image/upload', {
+        method: 'POST',
+        body: formData,
+      })
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+      const data = await response.json()
+      return data.secure_url
+    } catch (error) {
+      console.error('Image upload error:', error.message || error)
+      throw new Error('Failed to upload image. Please check your internet connection and try again.')
+    }
+  }
+
   const handleImageUpload = async (e) => {
     const file = e.target.files[0]
     if (!file) return
@@ -66,32 +88,15 @@ export default function Profile() {
     setIsUploading(true)
 
     try {
-      const formData = new FormData()
-      formData.append('file', file)
-      formData.append('upload_preset','skillfinity_media') 
-      formData.append('cloud_name', 'dwxnxuuht') 
-      const response = await fetch(
-        `https://api.cloudinary.com/v1_1/dwxnxuuht/image/upload`,
-        {
-          method: 'POST',
-          body: formData,
-        }
-      )
-
-      const data = await response.json()
-
-      if (data.secure_url) {
-        const updatedUser = { ...userData, profileImage: data.secure_url }
-        await axiosInstance.put('/user/update', updatedUser)
-        
-        dispatch(updateUser(updatedUser))
-        toast.success('Profile image updated successfully')
-      } else {
-        throw new Error('Failed to upload image')
-      }
+      const imageUrl = await uploadImage(file)
+      const updatedUser = { ...userData, profileImage: imageUrl }
+      await axiosInstance.put('/user/update', updatedUser)
+      
+      dispatch(updateUser(updatedUser))
+      toast.success('Profile image updated successfully')
     } catch (error) {
       console.error('Image upload error:', error)
-      toast.error('Failed to update profile image: ' + (error.response?.data?.message || error.message))
+      toast.error('Failed to update profile image: ' + error.message)
     } finally {
       setIsUploading(false)
     }

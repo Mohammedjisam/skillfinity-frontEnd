@@ -40,8 +40,15 @@ const courseSlice = createSlice({
       state.courseDatas = [];
       localStorage.removeItem("courseDatas");
     },
+    updateCourseProgress: (state, action) => {
+      const { courseId, lessonId, progress } = action.payload;
+      if (!state.courseProgress[courseId]) {
+        state.courseProgress[courseId] = {};
+      }
+      state.courseProgress[courseId][lessonId] = progress;
+    },
   },
 });
 
-export const { addCourse, updateCourse, deleteCourse, clearCourses, setCourses } = courseSlice.actions;
+export const { addCourse, updateCourse, deleteCourse, clearCourses, setCourses ,updateCourseProgress} = courseSlice.actions;
 export default courseSlice.reducer;

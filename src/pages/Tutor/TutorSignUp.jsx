@@ -152,55 +152,56 @@ const TutorSignup = () => {
 };
 
 
-  return (
-    <div className="min-h-screen flex flex-col justify-center items-center bg-gray-100">
-      <div className="max-w-4xl w-full bg-white shadow-lg rounded-lg p-8 flex flex-col md:flex-row">
-        <div className="md:w-1/2">
+return (
+  <div className="min-h-screen flex flex-col justify-center items-center bg-gray-100 p-4">
+    <div className="w-full max-w-4xl bg-white shadow-lg rounded-lg overflow-hidden">
+      <div className="flex flex-col md:flex-row">
+        <div className="md:w-1/2 h-48 md:h-auto">
           <img
             src="/people-2569404.jpg"
             alt="Sign up visual"
-            className="w-full h-auto object-cover rounded-lg"
+            className="w-full h-full object-cover"
           />
         </div>
-        <div className="md:w-1/2 mt-4 md:mt-0 md:ml-8">
-          <h2 className="text-2xl font-bold mb-4">Sign Up</h2>
+        <div className="md:w-1/2 p-6 md:p-8">
+          <h2 className="text-2xl font-bold mb-6 text-center md:text-left">Tutor Sign Up</h2>
           <form className="space-y-4" onSubmit={handleSignUp}>
             <div>
-              <label className="block text-gray-700">Full Name</label>
+              <label className="block text-gray-700 text-sm font-medium mb-1">Full Name</label>
               <input
                 type="text"
-                className="w-full border p-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full border p-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                 placeholder="Enter your name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
               />
             </div>
             <div>
-              <label className="block text-gray-700">Email</label>
+              <label className="block text-gray-700 text-sm font-medium mb-1">Email</label>
               <input
                 type="email"
-                className="w-full border p-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full border p-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                 placeholder="Enter your email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
             </div>
             <div>
-              <label className="block text-gray-700">Mobile</label>
+              <label className="block text-gray-700 text-sm font-medium mb-1">Mobile</label>
               <input
                 type="tel"
-                className="w-full border p-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full border p-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                 placeholder="Enter your number"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
               />
             </div>
             <div>
-              <label className="block text-gray-700">Password</label>
+              <label className="block text-gray-700 text-sm font-medium mb-1">Password</label>
               <div className="relative">
                 <input
                   type={showPassword ? "text" : "password"}
-                  className="w-full border p-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full border p-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                   placeholder="Enter your password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -219,11 +220,11 @@ const TutorSignup = () => {
               </div>
             </div>
             <div>
-              <label className="block text-gray-700">Confirm Password</label>
+              <label className="block text-gray-700 text-sm font-medium mb-1">Confirm Password</label>
               <div className="relative">
                 <input
                   type={showConfirmPassword ? "text" : "password"}
-                  className="w-full border p-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full border p-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                   placeholder="Confirm your password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
@@ -243,22 +244,22 @@ const TutorSignup = () => {
             </div>
             <div className="flex items-center">
               <input type="checkbox" className="mr-2" />
-              <label>I agree with Terms of Use and Privacy Policy</label>
+              <label className="text-sm">I agree with Terms of Use and Privacy Policy</label>
             </div>
             <button
               type="submit"
-              className="w-full bg-gray-600 text-white p-2 rounded hover:bg-gray-700"
+              className="w-full bg-gray-600 text-white p-2 rounded hover:bg-gray-700 transition duration-300 text-sm"
             >
               Sign Up
             </button>
-            <div className="text-center mt-4">OR</div>
+            <div className="text-center mt-4 text-sm">OR</div>
             <GoogleLogin
-              className="w-full bg-gray-100 text-gray-800 p-3 rounded-md hover:bg-gray-200 transition duration-300"
+              className="w-full bg-gray-100 text-gray-800 p-2 rounded-md hover:bg-gray-200 transition duration-300 text-sm"
               onSuccess={handleGoogleSuccess}
               onError={handleGoogleFailure}
             />
           </form>
-          <p className="mt-4 text-center">
+          <p className="mt-4 text-center text-sm">
             Already have an account?{" "}
             <a
               onClick={(e) => {
@@ -272,17 +273,20 @@ const TutorSignup = () => {
           </p>
         </div>
       </div>
+    </div>
 
-      {isOTPDialogOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+    {isOTPDialogOpen && (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-lg p-6 w-full max-w-md">
           <Otp
             email={email}
             onVerify={handleOTPVerify}
             onResend={handleResendOTP}
           />
         </div>
-      )}
-    </div>
-  );
+      </div>
+    )}
+  </div>
+);
 };
 export default TutorSignup;
