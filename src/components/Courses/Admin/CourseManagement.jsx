@@ -1,14 +1,14 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  ChevronLeft,
-  ChevronRight,
   Menu,
   X,
   Search,
   SlidersHorizontal,
   Eye,
   EyeOff,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,69 +31,42 @@ import axiosInstance from "../../../AxiosConfig";
 import AdminSidebar from "@/pages/Admin/AdminSideBar";
 import { toast } from "sonner";
 import Swal from "sweetalert2";
+import { useDebounce } from "use-debounce";
 
 export default function CourseManagement() {
   const navigate = useNavigate();
   const [courses, setCourses] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("All");
-  const itemsPerPage = 5;
+  const [categories, setCategories] = useState(["All"]);
+  const [debouncedSearch] = useDebounce(searchTerm, 500);
 
   useEffect(() => {
-    const fetchCourses = async () => {
-      try {
-        const response = await axiosInstance.get(
-          "/user/data/viewallcourseadmin",
-          { withCredentials: true }
-        );
-        setIsLoading(false);
-        setCourses(response.data.courses);
-      } catch (error) {
-        console.error("Error fetching courses:", error);
-        setIsLoading(false);
-      }
-    };
     fetchCourses();
-  }, []);
+  }, [currentPage, debouncedSearch, categoryFilter]);
 
-  const handlePageChange = (page) => {
-    setCurrentPage(page);
+  const fetchCourses = async () => {
+    try {
+      setIsLoading(true);
+      const response = await axiosInstance.get(
+        `/user/data/viewallcourseadmin?page=${currentPage}&limit=5&search=${debouncedSearch}&category=${categoryFilter}`,
+        { withCredentials: true }
+      );
+      
+      setCourses(response.data.courses);
+      setTotalPages(response.data.totalPages);
+      setCategories(response.data.categories);
+      setIsLoading(false);
+    } catch (error) {
+      console.error("Error fetching courses:", error);
+      toast.error("Failed to fetch courses");
+      setIsLoading(false);
+    }
   };
-
-  const getUniqueCategories = () => {
-    const categories = new Set(
-      courses
-        .filter((course) => course.category && course.category.title)
-        .map((course) => course.category.title)
-    );
-    return ["All", ...Array.from(categories)];
-  };
-
-  const filteredCourses = courses.filter((course) => {
-    const matchesSearch =
-      course.coursetitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (course.category &&
-        course.category.title
-          .toLowerCase()
-          .includes(searchTerm.toLowerCase())) ||
-      course.tutor.name.toLowerCase().includes(searchTerm.toLowerCase());
-
-    const matchesCategory =
-      categoryFilter === "All" ||
-      (course.category && course.category.title === categoryFilter);
-
-    return matchesSearch && matchesCategory;
-  });
-
-  const paginatedCourses = filteredCourses.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
-
-  const totalPages = Math.ceil(filteredCourses.length / itemsPerPage);
 
   const handleCourseClick = (id) => {
     navigate(`/admin/courses/${id}`);
@@ -127,20 +100,73 @@ export default function CourseManagement() {
             return course;
           })
         );
-        Swal.fire(
-          "Success!",
-          `Course ${isVisible ? "hidden" : "unhidden"} successfully`,
-          "success"
-        );
         toast.success(
           `Course ${isVisible ? "hidden" : "unhidden"} successfully`
         );
       } catch (error) {
         console.error("Error toggling course visibility:", error);
-        Swal.fire("Error!", "Failed to toggle course visibility", "error");
         toast.error("Failed to toggle course visibility");
       }
     }
+  };
+
+  const renderPagination = () => {
+    const pageNumbers = [];
+    const maxPagesToShow = 5;
+    let startPage, endPage;
+
+    if (totalPages <= maxPagesToShow) {
+      startPage = 1;
+      endPage = totalPages;
+    } else {
+      const maxPagesBeforeCurrentPage = Math.floor(maxPagesToShow / 2);
+      const maxPagesAfterCurrentPage = Math.ceil(maxPagesToShow / 2) - 1;
+
+      if (currentPage <= maxPagesBeforeCurrentPage) {
+        startPage = 1;
+        endPage = maxPagesToShow;
+      } else if (currentPage + maxPagesAfterCurrentPage >= totalPages) {
+        startPage = totalPages - maxPagesToShow + 1;
+        endPage = totalPages;
+      } else {
+        startPage = currentPage - maxPagesBeforeCurrentPage;
+        endPage = currentPage + maxPagesAfterCurrentPage;
+      }
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      pageNumbers.push(i);
+    }
+
+    return (
+      <div className="flex items-center justify-center space-x-2 mt-4">
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+          disabled={currentPage === 1}
+        >
+          <ChevronLeft className="h-4 w-4" />
+        </Button>
+        {pageNumbers.map((number) => (
+          <Button
+            key={number}
+            variant={currentPage === number ? "default" : "outline"}
+            onClick={() => setCurrentPage(number)}
+          >
+            {number}
+          </Button>
+        ))}
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+          disabled={currentPage === totalPages}
+        >
+          <ChevronRight className="h-4 w-4" />
+        </Button>
+      </div>
+    );
   };
 
   if (isLoading) {
@@ -182,10 +208,10 @@ export default function CourseManagement() {
               </CardTitle>
             </CardHeader>
             <CardContent className="p-6">
-              {courses.length === 0 ? (
+              {courses.length === 0 && !isLoading ? (
                 <div className="text-center py-8">
                   <h2 className="text-xl font-semibold text-gray-700 mb-2">No Courses Available</h2>
-                  <p className="text-gray-500">There are currently no courses in the system.</p>
+                  <p className="text-gray-500">There are currently no courses matching your criteria.</p>
                 </div>
               ) : (
                 <>
@@ -195,7 +221,10 @@ export default function CourseManagement() {
                         type="text"
                         placeholder="Search courses..."
                         value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
+                        onChange={(e) => {
+                          setSearchTerm(e.target.value);
+                          setCurrentPage(1);
+                        }}
                         className="pl-10 pr-4 py-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-400 focus:border-transparent"
                       />
                       <Search
@@ -210,17 +239,20 @@ export default function CourseManagement() {
                           className="w-full md:w-auto bg-white text-gray-700 border-gray-300 hover:bg-gray-100"
                         >
                           <SlidersHorizontal className="mr-2 h-4 w-4" />
-                          Filter
+                          Filter by Category
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent
                         align="end"
                         className="w-48 bg-pink-100 border-none"
                       >
-                        {getUniqueCategories().map((category) => (
+                        {categories.map((category) => (
                           <DropdownMenuItem
                             key={category}
-                            onClick={() => setCategoryFilter(category)}
+                            onClick={() => {
+                              setCategoryFilter(category);
+                              setCurrentPage(1);
+                            }}
                             className={
                               categoryFilter === category ? "bg-gray-300" : ""
                             }
@@ -232,7 +264,7 @@ export default function CourseManagement() {
                     </DropdownMenu>
                   </div>
 
-                  <div className="rounded-lg border-2 border-dashed border-gray-100 overflow-hidden bg-white ">
+                  <div className="rounded-lg border-2 border-dashed border-gray-100 overflow-hidden bg-white">
                     <Table>
                       <TableHeader>
                         <TableRow className="bg-gray-50 border-b-2 border-dashed border-gray-100">
@@ -260,97 +292,71 @@ export default function CourseManagement() {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {paginatedCourses.length === 0 ? (
-                          <TableRow>
-                            <TableCell
-                              colSpan={7}
-                              className="text-center text-gray-500"
-                            >
-                              No courses found matching your criteria
+                        {courses.map((course, index) => (
+                          <TableRow
+                            key={course._id}
+                            className="hover:bg-gray-50 transition-colors duration-150 border-b-2 border-dashed border-gray-100 cursor-pointer"
+                            onClick={() => handleCourseClick(course._id)}
+                          >
+                            <TableCell className="font-medium text-gray-900">
+                              {index + 1 + (currentPage - 1) * 5}
+                            </TableCell>
+                            <TableCell className="font-medium text-gray-900">
+                              {course.coursetitle}
+                            </TableCell>
+                            <TableCell className="text-gray-600">
+                              {course.category ? course.category.title : "N/A"}
+                            </TableCell>
+                            <TableCell className="text-gray-600">
+                              {course.tutor.name}
+                            </TableCell>
+                            <TableCell className="text-center text-gray-600">
+                              {course.lessons.length}
+                            </TableCell>
+                            <TableCell>
+                              <span
+                                className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                                  course.isVisible
+                                    ? "bg-green-100 text-green-800"
+                                    : "bg-gray-100 text-gray-800"
+                                }`}
+                              >
+                                {course.isVisible ? "Visible" : "Hidden"}
+                              </span>
+                            </TableCell>
+                            <TableCell>
+                              <Button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleToggleVisibility(
+                                    course._id,
+                                    course.isVisible
+                                  );
+                                }}
+                                variant={
+                                  course.isVisible ? "destructive" : "outline"
+                                }
+                                size="icon"
+                              >
+                                {course.isVisible ? (
+                                  <EyeOff className="h-4 w-4" />
+                                ) : (
+                                  <Eye className="h-4 w-4" />
+                                )}
+                              </Button>
                             </TableCell>
                           </TableRow>
-                        ) : (
-                          paginatedCourses.map((course, index) => (
-                            <TableRow
-                              key={course._id}
-                              className="hover:bg-gray-50 transition-colors duration-150 border-b-2 border-dashed border-gray-100 cursor-pointer"
-                              onClick={() => handleCourseClick(course._id)}
-                            >
-                              <TableCell className="font-medium text-gray-900">
-                                {index + 1 + (currentPage - 1) * itemsPerPage}
-                              </TableCell>
-                              <TableCell className="font-medium text-gray-900">
-                                {course.coursetitle}
-                              </TableCell>
-                              <TableCell className="text-gray-600">
-                                {course.category ? course.category.title : "N/A"}
-                              </TableCell>
-                              <TableCell className="text-gray-600">
-                                {course.tutor.name}
-                              </TableCell>
-                              <TableCell className="text-center text-gray-600">
-                                {course.lessons.length}
-                              </TableCell>
-                              <TableCell>
-                                <span
-                                  className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                                    course.isVisible
-                                      ? "bg-green-100 text-green-800"
-                                      : "bg-gray-100 text-gray-800"
-                                  }`}
-                                >
-                                  {course.isVisible ? "Visible" : "Hidden"}
-                                </span>
-                              </TableCell>
-                              <TableCell>
-                                <Button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleToggleVisibility(
-                                      course._id,
-                                      course.isVisible
-                                    );
-                                  }}
-                                  variant={
-                                    course.isVisible ? "destructive" : "outline"
-                                  }
-                                  size="icon"
-                                >
-                                  {course.isVisible ? (
-                                    <EyeOff className="h-4 w-4" />
-                                  ) : (
-                                    <Eye className="h-4 w-4" />
-                                  )}
-                                </Button>
-                              </TableCell>
-                            </TableRow>
-                          ))
-                        )}
+                        ))}
                       </TableBody>
                     </Table>
                   </div>
 
-                  {filteredCourses.length > 0 && (
-                    <div className="flex justify-between items-center mt-6">
-                      <Button
-                        variant="ghost"
-                        onClick={() => handlePageChange(currentPage - 1)}
-                        disabled={currentPage === 1}
-                      >
-                        <ChevronLeft className="mr-2 h-4 w-4" />
-                        Previous
-                      </Button>
-                      <p className="text-sm text-gray-600">
-                        Page {currentPage} of {totalPages}
-                      </p>
-                      <Button
-                        variant="ghost"
-                        onClick={() => handlePageChange(currentPage + 1)}
-                        disabled={currentPage === totalPages}
-                      >
-                        Next
-                        <ChevronRight className="ml-2 h-4 w-4" />
-                      </Button>
+                  {totalPages > 1 && (
+                    <div className="mt-6">
+                      <div className="text-sm text-gray-600 text-center mb-4">
+                        Page {currentPage} of {totalPages} • Showing 5 items per page
+                      </div>
+                      {renderPagination()}
                     </div>
                   )}
                 </>

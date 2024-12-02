@@ -11,44 +11,40 @@ import Swal from "sweetalert2";
 export default function StudentManagement() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const itemsPerPage = 5;
   const [students, setStudents] = useState([]);
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
+  const fetchStudents = async (page, search) => {
+    try {
+      const response = await axiosInstance.get("/admin/students", {
+        params: { page, limit: 5, search },
+        withCredentials: true,
+      });
+      setStudents(response.data.students);
+      setTotalPages(response.data.totalPages);
+      setIsLoading(false);
+    } catch (error) {
+      console.error("Error fetching students:", error);
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchStudents = async () => {
-      try {
-        const response = await axiosInstance.get("/admin/students", {
-          withCredentials: true,
-        });
-        setIsLoading(false);
-        setStudents(response.data.students);
-      } catch (error) {
-        console.error("Error fetching students:", error);
-        setIsLoading(false);
-      }
-    };
-    fetchStudents();
-  }, []);
+    fetchStudents(currentPage, searchTerm);
+  }, [currentPage, searchTerm]);
 
   const handlePageChange = (page) => {
     setCurrentPage(page);
   };
 
-  const filteredStudents = students.filter(
-    (student) =>
-      student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      student.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      student.user_id.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const paginatedStudents = filteredStudents.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
+  const handleSearch = (e) => {
+    setSearchTerm(e.target.value);
+    setCurrentPage(1);
+  };
 
   async function handleBlock(id) {
     const result = await Swal.fire({
@@ -66,14 +62,7 @@ export default function StudentManagement() {
         await axiosInstance.put(`/admin/unlistuser/${id}`, {
           withCredentials: true,
         });
-        setStudents(
-          students.map((student) => {
-            if (student._id === id) {
-              return { ...student, isActive: false };
-            }
-            return student;
-          })
-        );
+        fetchStudents(currentPage, searchTerm);
         dispatch(logoutUser());
         Swal.fire("Blocked!", "The student has been blocked.", "success");
       } catch (error) {
@@ -99,14 +88,7 @@ export default function StudentManagement() {
         await axiosInstance.put(`/admin/listuser/${id}`, {
           withCredentials: true,
         });
-        setStudents(
-          students.map((student) => {
-            if (student._id === id) {
-              return { ...student, isActive: true };
-            }
-            return student;
-          })
-        );
+        fetchStudents(currentPage, searchTerm);
         Swal.fire("Unblocked!", "The student has been unblocked.", "success");
       } catch (error) {
         console.error("Error unblocking student:", error);
@@ -153,7 +135,7 @@ export default function StudentManagement() {
               type="text"
               placeholder="Search students..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={handleSearch}
               className="pl-10 pr-4 py-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-400 focus:border-transparent"
             />
             <Search
@@ -198,108 +180,92 @@ export default function StudentManagement() {
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
-                      {paginatedStudents.length === 0 ? (
-                        <tr>
-                          <td
-                            colSpan={7}
-                            className="px-4 py-2 text-sm text-gray-500 text-center"
-                          >
-                            No students found matching your search criteria
+                      {students.map((student, index) => (
+                        <tr
+                          key={student._id}
+                          className="cursor-pointer hover:bg-gray-50"
+                        >
+                          <td className="px-4 py-2 text-sm text-gray-500">
+                            {index + 1 + (currentPage - 1) * 5}
+                          </td>
+                          <td className="px-4 py-2 text-sm text-gray-900">
+                            {student.user_id}
+                          </td>
+                          <td className="px-4 py-2 text-sm text-gray-900">
+                            {student.name}
+                          </td>
+                          <td className="px-4 py-2 text-sm text-gray-500">
+                            {student.email}
+                          </td>
+                          <td className="px-4 py-2 text-sm text-gray-500">
+                            {typeof student.coursePurchased === "number"
+                              ? student.coursePurchased > 0
+                                ? `${student.coursePurchased} Course${
+                                    student.coursePurchased > 1 ? "s " : ""
+                                  }`
+                                : "No Courses"
+                              : "No Courses"}
+                          </td>
+                          <td className="px-4 py-2 text-sm text-gray-500">
+                            {student.isActive ? "Active" : "Inactive"}
+                          </td>
+                          <td className="px-4 py-2 text-sm font-medium">
+                            <button
+                              className={`w-24 px-6 py-2 rounded-md text-white transition duration-300 ${
+                                student.isActive
+                                  ? "bg-red-600 hover:bg-red-700"
+                                  : "bg-blue-600 hover:bg-blue-700"
+                              }`}
+                              onClick={() =>
+                                student.isActive
+                                  ? handleBlock(student._id)
+                                  : handleUnblock(student._id)
+                              }
+                            >
+                              {student.isActive ? "Block" : "Unblock"}
+                            </button>
                           </td>
                         </tr>
-                      ) : (
-                        paginatedStudents.map((student, index) => (
-                          <tr
-                            key={student._id}
-                            className="cursor-pointer hover:bg-gray-50"
-                          >
-                            <td className="px-4 py-2 text-sm text-gray-500">
-                              {index + 1 + (currentPage - 1) * itemsPerPage}
-                            </td>
-                            <td className="px-4 py-2 text-sm text-gray-900">
-                              {student.user_id}
-                            </td>
-                            <td className="px-4 py-2 text-sm text-gray-900">
-                              {student.name}
-                            </td>
-                            <td className="px-4 py-2 text-sm text-gray-500">
-                              {student.email}
-                            </td>
-                            <td className="px-4 py-2 text-sm text-gray-500">
-                              {typeof student.coursePurchased === "number"
-                                ? student.coursePurchased > 0
-                                  ? `${student.coursePurchased} Course${
-                                      student.coursePurchased > 1 ? "s " : ""
-                                    }`
-                                  : "No Courses"
-                                : "No Courses"}
-                            </td>
-                            <td className="px-4 py-2 text-sm text-gray-500">
-                              {student.isActive ? "Active" : "Inactive"}
-                            </td>
-                            <td className="px-4 py-2 text-sm font-medium">
-                              <button
-                                className={`w-24 px-6 py-2 rounded-md text-white transition duration-300 ${
-                                  student.isActive
-                                    ? "bg-red-600 hover:bg-red-700"
-                                    : "bg-blue-600 hover:bg-blue-700"
-                                }`}
-                                onClick={() =>
-                                  student.isActive
-                                    ? handleBlock(student._id)
-                                    : handleUnblock(student._id)
-                                }
-                              >
-                                {student.isActive ? "Block" : "Unblock"}
-                              </button>
-                            </td>
-                          </tr>
-                        ))
-                      )}
+                      ))}
                     </tbody>
                   </table>
                 </div>
               </div>
 
-              {filteredStudents.length > 0 && (
-                <div className="flex flex-wrap items-center justify-between mt-4 gap-2">
-                  <button
-                    onClick={() => handlePageChange(currentPage - 1)}
-                    disabled={currentPage === 1}
-                    className="px-2 py-1 rounded bg-gray-200 text-gray-600 hover:bg-gray-300 disabled:opacity-50 text-sm"
-                  >
-                    <ChevronLeft className="w-4 h-4" />
-                  </button>
-                  <div className="flex flex-wrap gap-2">
-                    {Array.from(
-                      { length: Math.ceil(filteredStudents.length / itemsPerPage) },
-                      (_, i) => i + 1
-                    ).map((page) => (
-                      <button
-                        key={page}
-                        onClick={() => handlePageChange(page)}
-                        className={`px-2 py-1 rounded text-sm ${
-                          currentPage === page
-                            ? "bg-blue-500 text-white"
-                            : "bg-gray-200 text-gray-600 hover:bg-gray-300"
-                        }`}
-                      >
-                        {page}
-                      </button>
-                    ))}
-                  </div>
-                  <button
-                    onClick={() => handlePageChange(currentPage + 1)}
-                    disabled={
-                      currentPage ===
-                      Math.ceil(filteredStudents.length / itemsPerPage)
-                    }
-                    className="px-2 py-1 rounded bg-gray-200 text-gray-600 hover:bg-gray-300 disabled:opacity-50 text-sm"
-                  >
-                    <ChevronRight className="w-4 h-4" />
-                  </button>
+              <div className="flex flex-wrap items-center justify-between mt-4 gap-2">
+                <button
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className="px-2 py-1 rounded bg-gray-200 text-gray-600 hover:bg-gray-300 disabled:opacity-50 text-sm"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+                <div className="flex flex-wrap gap-2">
+                  {Array.from(
+                    { length: totalPages },
+                    (_, i) => i + 1
+                  ).map((page) => (
+                    <button
+                      key={page}
+                      onClick={() => handlePageChange(page)}
+                      className={`px-2 py-1 rounded text-sm ${
+                        currentPage === page
+                          ? "bg-blue-500 text-white"
+                          : "bg-gray-200 text-gray-600 hover:bg-gray-300"
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  ))}
                 </div>
-              )}
+                <button
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className="px-2 py-1 rounded bg-gray-200 text-gray-600 hover:bg-gray-300 disabled:opacity-50 text-sm"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
             </>
           )}
         </main>

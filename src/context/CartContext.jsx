@@ -1,6 +1,7 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import axiosInstance from '../AxiosConfig';
 import { useSelector } from 'react-redux';
+
 const CartContext = createContext();
 
 export const useCart = () => {
@@ -33,8 +34,10 @@ export const CartProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    updateCartCount();
-  }, []);
+    if (userDatas?._id) {
+      updateCartCount();
+    }
+  }, [userDatas?._id]);
 
   return (
     <CartContext.Provider

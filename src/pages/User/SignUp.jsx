@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { EyeIcon, EyeOffIcon } from "lucide-react";
+import { EyeIcon, EyeOffIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import Otp from '../../components/common/Otp';
 import { GoogleLogin } from '@react-oauth/google';
@@ -8,7 +8,6 @@ import { jwtDecode } from "jwt-decode";
 import { addUser } from '@/redux/slice/UserSlice';
 import { useDispatch } from 'react-redux';
 import axiosInstance from '@/AxiosConfig';
-
 
 const SignUp = () => {
   const [name, setName] = useState("");
@@ -19,6 +18,7 @@ const SignUp = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isOTPDialogOpen, setIsOTPDialogOpen] = useState(false);
+  const [serverOTP, setServerOTP] = useState(""); // New state to store server-generated OTP
   
   const navigate = useNavigate();
   const dispatch = useDispatch()
@@ -69,7 +69,8 @@ const SignUp = () => {
           toast.success("Generating OTP, please wait");
           const response = await axiosInstance.post("/user/sendotp", { email });
           toast.success(response.data.message);
-          console.log(response.data.otp)
+          setServerOTP(response.data.otp);
+          console.log(response.data.otp) 
           setIsOTPDialogOpen(true);
         } catch (err) {
           if (err.response && err.response.status === 409) {
@@ -86,6 +87,12 @@ const SignUp = () => {
   };
 
   const handleOTPVerify = async (otpString) => {
+    // Check if the entered OTP matches the one from the server
+    if (otpString !== serverOTP) {
+      toast.error("Invalid OTP. Please try again.");
+      return;
+    }
+
     try {
       const response = await axiosInstance.post("/user/create", {
         name,
@@ -95,40 +102,49 @@ const SignUp = () => {
         otp: otpString,
       });
      
-      
       dispatch(addUser(response.data.userData)); 
       toast.success(response.data.message);
       navigate("/home");
       setIsOTPDialogOpen(false);
-      return toast.success(response.data.message);
     } catch (err) {
       if (err.response && err.response.status === 404) {
-        return toast.error(err.response.data.message);
+        toast.error(err.response.data.message);
       } else if (err.response && err.response.status === 401) {
-        return toast.error(err.response.data.message);
+        toast.error(err.response.data.message);
+      } else {
+        toast.error("An error occurred. Please try again.");
       }
-      toast.error("An error occurred. Please try again.");
     }
   };
 
   const handleResendOTP = async () => {
     try {
       const response = await axiosInstance.post("/user/sendotp", { email });
+      setServerOTP(response.data.otp); // Update the stored OTP
       toast.success(response.data.message || "OTP resent successfully");
     } catch (error) {
       toast.error("Failed to resend OTP. Please try again.");
-      console.log(error)
+      console.error(error);
     }
   };
 
 
+
   const handleGoogleSuccess = async (credentialResponse) => {
     try {
-      // Send the token as 'token' in the request body, matching backend expectations
+      if (!credentialResponse || !credentialResponse.credential) {
+        toast.error("Google credentials are missing");
+        return;
+      }
+  
       const response = await axiosInstance.post(`/auth/google`, 
-        { token: credentialResponse.credential }, 
+        { 
+          credential: credentialResponse.credential,
+          role: 'student' // Default role, can be dynamic if needed
+        }, 
         { withCredentials: true }
       );
+  
       dispatch(addUser(response.data.user));
       navigate("/home");
       toast.success("Login successful!");
@@ -142,8 +158,6 @@ const SignUp = () => {
   const handleGoogleFailure = () => {
     toast.error("Google login was unsuccessful");
 };
-
-
 
 
 return (

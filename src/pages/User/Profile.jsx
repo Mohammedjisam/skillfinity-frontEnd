@@ -5,6 +5,7 @@ import { useSelector, useDispatch } from 'react-redux'
 import { toast } from 'sonner'
 import { updateUser } from '@/redux/slice/UserSlice'
 import axiosInstance from '@/AxiosConfig'
+import CropperModal from '../../components/common/ProfileCropModal'
 
 export default function Profile() {
   const dispatch = useDispatch()
@@ -13,6 +14,8 @@ export default function Profile() {
   const [editField, setEditField] = useState(null)
   const [editValue, setEditValue] = useState('')
   const [isUploading, setIsUploading] = useState(false)
+  const [showCropper, setShowCropper] = useState(false)
+  const [cropperImage, setCropperImage] = useState('')
   
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen)
   
@@ -67,7 +70,7 @@ export default function Profile() {
     }
   }
 
-  const handleImageUpload = async (e) => {
+  const handleImageUpload = (e) => {
     const file = e.target.files[0]
     if (!file) return
 
@@ -85,10 +88,20 @@ export default function Profile() {
       return
     }
 
+    const reader = new FileReader()
+    reader.onload = () => {
+      setCropperImage(reader.result)
+      setShowCropper(true)
+    }
+    reader.readAsDataURL(file)
+  }
+
+  const handleCroppedImage = async (blob) => {
     setIsUploading(true)
+    setShowCropper(false)
 
     try {
-      const imageUrl = await uploadImage(file)
+      const imageUrl = await uploadImage(blob)
       const updatedUser = { ...userData, profileImage: imageUrl }
       await axiosInstance.put('/user/update', updatedUser)
       
@@ -207,7 +220,14 @@ export default function Profile() {
           </div>
         </div>
       )}
+      {showCropper && (
+        <CropperModal
+          isOpen={showCropper}
+          onClose={() => setShowCropper(false)}
+          image={cropperImage}
+          onCropComplete={handleCroppedImage}
+        />
+      )}
     </div>
   )
 }
-

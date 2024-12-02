@@ -11,6 +11,7 @@ import Swal from "sweetalert2";
 export default function TutorManagement() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const itemsPerPage = 5;
@@ -19,34 +20,26 @@ export default function TutorManagement() {
   const dispatch = useDispatch();
 
   useEffect(() => {
-    const fetchTutors = async () => {
-      try {
-        const response = await axiosInstance.get("/admin/tutors");
-        setIsLoading(false);
-        setTutors(response.data.tutors);
-      } catch (error) {
-        console.error("Error fetching tutors:", error);
-        setIsLoading(false);
-      }
-    };
     fetchTutors();
-  }, []);
+  }, [currentPage, searchTerm]);
+
+  const fetchTutors = async () => {
+    try {
+      const response = await axiosInstance.get("/admin/tutors", {
+        params: { page: currentPage, limit: itemsPerPage, search: searchTerm }
+      });
+      setIsLoading(false);
+      setTutors(response.data.tutors);
+      setTotalPages(response.data.totalPages);
+    } catch (error) {
+      console.error("Error fetching tutors:", error);
+      setIsLoading(false);
+    }
+  };
 
   const handlePageChange = (page) => {
     setCurrentPage(page);
   };
-
-  const filteredTutors = tutors.filter(
-    (tutor) =>
-      tutor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      tutor.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      tutor.user_id.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const paginatedTutors = filteredTutors.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
 
   async function handleList(id) {
     const result = await Swal.fire({
@@ -61,17 +54,10 @@ export default function TutorManagement() {
 
     if (result.isConfirmed) {
       try {
-        const response = await axiosInstance.put(`/admin/listtutor/${id}`, {
+        await axiosInstance.put(`/admin/listtutor/${id}`, {
           withCredentials: true,
         });
-        setTutors(
-          tutors.map((x) => {
-            if (x._id === id) {
-              return { ...x, isActive: true };
-            }
-            return x;
-          })
-        );
+        fetchTutors();
         Swal.fire("Unblocked!", "The tutor has been unblocked.", "success");
       } catch (error) {
         console.error(error);
@@ -93,20 +79,11 @@ export default function TutorManagement() {
 
     if (result.isConfirmed) {
       try {
-        const response = await axiosInstance.put(`/admin/unlisttutor/${id}`, {
+        await axiosInstance.put(`/admin/unlisttutor/${id}`, {
           withCredentials: true,
         });
-        setTutors(
-          tutors.map((x) => {
-            if (x._id === id) {
-              return { ...x, isActive: false };
-            }
-            if (x?.isActive === false) {
-              dispatch(logoutTutor());
-            }
-            return x;
-          })
-        );
+        fetchTutors();
+        dispatch(logoutTutor());
         Swal.fire("Blocked!", "The tutor has been blocked.", "success");
       } catch (error) {
         console.error(error);
@@ -153,7 +130,10 @@ export default function TutorManagement() {
               type="text"
               placeholder="Search tutors..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setCurrentPage(1);
+              }}
               className="pl-10 pr-4 py-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-400 focus:border-transparent"
             />
             <Search
@@ -198,107 +178,91 @@ export default function TutorManagement() {
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
-                      {paginatedTutors.length === 0 ? (
-                        <tr>
-                          <td
-                            colSpan={7}
-                            className="px-4 py-2 text-sm text-gray-500 text-center"
-                          >
-                            No tutors found matching your search criteria
+                      {tutors.map((tutor, index) => (
+                        <tr
+                          key={tutor._id}
+                          className="cursor-pointer hover:bg-gray-50"
+                        >
+                          <td className="px-4 py-2 text-sm text-gray-500">
+                            {index + 1 + (currentPage - 1) * itemsPerPage}
+                          </td>
+                          <td className="px-4 py-2 text-sm text-gray-500">
+                            {tutor.user_id}
+                          </td>
+                          <td className="px-4 py-2 text-sm text-gray-900">
+                            {tutor.name}
+                          </td>
+                          <td className="px-4 py-2 text-sm text-gray-900">
+                            {tutor.email}
+                          </td>
+                          <td className="px-4 py-2 text-sm text-gray-500">
+                            {typeof tutor.coursesTaken === "number"
+                              ? tutor.coursesTaken > 0
+                                ? `${tutor.coursesTaken} Course${
+                                    tutor.coursesTaken > 1 ? "s" : ""
+                                  }`
+                                : "No Courses"
+                              : "No Courses"}
+                          </td>
+                          <td className="px-4 py-2 text-sm text-gray-500">
+                            {tutor.isActive ? "Active" : "Inactive"}
+                          </td>
+                          <td className="px-4 py-2 text-sm font-medium">
+                            <button
+                              className={`text-white px-4 py-2 rounded-md hover:opacity-90 transition duration-300 ${
+                                tutor.isActive ? "bg-red-600" : "bg-blue-600"
+                              }`}
+                              onClick={() =>
+                                tutor.isActive
+                                  ? handleUnlist(tutor._id)
+                                  : handleList(tutor._id)
+                              }
+                              style={{ width: "80px" }}
+                            >
+                              {tutor.isActive ? "Block" : "Unblock"}
+                            </button>
                           </td>
                         </tr>
-                      ) : (
-                        paginatedTutors.map((tutor, index) => (
-                          <tr
-                            key={tutor._id}
-                            className="cursor-pointer hover:bg-gray-50"
-                          >
-                            <td className="px-4 py-2 text-sm text-gray-500">
-                              {index + 1 + (currentPage - 1) * itemsPerPage}
-                            </td>
-                            <td className="px-4 py-2 text-sm text-gray-500">
-                              {tutor.user_id}
-                            </td>
-                            <td className="px-4 py-2 text-sm text-gray-900">
-                              {tutor.name}
-                            </td>
-                            <td className="px-4 py-2 text-sm text-gray-900">
-                              {tutor.email}
-                            </td>
-                            <td className="px-4 py-2 text-sm text-gray-500">
-                              {typeof tutor.coursesTaken === "number"
-                                ? tutor.coursesTaken > 0
-                                  ? `${tutor.coursesTaken} Course${
-                                      tutor.coursesTaken > 1 ? "s" : ""
-                                    }`
-                                  : "No Courses"
-                                : "No Courses"}
-                            </td>
-                            <td className="px-4 py-2 text-sm text-gray-500">
-                              {tutor.isActive ? "Active" : "Inactive"}
-                            </td>
-                            <td className="px-4 py-2 text-sm font-medium">
-                              <button
-                                className={`text-white px-4 py-2 rounded-md hover:opacity-90 transition duration-300 ${
-                                  tutor.isActive ? "bg-red-600" : "bg-blue-600"
-                                }`}
-                                onClick={() =>
-                                  tutor.isActive
-                                    ? handleUnlist(tutor._id)
-                                    : handleList(tutor._id)
-                                }
-                                style={{ width: "80px" }}
-                              >
-                                {tutor.isActive ? "Block" : "Unblock"}
-                              </button>
-                            </td>
-                          </tr>
-                        ))
-                      )}
+                      ))}
                     </tbody>
                   </table>
                 </div>
               </div>
 
-              {filteredTutors.length > 0 && (
-                <div className="flex flex-wrap items-center justify-between mt-4 gap-2">
-                  <button
-                    onClick={() => handlePageChange(currentPage - 1)}
-                    disabled={currentPage === 1}
-                    className="px-2 py-1 rounded bg-gray-200 text-gray-600 hover:bg-gray-300 disabled:opacity-50 text-sm"
-                  >
-                    <ChevronLeft className="w-4 h-4" />
-                  </button>
-                  <div className="flex flex-wrap gap-2">
-                    {Array.from(
-                      { length: Math.ceil(filteredTutors.length / itemsPerPage) },
-                      (_, i) => i + 1
-                    ).map((page) => (
-                      <button
-                        key={page}
-                        onClick={() => handlePageChange(page)}
-                        className={`px-2 py-1 rounded text-sm ${
-                          currentPage === page
-                            ? "bg-blue-500 text-white"
-                            : "bg-gray-200 text-gray-600 hover:bg-gray-300"
-                        }`}
-                      >
-                        {page}
-                      </button>
-                    ))}
-                  </div>
-                  <button
-                    onClick={() => handlePageChange(currentPage + 1)}
-                    disabled={
-                      currentPage ===
-                      Math.ceil(filteredTutors.length / itemsPerPage)
-                    }
-                    className="px-2 py-1 rounded bg-gray-200 text-gray-600 hover:bg-gray-300 disabled:opacity-50 text-sm"
-                  >
-                    <ChevronRight className="w-4 h-4" />
-                  </button>
+              <div className="flex flex-wrap items-center justify-between mt-4 gap-2">
+                <button
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className="px-2 py-1 rounded bg-gray-200 text-gray-600 hover:bg-gray-300 disabled:opacity-50 text-sm"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+                <div className="flex flex-wrap gap-2">
+                  {Array.from(
+                    { length: totalPages },
+                    (_, i) => i + 1
+                  ).map((page) => (
+                    <button
+                      key={page}
+                      onClick={() => handlePageChange(page)}
+                      className={`px-2 py-1 rounded text-sm ${
+                        currentPage === page
+                          ? "bg-blue-500 text-white"
+                          : "bg-gray-200 text-gray-600 hover:bg-gray-300"
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  ))}
                 </div>
-              )}
+                <button
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className="px-2 py-1 rounded bg-gray-200 text-gray-600 hover:bg-gray-300 disabled:opacity-50 text-sm"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
             </>
           )}
         </main>
@@ -306,3 +270,4 @@ export default function TutorManagement() {
     </div>
   );
 }
+

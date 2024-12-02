@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react'
 import { useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
@@ -12,6 +11,7 @@ import { Card } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import SideBar from '../../../pages/Tutor/SideBar'
 import axiosInstance from '../../../AxiosConfig'
+import { CropperModal } from './cropperModal'
 
 const LoadingFallback = ({ progress, message }) => (
   <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -50,6 +50,8 @@ export default function AddCourse() {
   const [uploadProgress, setUploadProgress] = useState(0)
   const [addCourseProgress, setAddCourseProgress] = useState(0)
   const [categories, setCategories] = useState([])
+  const [showCropper, setShowCropper] = useState(false)
+  const [cropperImage, setCropperImage] = useState('')
 
   const difficultyLevels = [
     'Beginner',
@@ -143,89 +145,87 @@ export default function AddCourse() {
       courseStructure: [...prevData.courseStructure, '']
     }))
   }
-
-
-
   const validateImage = (file) => {
     return new Promise((resolve, reject) => {
-      // Check file type
       const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
       if (!allowedTypes.includes(file.type)) {
         reject(new Error('Invalid file type. Please upload a JPEG, PNG, or WebP image.'));
-      }
-
-      // Check file size (max 5MB)
-      const maxSize = 5 * 1024 * 1024; // 5MB in bytes
-      if (file.size > maxSize) {
-        reject(new Error('File size exceeds 5MB. Please upload a smaller image.'));
-      }
-
-      // Check image dimensions
-      const img = new Image();
-      img.onload = () => {
-        if (img.width < 1280 || img.height < 720) {
-          reject(new Error('Image dimensions should be at least 1280x720 pixels.'));
-        } else {
+      } else {
+        const img = new Image();
+        img.onload = () => {
+          URL.revokeObjectURL(img.src);
           resolve();
-        }
-      };
-      img.onerror = () => reject(new Error('Failed to load image. Please try again.'));
-      img.src = URL.createObjectURL(file);
+        };
+        img.onerror = () => {
+          URL.revokeObjectURL(img.src);
+          reject(new Error('Failed to load image. Please try again.'));
+        };
+        img.src = URL.createObjectURL(file);
+      }
     });
   };
+  
+  
 
-  const handleImageUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+  const handleImageUpload = async (file) => {
+    if (!file) return
 
     try {
-      await validateImage(file);
-      setIsUploading(true);
-      setUploadProgress(0);
-
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('upload_preset', 'skillfinity_media');
-      formData.append('cloud_name', 'dwxnxuuht');
-      
-      const xhr = new XMLHttpRequest();
-      xhr.open('POST', 'https://api.cloudinary.com/v1_1/dwxnxuuht/image/upload');
-      
-      xhr.upload.onprogress = (event) => {
-        if (event.lengthComputable) {
-          const percentComplete = (event.loaded / event.total) * 100;
-          setUploadProgress(percentComplete);
-        }
-      };
-
-      xhr.onload = function() {
-        if (xhr.status === 200) {
-          const response = JSON.parse(xhr.responseText);
-          setCourseData(prevData => ({
-            ...prevData,
-            thumbnail: response.secure_url
-          }));
-          setThumbnailPreview(response.secure_url);
-          toast.success('Thumbnail uploaded successfully');
-        } else {
-          throw new Error('Failed to upload image');
-        }
-        setIsUploading(false);
-      };
-
-      xhr.onerror = function() {
-        console.error('Image upload error');
-        toast.error('Failed to upload thumbnail');
-        setIsUploading(false);
-      };
-
-      xhr.send(formData);
+      await validateImage(file)
+      const reader = new FileReader()
+      reader.onload = () => {
+        setCropperImage(reader.result)
+        setShowCropper(true)
+      }
+      reader.readAsDataURL(file)
     } catch (error) {
-      console.error('Image validation error:', error);
-      toast.error(error.message || 'Failed to upload thumbnail');
-      setIsUploading(false);
+      console.error('Image validation error:', error)
+      toast.error(error.message || 'Failed to upload thumbnail')
     }
-  };
+  }
+
+  const handleCroppedImage = async (blob) => {
+    setIsUploading(true)
+    setUploadProgress(0)
+
+    const formData = new FormData()
+    formData.append('file', blob, 'cropped-image.jpg')
+    formData.append('upload_preset', 'skillfinity_media')
+    formData.append('cloud_name', 'dwxnxuuht')
+
+    const xhr = new XMLHttpRequest()
+    xhr.open('POST', 'https://api.cloudinary.com/v1_1/dwxnxuuht/image/upload')
+
+    xhr.upload.onprogress = (event) => {
+      if (event.lengthComputable) {
+        const percentComplete = (event.loaded / event.total) * 100
+        setUploadProgress(percentComplete)
+      }
+    }
+
+    xhr.onload = function() {
+      if (xhr.status === 200) {
+        const response = JSON.parse(xhr.responseText)
+        setCourseData(prevData => ({
+          ...prevData,
+          thumbnail: response.secure_url
+        }))
+        setThumbnailPreview(response.secure_url)
+        toast.success('Thumbnail uploaded successfully')
+      } else {
+        throw new Error('Failed to upload image')
+      }
+      setIsUploading(false)
+    }
+
+    xhr.onerror = function() {
+      console.error('Image upload error')
+      toast.error('Failed to upload thumbnail')
+      setIsUploading(false)
+    }
+
+    xhr.send(formData)
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -289,8 +289,6 @@ export default function AddCourse() {
       setIsAddingCourse(false)
     }
   }
-
-
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
@@ -442,16 +440,16 @@ export default function AddCourse() {
                     <input
                       type="file"
                       accept="image/*"
-                      onChange={handleImageUpload}
+                      onChange={(e) => handleImageUpload(e.target.files?.[0])}
                       className="hidden"
                       id="thumbnail-upload"
                     />
                     <Button
                       type="button"
-                      onClick={() => document.getElementById('thumbnail-upload').click()}
+                      onClick={() => document.getElementById('thumbnail-upload')?.click()}
                       className="mt-4 w-full bg-teal-500 hover:bg-teal-600 text-white"
                     >
-                      Add Image
+                      {thumbnailPreview ? 'Change Image' : 'Add Image'}
                     </Button>
                   </div>
 
@@ -463,9 +461,8 @@ export default function AddCourse() {
                     <div className="bg-rose-50 rounded-lg p-4">
                       <div className="space-y-2">
                         {courseData.courseStructure.map((item, index) => (
-                          <>
+                          <div key={index}>
                             <Input
-                              key={index}
                               value={item}
                               onChange={(e) => handleStructureChange(index, e.target.value)}
                               placeholder={`Section ${index + 1}`}
@@ -474,7 +471,7 @@ export default function AddCourse() {
                             {errors.courseStructure && errors.courseStructure[index] && (
                               <p className="text-red-500 text-sm mt-1">{errors.courseStructure[index]}</p>
                             )}
-                          </>
+                          </div>
                         ))}
                         <Button
                           type="button"
@@ -514,6 +511,13 @@ export default function AddCourse() {
           message="Creating Your Course"
         />
       )}
+      <CropperModal
+        isOpen={showCropper}
+        onClose={() => setShowCropper(false)}
+        image={cropperImage}
+        onCropComplete={handleCroppedImage}
+      />
     </div>
   )
 }
+

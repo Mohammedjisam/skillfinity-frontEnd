@@ -129,18 +129,25 @@ const AllCourse = () => {
       return;
     }
     try {
-      await axiosInstance.post(`/user/data/addcart/${courseId}`, {
+      const response = await axiosInstance.post(`/user/data/addcart/${courseId}`, {
         userId: userDatas._id,
       });
+      
+      // Use backend response to update cart count
+      if (response.data.cartCount !== undefined) {
+        setCartCount(response.data.cartCount);
+      } else {
+        incrementCartCount();
+      }
+      
       toast.success("Course added to cart successfully!");
       fetchCartItems();
-      incrementCartCount();
     } catch (error) {
       console.error("Error adding course to cart:", error);
       toast.error("Failed to add course to cart.");
     }
   };
-
+  
   const handleGoToCart = () => {
     navigate("/cart");
   };

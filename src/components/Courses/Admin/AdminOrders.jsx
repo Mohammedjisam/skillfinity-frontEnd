@@ -16,7 +16,6 @@ import AdminSidebar from "../../../pages/Admin/AdminSideBar";
 
 export default function AdminOrders() {
   const [orders, setOrders] = useState([]);
-  const [filteredOrders, setFilteredOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -24,28 +23,22 @@ export default function AdminOrders() {
   const [totalPages, setTotalPages] = useState(0);
   const [totalRevenue, setTotalRevenue] = useState(0);
   const [filterOption, setFilterOption] = useState("all");
-  const ordersPerPage = 4;
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 
   useEffect(() => {
     fetchOrders();
-  }, [currentPage]);
-
-  useEffect(() => {
-    filterOrders();
-  }, [orders, filterOption]);
+  }, [currentPage, filterOption]);
 
   const fetchOrders = async () => {
     try {
       setLoading(true);
       const response = await axiosInstance.get(
-        `/admin/orders?page=${currentPage}&limit=${ordersPerPage}`
+        `/admin/orders?page=${currentPage}&filterOption=${filterOption}`
       );
-      setOrders(response.data.purchases || []);
-      setTotalPages(
-        Math.max(1, Math.ceil((response.data.total || 0) / ordersPerPage))
-      );
+      setOrders(response.data.orders || []);
+      setTotalPages(response.data.totalPages || 0);
+      setTotalRevenue(response.data.totalRevenue || 0);
     } catch (error) {
       console.error(
         "Error fetching orders:",
@@ -55,58 +48,6 @@ export default function AdminOrders() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const filterOrders = () => {
-    const now = new Date();
-    let filtered = [];
-
-    switch (filterOption) {
-      case "lastDay":
-        filtered = orders.filter(
-          (order) =>
-            new Date(order.createdAt) >= new Date(now - 24 * 60 * 60 * 1000)
-        );
-        break;
-      case "lastWeek":
-        filtered = orders.filter(
-          (order) =>
-            new Date(order.createdAt) >= new Date(now - 7 * 24 * 60 * 60 * 1000)
-        );
-        break;
-      case "lastMonth":
-        filtered = orders.filter(
-          (order) =>
-            new Date(order.createdAt) >=
-            new Date(now.getFullYear(), now.getMonth() - 1, now.getDate())
-        );
-        break;
-      case "lastYear":
-        filtered = orders.filter(
-          (order) =>
-            new Date(order.createdAt) >=
-            new Date(now.getFullYear() - 1, now.getMonth(), now.getDate())
-        );
-        break;
-      default:
-        filtered = orders;
-    }
-
-    setFilteredOrders(filtered);
-    calculateTotalRevenue(filtered);
-  };
-
-  const calculateTotalRevenue = (ordersToCalculate) => {
-    const revenue = ordersToCalculate.reduce(
-      (total, order) =>
-        total +
-        (order.items?.reduce(
-          (subTotal, item) => subTotal + (item.courseId?.price || 0),
-          0
-        ) || 0),
-      0
-    );
-    setTotalRevenue(revenue);
   };
 
   const renderOrders = () => {
@@ -140,7 +81,7 @@ export default function AdminOrders() {
       );
     }
 
-    if (filteredOrders.length === 0) {
+    if (orders.length === 0) {
       return (
         <div className="flex flex-col items-center justify-center p-12 bg-white rounded-lg shadow-sm">
           <div className="text-gray-400 mb-4">
@@ -158,14 +99,14 @@ export default function AdminOrders() {
 
     return (
       <div className="grid grid-cols-1 gap-6">
-        {filteredOrders.map((order) => (
+        {orders.map((order) => (
           <Card
             key={order._id}
             className="w-full bg-white shadow-lg hover:shadow-xl transition-shadow duration-300 border-none"
           >
             <CardHeader>
               <CardTitle className="text-xl font-semibold text-gray-800">
-               Order #{order._id.slice(0, 8)}*%$@# 
+                Order #{order._id.slice(0, 8)}*%$@# 
               </CardTitle>
               <p className="text-sm text-gray-600">
                 {new Date(order.createdAt).toLocaleString()}
@@ -174,25 +115,20 @@ export default function AdminOrders() {
             <CardContent>
               <p className="text-gray-700">
                 <span className="font-semibold">Customer:</span>{" "}
-                {order.userId?.name || "N/A"} ({order.userId?.email || "N/A"})
+                {order.userId.name} ({order.userId.email})
               </p>
               <div className="mt-2">
                 <span className="font-semibold">Courses:</span>
                 <ul className="list-disc list-inside">
-                  {order.items?.map((item) => (
-                    <li key={item._id}>
-                      {item.courseId?.coursetitle || "Unknown Course"} - $
-                      {item.courseId?.price || 0}
+                  {order.items.map((item) => (
+                    <li key={item.courseId}>
+                      {item.coursetitle} - ${item.price}
                     </li>
-                  )) || <li>No courses</li>}
+                  ))}
                 </ul>
               </div>
               <p className="mt-2 text-gray-700">
-                <span className="font-semibold">Total:</span> $
-                {order.items?.reduce(
-                  (total, item) => total + (item.courseId?.price || 0),
-                  0
-                ) || 0}
+                <span className="font-semibold">Total:</span> ${order.totalAmount}
               </p>
             </CardContent>
           </Card>
@@ -207,8 +143,7 @@ export default function AdminOrders() {
     return (
       <div className="mt-8 flex flex-col items-center gap-4">
         <div className="text-sm text-gray-600">
-          Page {currentPage} of {totalPages} • Showing{" "}
-          {Math.min(filteredOrders.length, ordersPerPage)} items per page
+          Page {currentPage} of {totalPages} 
         </div>
         <div className="flex justify-center items-center gap-2">
           <Button

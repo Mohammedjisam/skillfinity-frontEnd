@@ -16,6 +16,7 @@ export default function ViewLessonsByCourse() {
   const [lessons, setLessons] = useState([])
   const [watchedLessons, setWatchedLessons] = useState({})
   const [loading, setLoading] = useState(true)
+  const [tutor, setTutor] = useState(null);
   const [courseTitle, setCourseTitle] = useState("")
   const [selectedVideo, setSelectedVideo] = useState(null)
   const [selectedLesson, setSelectedLesson] = useState(null)
@@ -49,7 +50,7 @@ export default function ViewLessonsByCourse() {
       // Fetch lessons
       const lessonsResponse = await axiosInstance.get(`/user/data/viewcourselessons/${courseId}`)
       setLessons(lessonsResponse.data.lessons)
-      
+      setTutor(lessonsResponse.data.lessons[0].tutor);
       if (lessonsResponse.data.lessons.length > 0) {
         setCourseTitle(lessonsResponse.data.lessons[0].course.coursetitle)
         setSelectedVideo(lessonsResponse.data.lessons[0].Video)
@@ -288,8 +289,11 @@ export default function ViewLessonsByCourse() {
   }
 
   const handleAttendQuiz = () => {
-    // Implement quiz logic here
-    console.log("Attending quiz")
+    navigate(`/quiz/${courseId}`);
+  }
+
+  if (isChatOpen) {
+    return <ChatForUser tutor={tutor} />;
   }
 
   if (loading) {
