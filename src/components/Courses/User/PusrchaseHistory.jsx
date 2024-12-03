@@ -4,40 +4,45 @@ import axiosInstance from '@/AxiosConfig'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
-import { ShoppingBag, Calendar, IndianRupee, Menu } from 'lucide-react'
+import { ShoppingBag, Calendar, Menu, ChevronLeft, ChevronRight } from 'lucide-react'
 import Sidebar from '../../../pages/User/Sidebar'
+import { Button } from "@/components/ui/button"
 
 export default function PurchaseHistory() {
   const [orderHistory, setOrderHistory] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
   const userData = useSelector((store) => store.user.userDatas)
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen)
 
   useEffect(() => {
-    const fetchOrderHistory = async () => {
-      if (!userData._id) {
-        console.error('User ID is undefined')
-        setError('User ID is missing. Please log in again.')
-        setLoading(false)
-        return
-      }
+    fetchOrderHistory(currentPage)
+  }, [userData._id, currentPage])
 
-      try {
-        const response = await axiosInstance.get(`/user/data/orderhistory/${userData._id}`)
-        setOrderHistory(response.data.orderHistory)
-      } catch (error) {
-        console.error('Error fetching order history:', error.response?.data || error.message)
-        setError('Failed to fetch order history. Please try again later.')
-      } finally {
-        setLoading(false)
-      }
+  const fetchOrderHistory = async (page) => {
+    if (!userData._id) {
+      console.error('User ID is undefined')
+      setError('User ID is missing. Please log in again.')
+      setLoading(false)
+      return
     }
 
-    fetchOrderHistory()
-  }, [userData._id])
+    try {
+      const response = await axiosInstance.get(`/user/data/orderhistory/${userData._id}?page=${page}`)
+      setOrderHistory(response.data.orderHistory)
+      setCurrentPage(response.data.currentPage)
+      setTotalPages(response.data.totalPages)
+    } catch (error) {
+      console.error('Error fetching order history:', error.response?.data || error.message)
+      setError('Failed to fetch order history. Please try again later.')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const formatDate = (dateString) => {
     const options = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' }
@@ -111,7 +116,6 @@ export default function PurchaseHistory() {
             <CardFooter className="flex justify-between items-center">
               <span className="text-sm text-gray-600">Total Items: {order.items.length}</span>
               <span className="font-bold text-lg flex items-center">
-                
                 {formatCurrency(order.totalAmount)}
               </span>
             </CardFooter>
@@ -120,6 +124,26 @@ export default function PurchaseHistory() {
       </div>
     )
   }
+
+  const Pagination = () => (
+    <div className="flex justify-center items-center space-x-2 mt-4">
+      <Button
+        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+        disabled={currentPage === 1}
+        size="sm"
+      >
+        <ChevronLeft className="h-4 w-4" />
+      </Button>
+      <span>{currentPage} of {totalPages}</span>
+      <Button
+        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+        disabled={currentPage === totalPages}
+        size="sm"
+      >
+        <ChevronRight className="h-4 w-4" />
+      </Button>
+    </div>
+  )
 
   return (
     <div className="flex h-screen bg-gray-100 overflow-hidden">
@@ -140,9 +164,11 @@ export default function PurchaseHistory() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <h1 className="text-3xl font-bold mb-8 text-gray-900">My Orders</h1>
             {renderOrderHistory()}
+            {!loading && !error && orderHistory.length > 0 && <Pagination />}
           </div>
         </main>
       </div>
     </div>
   )
 }
+

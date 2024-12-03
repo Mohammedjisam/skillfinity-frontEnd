@@ -294,4 +294,3 @@ const AllCourse = () => {
 };
 
 export default AllCourse;
-

@@ -62,19 +62,23 @@ export default function Login() {
 
   const handleGoogleSuccess = async (credentialResponse) => {
     try {
-      const response = await axiosInstance.post(`/auth/google`, 
-        {
-          credential: credentialResponse.credential,
-          role: 'student'
-        },
+      if (!credentialResponse || !credentialResponse.credential) {
+        toast.error("Google credentials are missing");
+        return;
+      }
+  
+      const response = await axiosInstance.post(
+        `/auth/google/student`,
+        { credential: credentialResponse.credential },
         { withCredentials: true }
       );
+  
       dispatch(addUser(response.data.user));
       navigate("/home");
       toast.success("Login successful!");
     } catch (err) {
       const errorMessage = err.response?.data?.message || 'Google Login failed';
-      console.error(errorMessage);
+      console.error("Google Login Error:", errorMessage);
       toast.error(errorMessage);
     }
   };

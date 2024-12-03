@@ -138,7 +138,7 @@ const TutorSignup = () => {
         return;
       }
   
-      const response = await axiosInstance.post(`/auth/google`, 
+      const response = await axiosInstance.post(`/auth/google/tutor`, 
         { 
           credential: credentialResponse.credential,
           role: 'tutor' // Default role, can be dynamic if needed

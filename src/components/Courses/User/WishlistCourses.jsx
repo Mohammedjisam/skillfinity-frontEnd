@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import axiosInstance from "@/AxiosConfig";
-import { ShoppingCart, User, Tag, Menu, X } from 'lucide-react';
+import { ShoppingCart, User, Tag, Menu, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -23,6 +23,8 @@ export default function WishlistCourses() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const userData = useSelector((store) => store.user.userDatas);
   const navigate = useNavigate();
   const { incrementCartCount } = useCart();
@@ -30,14 +32,14 @@ export default function WishlistCourses() {
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 
   useEffect(() => {
-    fetchWishlistCourses();
-  }, []);
+    fetchWishlistCourses(currentPage);
+  }, [currentPage]);
 
-  const fetchWishlistCourses = async () => {
+  const fetchWishlistCourses = async (page) => {
     try {
       setLoading(true);
       const response = await axiosInstance.get(
-        `/user/data/viewwishlist/${userData._id}`
+        `/user/data/viewwishlist/${userData._id}?page=${page}`
       );
       console.log("API Response:", response.data);
       const coursesWithUniqueIds = response.data.wishlist.map(
@@ -47,6 +49,8 @@ export default function WishlistCourses() {
         })
       );
       setCourses(coursesWithUniqueIds);
+      setTotalPages(response.data.totalPages);
+      setCurrentPage(response.data.currentPage);
     } catch (error) {
       console.error(
         "Error fetching wishlist courses:",
@@ -121,6 +125,7 @@ export default function WishlistCourses() {
       return <p className="text-center text-red-600 text-lg">{error}</p>;
     }
 
+
     if (courses.length === 0) {
       return (
         <div className="text-center">
@@ -136,6 +141,7 @@ export default function WishlistCourses() {
     }
 
     return (
+      <>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {courses.map((course) => (
           <Card
@@ -188,7 +194,27 @@ export default function WishlistCourses() {
             </CardFooter>
           </Card>
         ))}
-      </div>
+       </div>
+        <div className="mt-8 flex justify-center items-center space-x-4">
+          <Button
+            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+            disabled={currentPage === 1}
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            <ChevronLeft className="w-4 h-4 mr-2" /> Previous
+          </Button>
+          <span className="text-gray-600">
+            Page {currentPage} of {totalPages}
+          </span>
+          <Button
+            onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+            disabled={currentPage === totalPages}
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            Next <ChevronRight className="w-4 h-4 ml-2" />
+          </Button>
+        </div>
+      </>
     );
   };
 
@@ -223,4 +249,6 @@ export default function WishlistCourses() {
     </div>
   );
 }
+
+
 

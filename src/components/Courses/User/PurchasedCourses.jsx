@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useSelector } from 'react-redux'
 import axiosInstance from '@/AxiosConfig'
-import { BookOpen, User, Tag, Clock, Menu } from 'lucide-react'
+import { BookOpen, User, Tag, Clock, Menu, ChevronLeft, ChevronRight } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -14,45 +14,55 @@ export default function PurchasedCourses() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+  const [totalCourses, setTotalCourses] = useState(0)
   const userData = useSelector((store) => store.user.userDatas)
-  const navigate=useNavigate()
+  const navigate = useNavigate()
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen)
 
   useEffect(() => {
-    const fetchPurchasedCourses = async () => {
-      if (!userData._id) {
-        console.error('User ID is undefined')
-        setError('User ID is missing. Please log in again.')
-        setLoading(false)
-        return
-      }
+    fetchPurchasedCourses(currentPage)
+  }, [userData._id, currentPage])
 
-      try {
-        console.log(`Fetching purchased courses for User ID: ${userData._id}`)
-        const response = await axiosInstance.get(`/user/data/buyedcourses/${userData._id}`)
-        console.log("API Response:", response.data)
-        const coursesWithUniqueIds = response.data.purchasedCourses.map((course, index) => ({
-          ...course,
-          uniqueId: `${course._id}-${index}`
-        }))
-        setCourses(coursesWithUniqueIds)
-      } catch (error) {
-        console.error('Error fetching purchased courses:', error.response?.data || error.message)
-        setError('Failed to fetch purchased courses. Please try again later.')
-      } finally {
-        setLoading(false)
-      }
+  const fetchPurchasedCourses = async (page) => {
+    if (!userData._id) {
+      console.error('User ID is undefined')
+      setError('User ID is missing. Please log in again.')
+      setLoading(false)
+      return
     }
 
-    fetchPurchasedCourses()
-  }, [userData._id])
+    try {
+      setLoading(true)
+      console.log(`Fetching purchased courses for User ID: ${userData._id}, Page: ${page}`)
+      const response = await axiosInstance.get(`/user/data/buyedcourses/${userData._id}?page=${page}&limit=5`)
+      console.log("API Response:", response.data)
+      const coursesWithUniqueIds = response.data.purchasedCourses.map((course, index) => ({
+        ...course,
+        uniqueId: `${course._id}-${index}`
+      }))
+      setCourses(coursesWithUniqueIds)
+      setTotalPages(response.data.pagination.totalPages)
+      setTotalCourses(response.data.pagination.totalCourses)
+    } catch (error) {
+      console.error('Error fetching purchased courses:', error.response?.data || error.message)
+      setError('Failed to fetch purchased courses. Please try again later.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handlePageChange = (newPage) => {
+    setCurrentPage(newPage)
+  }
 
   const renderCourses = () => {
     if (loading) {
       return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[...Array(6)].map((_, index) => (
+          {[...Array(9)].map((_, index) => (
             <Card key={`skeleton-${index}`} className="w-full">
               <CardHeader className="space-y-2">
                 <Skeleton className="h-4 w-1/2" />
@@ -135,9 +145,44 @@ export default function PurchasedCourses() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <h1 className="text-3xl font-bold mb-8 text-gray-900">My Purchased Courses</h1>
             {renderCourses()}
+            {totalPages > 1 && (
+              <div className="flex flex-col items-center justify-center mt-8 gap-4">
+                <p className="text-sm text-gray-600">
+                  Showing page {currentPage} of {totalPages} (Total courses: {totalCourses})
+                </p>
+                <div className="flex justify-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
+                    disabled={currentPage === 1}
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                    <Button
+                      key={page}
+                      variant={currentPage === page ? "default" : "outline"}
+                      onClick={() => handlePageChange(page)}
+                    >
+                      {page}
+                    </Button>
+                  ))}
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
+                    disabled={currentPage === totalPages}
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
         </main>
       </div>
     </div>
   )
 }
+

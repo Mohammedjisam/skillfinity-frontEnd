@@ -4,51 +4,51 @@ import axiosInstance from '../../../AxiosConfig'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../../../components/ui/card"
 import { Badge } from "../../../components/ui/badge"
 import { Skeleton } from "../../../components/ui/skeleton"
-import { Award, Calendar, Menu, BookOpen, GraduationCap, Trophy } from 'lucide-react'
+import { Award, Calendar, Menu, BookOpen, GraduationCap, Trophy, ChevronLeft, ChevronRight } from 'lucide-react'
 import Sidebar from '../../../pages/User/Sidebar'
 import { Button } from "../../../components/ui/button"
 import { useNavigate } from 'react-router-dom'
-import { toast } from 'sonner'
-
-
 
 export default function ViewCertificates() {
   const [certificates, setCertificates] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
   const userData = useSelector((store) => store.user.userDatas)
   const navigate = useNavigate()
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen)
 
   useEffect(() => {
-    const fetchCertificates = async () => {
-      if (!userData._id) {
-        console.error('User ID is undefined')
-        setError('User ID is missing. Please log in again.')
-        setLoading(false)
-        return
-      }
+    fetchCertificates(currentPage)
+  }, [userData._id, currentPage])
 
-      try {
-        const response = await axiosInstance.get(`/user/data/usercertificates/${userData._id}`)
-        console.log(".......................",response.data)
-        if (response.data.certificates.length === 0) {
-          setError('no_certificates')
-        } else {
-          setCertificates(response.data.certificates)
-        }
-      } catch (error) {
-        console.error('Error fetching certificates:', error.response?.data || error.message)
-        setError('fetch_failed')
-      } finally {
-        setLoading(false)
-      }
+  const fetchCertificates = async (page) => {
+    if (!userData._id) {
+      console.error('User ID is undefined')
+      setError('User ID is missing. Please log in again.')
+      setLoading(false)
+      return
     }
 
-    fetchCertificates()
-  }, [userData._id])
+    try {
+      const response = await axiosInstance.get(`/user/data/usercertificates/${userData._id}?page=${page}`)
+      if (response.data.certificates.length === 0) {
+        setError('no_certificates')
+      } else {
+        setCertificates(response.data.certificates)
+        setCurrentPage(response.data.currentPage)
+        setTotalPages(response.data.totalPages)
+      }
+    } catch (error) {
+      console.error('Error fetching certificates:', error.response?.data || error.message)
+      setError('fetch_failed')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const formatDate = (dateString) => {
     const options = { year: 'numeric', month: 'long', day: 'numeric' }
@@ -184,6 +184,26 @@ export default function ViewCertificates() {
     )
   }
 
+  const Pagination = () => (
+    <div className="flex justify-center items-center space-x-2 mt-4">
+      <Button
+        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+        disabled={currentPage === 1}
+        size="sm"
+      >
+        <ChevronLeft className="h-4 w-4" />
+      </Button>
+      <span>{currentPage} of {totalPages}</span>
+      <Button
+        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+        disabled={currentPage === totalPages}
+        size="sm"
+      >
+        <ChevronRight className="h-4 w-4" />
+      </Button>
+    </div>
+  )
+
   return (
     <div className="flex h-screen bg-gray-100 overflow-hidden">
       <Sidebar isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} activeItem="Certifications" />
@@ -203,9 +223,12 @@ export default function ViewCertificates() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <h1 className="text-3xl font-bold mb-8 text-gray-900">My Certificates</h1>
             {renderCertificates()}
+            {!loading && !error && <Pagination />}
           </div>
         </main>
       </div>
     </div>
   )
 }
+
+

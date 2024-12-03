@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { Heart, ShoppingCart, TrendingUp } from 'lucide-react'
+import { Heart, ShoppingCart, TrendingUp, ChevronLeft, ChevronRight } from 'lucide-react'
 import axiosInstance from './../../../AxiosConfig'
 import { Card } from '@/components/ui/card'
 import { Button } from "@/components/ui/button"
@@ -16,6 +16,8 @@ export default function CategoryPage() {
   const [cartItems, setCartItems] = useState([])
   const [purchasedCourses, setPurchasedCourses] = useState([])
   const [wishlistItems, setWishlistItems] = useState([])
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
   const navigate = useNavigate()
   const userDatas = useSelector((store) => store.user.userDatas)
   const { incrementCartCount } = useCart();
@@ -25,14 +27,16 @@ export default function CategoryPage() {
     fetchCartData()
     fetchPurchasedCourses()
     fetchWishlistItems()
-  }, [categoryId, userDatas._id])
+  }, [categoryId, userDatas._id, currentPage])
 
   const fetchCategoryData = async () => {
     try {
-      const response = await axiosInstance.get(`/user/data/viewcategory/${categoryId}`)
-      const courses = response.data.courses || []
+      const response = await axiosInstance.get(`/user/data/viewcategory/${categoryId}?page=${currentPage}&limit=12`)
+      const { courses, currentPage: responsePage, totalPages } = response.data
       console.log("Fetched category data:", courses)
       setCategoryData(courses)
+      setCurrentPage(responsePage)
+      setTotalPages(totalPages)
     } catch (error) {
       console.error("Error fetching category data:", error)
       setCategoryData([])
@@ -157,6 +161,10 @@ export default function CategoryPage() {
     return purchasedCourses.includes(courseId)
   }
 
+  const handlePageChange = (newPage) => {
+    setCurrentPage(newPage)
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -171,7 +179,7 @@ export default function CategoryPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {categoryData && categoryData.length > 0 ? (
             categoryData
-              .filter((course) => course.isVisible !== false && !isPurchased(course._id))
+              .filter((course) => !isPurchased(course._id))
               .map((course) => (
                 <Card 
                   key={course._id} 
@@ -255,6 +263,27 @@ export default function CategoryPage() {
               <p className="text-gray-500 text-lg">No courses available in this category.</p>
             </div>
           )}
+        </div>
+        
+        {/* Pagination */}
+        <div className="flex justify-center mt-8">
+          <Button
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={currentPage === 1}
+            className="mr-2"
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </Button>
+          <span className="mx-4">
+            Page {currentPage} of {totalPages}
+          </span>
+          <Button
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={currentPage === totalPages}
+            className="ml-2"
+          >
+            <ChevronRight className="w-4 h-4" />
+          </Button>
         </div>
       </div>
     </div>

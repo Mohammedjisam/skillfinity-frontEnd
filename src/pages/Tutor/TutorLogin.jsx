@@ -66,21 +66,34 @@ const TutorLogin = () => {
 
   const handleGoogleSuccess = async (credentialResponse) => {
     try {
+      // Validate the credential response
+      if (!credentialResponse || !credentialResponse.credential) {
+        toast.error("Google credentials are missing");
+        return;
+      }
+  
+      // Send the credential to the backend
       const response = await axiosInstance.post(
-        `/auth/google`,
-        { token: credentialResponse.credential },
+        `/auth/google/tutor`,
+        {
+          credential: credentialResponse.credential,
+          role: 'tutor', // Default role for new users
+        },
         { withCredentials: true }
       );
+  
+      // Handle successful authentication
       dispatch(addTutor(response.data.user));
-      navigate("/dashboard");
+      navigate("/home");
       toast.success("Login successful!");
     } catch (err) {
-      const errorMessage = err.response?.data?.message || "Google Login failed";
-      console.error(errorMessage);
+      // Extract and display error message
+      const errorMessage = err.response?.data?.message || 'Google Login failed';
+      console.error("Google Login Error:", errorMessage);
       toast.error(errorMessage);
     }
   };
-
+  
   const handleGoogleFailure = () => {
     toast.error("Google login was unsuccessful");
   };

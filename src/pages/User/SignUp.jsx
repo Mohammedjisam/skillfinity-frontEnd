@@ -129,7 +129,6 @@ const SignUp = () => {
   };
 
 
-
   const handleGoogleSuccess = async (credentialResponse) => {
     try {
       if (!credentialResponse || !credentialResponse.credential) {
@@ -137,23 +136,21 @@ const SignUp = () => {
         return;
       }
   
-      const response = await axiosInstance.post(`/auth/google`, 
-        { 
-          credential: credentialResponse.credential,
-          role: 'student' // Default role, can be dynamic if needed
-        }, 
+      const response = await axiosInstance.post(`/auth/google/student`, 
+        { credential: credentialResponse.credential }, 
         { withCredentials: true }
       );
   
       dispatch(addUser(response.data.user));
       navigate("/home");
-      toast.success("Login successful!");
+      toast.success("Sign up successful!");
     } catch (err) {
-      const errorMessage = err.response?.data?.message || 'Google Login failed';
+      const errorMessage = err.response?.data?.message || 'Google Sign up failed';
       console.error(errorMessage);
       toast.error(errorMessage);
     }
   };
+  
   
   const handleGoogleFailure = () => {
     toast.error("Google login was unsuccessful");
