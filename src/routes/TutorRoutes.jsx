@@ -1,7 +1,7 @@
 import Footer from '@/components/common/Footer'
 import Header from '../pages/Tutor/TutorHeader'
 import Otp from '@/components/common/Otp'
-import Dashboard from '@/pages/Tutor/DashBoard'
+import Dashboard from '@/pages/Tutor/Dashboard'
 import TutorLogin from '@/pages/Tutor/TutorLogin'
 import TutorSignup from '@/pages/Tutor/TutorSignUp'
 import { Route, Routes } from 'react-router-dom'
