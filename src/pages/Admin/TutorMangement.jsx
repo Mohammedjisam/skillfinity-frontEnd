@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft, ChevronRight, Menu, X, Search } from 'lucide-react';
-import AdminSidebar from "./AdminSidebar";
+import AdminSidebar from "./AdminSideBar";
 import { logoutTutor } from "@/redux/slice/TutorSlice";
 import { useDispatch } from "react-redux";
 import axiosInstance from "@/AxiosConfig";

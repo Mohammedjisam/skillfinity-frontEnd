@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Menu, X, Loader2 } from 'lucide-react'
 import { useParams } from 'react-router-dom'
-import AdminSidebar from './AdminSidebar'
+import AdminSidebar from './AdminSideBar'
 import axiosInstance from '@/AxiosConfig'
 
 export default function Student() {

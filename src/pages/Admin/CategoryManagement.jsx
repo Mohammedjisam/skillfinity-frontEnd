@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { ChevronLeft, ChevronRight, Menu, X, Search, Plus } from 'lucide-react'
-import AdminSidebar from './AdminSidebar'
+import AdminSidebar from './AdminSideBar'
 import axiosInstance from '@/AxiosConfig'
 import { useDispatch, useSelector } from 'react-redux'
 import { updateCategory, deleteCategory, setCategories } from '@/redux/slice/CategorySlice'

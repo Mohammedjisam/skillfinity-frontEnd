@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import AdminSidebar from './AdminSidebar';
+import AdminSidebar from './AdminSideBar';
 import { Menu, TrendingDown } from 'lucide-react';
 import ReactApexChart from 'react-apexcharts';
 import moment from 'moment';
