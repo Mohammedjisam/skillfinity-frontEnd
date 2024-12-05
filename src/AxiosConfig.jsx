@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const axiosInstance = axios.create({
-  baseURL: "http://13.234.124.12",
+  baseURL: "https://skillfinity.jassy.in",
   withCredentials: true,
   timeout: 10000,
   });
