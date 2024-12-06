@@ -18,7 +18,7 @@ const CourseCertificate = () => {
   const [error, setError] = useState(null)
   const { courseId } = useParams()
   const userId = useSelector((store) => store.user.userDatas._id)
-  const tutorName = useSelector((store) => store.tutor.tutorDatas)
+  const tutorName = useSelector((store) => store.tutor.tutorDatas.name)
   const certificateRef = useRef(null)
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 
