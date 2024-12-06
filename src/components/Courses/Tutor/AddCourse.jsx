@@ -69,7 +69,13 @@ export default function AddCourse() {
   const fetchCategories = async () => {
     try {
       const response = await axiosInstance.get("/admin/categories")
-      setCategories(Array.isArray(response.data) ? response.data : [])
+      if (response.data && response.data.categories) {
+        setCategories(response.data.categories)
+      } else {
+        console.error("Unexpected response structure:", response.data)
+        toast.error("Failed to load categories: Unexpected data structure")
+        setCategories([])
+      }
     } catch (error) {
       console.error("Error fetching categories:", error)
       toast.error("Failed to load categories")
@@ -350,11 +356,15 @@ export default function AddCourse() {
                         <SelectValue placeholder="Select a category" />
                       </SelectTrigger>
                       <SelectContent className="bg-gray-100 border-none">
-                        {Array.isArray(categories) ? categories.map((category) => (
-                          <SelectItem key={category._id} value={category._id}>
-                            {category.title}
-                          </SelectItem>
-                        )) : <SelectItem value="">No categories available</SelectItem>}
+                        {categories.length > 0 ? (
+                          categories.map((category) => (
+                            <SelectItem key={category._id} value={category._id}>
+                              {category.title}
+                            </SelectItem>
+                          ))
+                        ) : (
+                          <SelectItem value="" disabled>No categories available</SelectItem>
+                        )}
                       </SelectContent>
                     </Select>
                     {errors.category && <p className="text-red-500 text-sm mt-1">{errors.category}</p>}
