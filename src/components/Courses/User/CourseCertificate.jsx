@@ -17,8 +17,8 @@ const CourseCertificate = () => {
   const [certificateData, setCertificateData] = useState(null)
   const [error, setError] = useState(null)
   const { courseId } = useParams()
-  const userId = useSelector((store) => store.user.userDatas._id)
-  const tutorName = useSelector((store) => store.tutor.tutorDatas.name)
+  const userId = useSelector((store) => store.user.userDatas?._id)
+  const tutorData = useSelector((store) => store.tutor.tutorDatas)
   const certificateRef = useRef(null)
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 
@@ -26,6 +26,10 @@ const CourseCertificate = () => {
 
   useEffect(() => {
     const fetchCertificate = async () => {
+      if (!userId) {
+        setError('User ID not found. Please log in again.')
+        return
+      }
       try {
         const response = await axiosInstance.get(`/user/data/certificate/${courseId}/${userId}`)
         setCertificateData(response.data.certificateData)
@@ -65,7 +69,7 @@ const CourseCertificate = () => {
     return <div className="text-center text-red-500">{error}</div>
   }
 
-  if (!certificateData) {
+  if (!certificateData || !tutorData) {
     return <div className="text-center">Loading certificate...</div>
   }
 
@@ -85,99 +89,115 @@ const CourseCertificate = () => {
           </div>
         </header>
         <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100">
-          <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
-            <div ref={certificateRef} className="w-full max-w-4xl mx-auto">
-              <Card className="relative w-full aspect-[1.5/1] bg-white shadow-2xl overflow-hidden">
-                {/* Main Border Frame */}
-                <div className="absolute inset-4 sm:inset-6 md:inset-8 border-2 border-emerald-500/30">
-                  {/* Corner Decorations */}
-                  <div className="absolute -top-1 -left-1 w-4 h-4 sm:w-6 sm:h-6 md:w-8 md:h-8 border-t-2 border-l-2 border-emerald-600"></div>
-                  <div className="absolute -top-1 -right-1 w-4 h-4 sm:w-6 sm:h-6 md:w-8 md:h-8 border-t-2 border-r-2 border-emerald-600"></div>
-                  <div className="absolute -bottom-1 -left-1 w-4 h-4 sm:w-6 sm:h-6 md:w-8 md:h-8 border-b-2 border-l-2 border-emerald-600"></div>
-                  <div className="absolute -bottom-1 -right-1 w-4 h-4 sm:w-6 sm:h-6 md:w-8 md:h-8 border-b-2 border-r-2 border-emerald-600"></div>
-                </div>
-
-                {/* Geometric Accents */}
-                <div className="absolute top-0 right-0 w-32 h-32 sm:w-48 sm:h-48 md:w-64 md:h-64 bg-emerald-500/10 transform rotate-45 translate-x-16 -translate-y-16 sm:translate-x-24 sm:-translate-y-24 md:translate-x-32 md:-translate-y-32"></div>
-                <div className="absolute bottom-0 left-0 w-32 h-32 sm:w-48 sm:h-48 md:w-64 md:h-64 bg-emerald-500/10 transform rotate-45 -translate-x-16 translate-y-16 sm:-translate-x-24 sm:translate-y-24 md:-translate-x-32 md:translate-y-32"></div>
-
-                {/* Logo */}
-                <div className="absolute top-4 left-4 sm:top-8 sm:left-8 md:top-12 md:left-12 flex items-center gap-2">
-                  <div className="w-12 h-10 sm:w-16 sm:h-12 md:w-20 md:h-16">
+          <div className="container mx-auto p-4 sm:p-6 lg:p-8">
+            <div ref={certificateRef} className="w-full max-w-5xl mx-auto">
+              <Card className="relative w-full aspect-[1.4142/1] bg-white shadow-2xl overflow-hidden">
+                {/* Certificate Content Container */}
+                <div className="absolute inset-0 p-8 sm:p-12 md:p-16 flex flex-col">
+                  {/* Border Frame */}
+                  <div className="absolute inset-4 sm:inset-8 md:inset-12 border-2 border-emerald-500/30"></div>
+                  
+                  {/* Logo */}
+                  <div className="relative z-10 mb-6 sm:mb-8">
                     <img
                       src={logoImage}
                       alt="EduSphere Logo"
-                      className="w-full h-full object-contain"
+                      className="w-16 sm:w-20 md:w-24 h-auto"
                     />
                   </div>
-                </div>
 
-                {/* Main Content */}
-                <div className="relative h-full flex flex-col items-center justify-between p-6 sm:p-10 md:p-16">
-                  <div className="text-center">
-                    <h1 className="text-3xl sm:text-4xl md:text-6xl font-serif text-emerald-600 mb-1 sm:mb-2">CERTIFICATE</h1>
-                    <p className="text-sm sm:text-base md:text-xl text-emerald-500/80 uppercase tracking-[0.2em] sm:tracking-[0.3em]">OF COMPLETION</p>
-                  </div>
+                  {/* Certificate Content */}
+                  <div className="flex-1 flex flex-col items-center justify-center text-center relative z-10 space-y-4 sm:space-y-6 md:space-y-8">
+                    <div>
+                      <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-serif text-emerald-600">
+                        CERTIFICATE
+                      </h1>
+                      <p className="text-sm sm:text-base md:text-lg text-emerald-500/80 uppercase tracking-[0.2em]">
+                        OF COMPLETION
+                      </p>
+                    </div>
 
-                  <div className="flex flex-col items-center justify-center flex-grow text-center max-w-3xl">
-                    <p className="text-sm sm:text-base md:text-xl text-gray-600 mb-2 sm:mb-4">THIS CERTIFICATE IS PROUDLY PRESENTED TO</p>
-                    <h2 className="text-2xl sm:text-3xl md:text-5xl font-script text-emerald-600 mb-4 sm:mb-6 md:mb-8">
-                      {certificateData.studentName}
-                      <span className="block w-32 sm:w-40 md:w-48 h-0.5 bg-gradient-to-r from-transparent via-emerald-500 to-transparent mx-auto mt-1 sm:mt-2"></span>
-                    </h2>
+                    <div className="max-w-2xl mx-auto">
+                      <p className="text-sm sm:text-base md:text-lg text-gray-600">
+                        THIS CERTIFICATE IS PROUDLY PRESENTED TO
+                      </p>
+                      <h2 className="text-2xl sm:text-3xl md:text-4xl font-script text-emerald-600 mt-2 mb-1">
+                        {certificateData.studentName}
+                      </h2>
+                      <div className="w-32 sm:w-40 md:w-48 h-0.5 bg-emerald-500/30 mx-auto"></div>
+                    </div>
 
-                    <p className="text-xs sm:text-sm md:text-lg text-gray-600 mb-2 sm:mb-4">for successfully completing the course</p>
-                    <h3 className="text-xl sm:text-2xl md:text-4xl font-semibold text-emerald-600 mb-4 sm:mb-6 md:mb-8">
-                      {certificateData.courseName}
-                    </h3>
+                    <div className="max-w-2xl mx-auto">
+                      <p className="text-sm sm:text-base text-gray-600">
+                        for successfully completing the course
+                      </p>
+                      <h3 className="text-xl sm:text-2xl md:text-3xl font-semibold text-emerald-600 mt-2">
+                        {certificateData.courseName}
+                      </h3>
+                    </div>
 
-                    <div className="flex items-center gap-2 sm:gap-4 mb-6 sm:mb-8 md:mb-12">
-                      <p className="text-sm sm:text-base md:text-xl text-gray-600">with a score of</p>
-                      <p className="text-xl sm:text-2xl md:text-4xl font-bold text-emerald-600">{certificateData.score}%</p>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm sm:text-base text-gray-600">with a score of</span>
+                      <span className="text-xl sm:text-2xl md:text-3xl font-bold text-emerald-600">
+                        {certificateData.score}%
+                      </span>
                     </div>
                   </div>
 
                   {/* Footer */}
-                  <div className="flex justify-between items-end w-full px-2 sm:px-4 md:px-8">
-                    <div className="text-center">
-                      <p className="font-script text-sm sm:text-xl md:text-2xl text-emerald-600 mb-0.5 sm:mb-1">{tutorName}</p>
-                      <p className="text-xs md:text-sm text-gray-600">Course Instructor</p>
-                    </div>
+                  <div className="relative z-10 mt-auto">
+                    <div className="grid grid-cols-3 gap-4 items-end">
+                      <div className="text-center">
+                        <img
+                          src={signatureImage}
+                          alt="Instructor Signature"
+                          className="h-12 sm:h-16 w-auto mx-auto mb-2"
+                        />
+                        <p className="text-sm sm:text-base font-script text-emerald-600">
+                          {tutorData.name || 'Instructor Name'}
+                        </p>
+                        <p className="text-xs sm:text-sm text-gray-600">Course Instructor</p>
+                      </div>
 
-                    <div className="text-center">
-                      <div className="mb-0.5 sm:mb-1">
+                      <div className="text-center">
                         <img
                           src={signatureImage}
                           alt="CEO Signature"
-                          className="inline-block w-16 sm:w-24 md:w-32 h-auto"
+                          className="h-12 sm:h-16 w-auto mx-auto mb-2"
                         />
+                        <p className="text-sm sm:text-base font-script text-emerald-600">CEO</p>
+                        <p className="text-xs sm:text-sm text-gray-600">Skillfinity</p>
                       </div>
-                      <p className="text-xs md:text-sm text-gray-600">CEO, Skillfinity</p>
-                    </div>
 
-                    <div className="text-center">
-                      <div className="w-12 h-12 sm:w-16 sm:h-16 md:w-24 md:h-24 border-2 sm:border-4 border-emerald-600 rounded-full flex items-center justify-center overflow-hidden">
-                        <img
-                          src={sealImage}
-                          alt="Company Seal"
-                          className="w-full h-full object-cover"
-                        />
+                      <div className="text-center">
+                        <div className="w-16 sm:w-20 md:w-24 h-16 sm:h-20 md:h-24 mx-auto mb-2">
+                          <img
+                            src={sealImage}
+                            alt="Company Seal"
+                            className="w-full h-full object-contain"
+                          />
+                        </div>
+                        <p className="text-xs sm:text-sm text-gray-600">
+                          {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                        </p>
                       </div>
-                      <p className="text-xs md:text-sm text-gray-600 mt-1 sm:mt-2">{new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</p>
                     </div>
                   </div>
-                </div>
 
-                {/* Outer Frame Lines */}
-                <div className="absolute inset-3 sm:inset-4 md:inset-6 border border-emerald-500/20"></div>
-                <div className="absolute inset-3.5 sm:inset-5 md:inset-7 border border-emerald-500/20"></div>
+                  {/* Decorative Elements */}
+                  <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-50/50 transform rotate-45 translate-x-32 -translate-y-32"></div>
+                  <div className="absolute bottom-0 left-0 w-64 h-64 bg-emerald-50/50 transform rotate-45 -translate-x-32 translate-y-32"></div>
+                </div>
               </Card>
             </div>
 
             {/* Download Button */}
-            <div className="mt-6 sm:mt-8 flex justify-center">
-              <Button onClick={handleDownload} className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 sm:px-6 sm:py-3 text-sm sm:text-base">
-                <Download className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+            <div className="mt-8 flex justify-center">
+              <Button 
+                onClick={handleDownload}
+                className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3"
+              >
+                <Download className="mr-2 h-5 w-5" />
                 Download Certificate
               </Button>
             </div>
@@ -189,4 +209,3 @@ const CourseCertificate = () => {
 }
 
 export default CourseCertificate
-
