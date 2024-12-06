@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react'
-import { useSelector } from 'react-redux'
-import { useNavigate } from 'react-router-dom'
-import { toast } from 'sonner'
+import React, { useState, useEffect, useRef, useCallback } from "react"
+import { useSelector } from "react-redux"
+import { useNavigate } from "react-router-dom"
+import { toast } from "sonner"
 import { Menu, Upload, Loader2 } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -9,9 +9,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea"
 import { Card } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
-import SideBar from '../../../pages/Tutor/SideBar'
-import axiosInstance from '../../../AxiosConfig'
-import { CropperModal } from './cropperModal'
+import SideBar from "../../../pages/Tutor/SideBar"
+import axiosInstance from "../../../AxiosConfig"
+import { CropperModal } from "./cropperModal"
 
 const LoadingFallback = ({ progress, message }) => (
   <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -33,14 +33,14 @@ export default function AddCourse() {
   const navigate = useNavigate()
   
   const [courseData, setCourseData] = useState({
-    coursetitle: '',
-    category: '',
-    price: '',
-    features: '',
+    coursetitle: "",
+    category: "",
+    price: "",
+    features: "",
     thumbnail: null,
     tutor: tutor._id,
-    difficulty: '',
-    courseStructure: ['', '', '']
+    difficulty: "",
+    courseStructure: ["", "", ""]
   })
   const [errors, setErrors] = useState({})
   const [thumbnailPreview, setThumbnailPreview] = useState(null)
@@ -51,15 +51,15 @@ export default function AddCourse() {
   const [addCourseProgress, setAddCourseProgress] = useState(0)
   const [categories, setCategories] = useState([])
   const [showCropper, setShowCropper] = useState(false)
-  const [cropperImage, setCropperImage] = useState('')
+  const [cropperImage, setCropperImage] = useState("")
 
   const difficultyLevels = [
-    'Beginner',
-    'Elementary',
-    'Intermediate',
-    'Upper Intermediate',
-    'Advanced',
-    'Expert'
+    "Beginner",
+    "Elementary",
+    "Intermediate",
+    "Upper Intermediate",
+    "Advanced",
+    "Expert"
   ]
 
   useEffect(() => {
@@ -68,44 +68,45 @@ export default function AddCourse() {
 
   const fetchCategories = async () => {
     try {
-      const response = await axiosInstance.get('/admin/categories')
-      setCategories(response.data)
+      const response = await axiosInstance.get("/admin/categories")
+      setCategories(response.data || [])
     } catch (error) {
-      console.error('Error fetching categories:', error)
-      toast.error('Failed to load categories')
+      console.error("Error fetching categories:", error)
+      toast.error("Failed to load categories")
+      setCategories([])
     }
   }
 
   const validateField = (name, value) => {
-    let error = ''
+    let error = ""
     switch (name) {
-      case 'coursetitle':
+      case "coursetitle":
         if (value.length > 22) {
-          error = 'Course title cannot exceed 22 characters'
-        } else if (value.trim() === '') {
-          error = 'Course title is required'
+          error = "Course title cannot exceed 22 characters"
+        } else if (value.trim() === "") {
+          error = "Course title is required"
         } else if (!/^[a-zA-Z\s]*$/.test(value)) {
-          error = 'Course title can only contain letters and spaces'
+          error = "Course title can only contain letters and spaces"
         }
         break
-      case 'category':
-        if (!value) error = 'Category is required'
+      case "category":
+        if (!value) error = "Category is required"
         break
-      case 'difficulty':
-        if (!value) error = 'Difficulty level is required'
+      case "difficulty":
+        if (!value) error = "Difficulty level is required"
         break
-      case 'price':
+      case "price":
         if (!value) {
-          error = 'Price is required'
+          error = "Price is required"
         } else if (isNaN(value) || Number(value) < 0) {
-          error = 'Price must be a positive number'
+          error = "Price must be a positive number"
         }
         break
-      case 'features':
-        if (value.trim() === '') {
-          error = 'Features are required'
+      case "features":
+        if (value.trim() === "") {
+          error = "Features are required"
         } else if (!/^[a-zA-Z\s]*$/.test(value)) {
-          error = 'Features can only contain letters and spaces'
+          error = "Features can only contain letters and spaces"
         }
         break
       default:
@@ -117,8 +118,8 @@ export default function AddCourse() {
   const handleInputChange = (e) => {
     const { name, value } = e.target
     let sanitizedValue = value
-    if (name === 'coursetitle' || name === 'features') {
-      sanitizedValue = value.replace(/[^a-zA-Z\s]/g, '')
+    if (name === "coursetitle" || name === "features") {
+      sanitizedValue = value.replace(/[^a-zA-Z\s]/g, "")
     }
     const error = validateField(name, sanitizedValue)
     setCourseData(prevData => ({
@@ -132,7 +133,7 @@ export default function AddCourse() {
   }
 
   const handleStructureChange = (index, value) => {
-    const sanitizedValue = value.replace(/[^a-zA-Z\s]/g, '')
+    const sanitizedValue = value.replace(/[^a-zA-Z\s]/g, "")
     setCourseData(prevData => ({
       ...prevData,
       courseStructure: prevData.courseStructure.map((item, i) => i === index ? sanitizedValue : item)
@@ -142,30 +143,29 @@ export default function AddCourse() {
   const addNewSection = () => {
     setCourseData(prevData => ({
       ...prevData,
-      courseStructure: [...prevData.courseStructure, '']
+      courseStructure: [...prevData.courseStructure, ""]
     }))
   }
+
   const validateImage = (file) => {
     return new Promise((resolve, reject) => {
-      const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+      const allowedTypes = ["image/jpeg", "image/png", "image/webp"]
       if (!allowedTypes.includes(file.type)) {
-        reject(new Error('Invalid file type. Please upload a JPEG, PNG, or WebP image.'));
+        reject(new Error("Invalid file type. Please upload a JPEG, PNG, or WebP image."))
       } else {
-        const img = new Image();
+        const img = new Image()
         img.onload = () => {
-          URL.revokeObjectURL(img.src);
-          resolve();
-        };
+          URL.revokeObjectURL(img.src)
+          resolve()
+        }
         img.onerror = () => {
-          URL.revokeObjectURL(img.src);
-          reject(new Error('Failed to load image. Please try again.'));
-        };
-        img.src = URL.createObjectURL(file);
+          URL.revokeObjectURL(img.src)
+          reject(new Error("Failed to load image. Please try again."))
+        }
+        img.src = URL.createObjectURL(file)
       }
-    });
-  };
-  
-  
+    })
+  }
 
   const handleImageUpload = async (file) => {
     if (!file) return
@@ -179,8 +179,8 @@ export default function AddCourse() {
       }
       reader.readAsDataURL(file)
     } catch (error) {
-      console.error('Image validation error:', error)
-      toast.error(error.message || 'Failed to upload thumbnail')
+      console.error("Image validation error:", error)
+      toast.error(error.message || "Failed to upload thumbnail")
     }
   }
 
@@ -189,12 +189,12 @@ export default function AddCourse() {
     setUploadProgress(0)
 
     const formData = new FormData()
-    formData.append('file', blob, 'cropped-image.jpg')
-    formData.append('upload_preset', 'skillfinity_media')
-    formData.append('cloud_name', 'dwxnxuuht')
+    formData.append("file", blob, "cropped-image.jpg")
+    formData.append("upload_preset", "skillfinity_media")
+    formData.append("cloud_name", "dwxnxuuht")
 
     const xhr = new XMLHttpRequest()
-    xhr.open('POST', 'https://api.cloudinary.com/v1_1/dwxnxuuht/image/upload')
+    xhr.open("POST", "https://api.cloudinary.com/v1_1/dwxnxuuht/image/upload")
 
     xhr.upload.onprogress = (event) => {
       if (event.lengthComputable) {
@@ -211,16 +211,16 @@ export default function AddCourse() {
           thumbnail: response.secure_url
         }))
         setThumbnailPreview(response.secure_url)
-        toast.success('Thumbnail uploaded successfully')
+        toast.success("Thumbnail uploaded successfully")
       } else {
-        throw new Error('Failed to upload image')
+        throw new Error("Failed to upload image")
       }
       setIsUploading(false)
     }
 
     xhr.onerror = function() {
-      console.error('Image upload error')
-      toast.error('Failed to upload thumbnail')
+      console.error("Image upload error")
+      toast.error("Failed to upload thumbnail")
       setIsUploading(false)
     }
 
@@ -231,13 +231,13 @@ export default function AddCourse() {
     e.preventDefault()
     const newErrors = {}
     Object.keys(courseData).forEach(key => {
-      if (key !== 'thumbnail' && key !== 'tutor') {
-        if (key === 'courseStructure') {
+      if (key !== "thumbnail" && key !== "tutor") {
+        if (key === "courseStructure") {
           newErrors[key] = courseData[key].map(item => {
             if (!/^[a-zA-Z\s]*$/.test(item)) {
-              return 'Section can only contain letters and spaces'
+              return "Section can only contain letters and spaces"
             }
-            return ''
+            return ""
           })
         } else {
           const error = validateField(key, courseData[key])
@@ -247,15 +247,15 @@ export default function AddCourse() {
     })
 
     if (Object.keys(newErrors).some(key => 
-      Array.isArray(newErrors[key]) ? newErrors[key].some(e => e !== '') : newErrors[key]
+      Array.isArray(newErrors[key]) ? newErrors[key].some(e => e !== "") : newErrors[key]
     )) {
       setErrors(newErrors)
-      toast.error('Please correct the errors before submitting')
+      toast.error("Please correct the errors before submitting")
       return
     }
 
     if (!courseData.thumbnail) {
-      toast.error('Please upload a thumbnail image')
+      toast.error("Please upload a thumbnail image")
       return
     }
 
@@ -273,19 +273,19 @@ export default function AddCourse() {
         })
       }, 500)
 
-      const response = await axiosInstance.post('/tutor/course/addcourse', courseData)
+      const response = await axiosInstance.post("/tutor/course/addcourse", courseData)
       
       clearInterval(interval)
       setAddCourseProgress(100)
 
       setTimeout(() => {
         setIsAddingCourse(false)
-        toast.success('Course added successfully')
+        toast.success("Course added successfully")
         navigate(`/tutor/addlesson/${response.data.course._id}`)
       }, 1000)
     } catch (error) {
-      console.error('Error adding course:', error)
-      toast.error(error.response?.data?.message || 'Failed to add course')
+      console.error("Error adding course:", error)
+      toast.error(error.response?.data?.message || "Failed to add course")
       setIsAddingCourse(false)
     }
   }
@@ -343,7 +343,7 @@ export default function AddCourse() {
                       value={courseData.category}
                       onValueChange={(value) => {
                         setCourseData(prev => ({ ...prev, category: value }))
-                        setErrors(prev => ({ ...prev, category: '' }))
+                        setErrors(prev => ({ ...prev, category: "" }))
                       }}
                     >
                       <SelectTrigger className="w-full bg-rose-50 border-none">
@@ -368,7 +368,7 @@ export default function AddCourse() {
                       value={courseData.difficulty}
                       onValueChange={(value) => {
                         setCourseData(prev => ({ ...prev, difficulty: value }))
-                        setErrors(prev => ({ ...prev, difficulty: '' }))
+                        setErrors(prev => ({ ...prev, difficulty: "" }))
                       }}
                     >
                       <SelectTrigger className="w-full bg-rose-50 border-none">

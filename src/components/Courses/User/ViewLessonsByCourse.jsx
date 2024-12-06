@@ -317,16 +317,16 @@ export default function ViewLessonsByCourse() {
             <ChevronLeft className="h-5 w-5 mr-2" />
             Back
           </Button>
-          <h1 className="text-xl font-semibold text-gray-900">{courseTitle}</h1>
+          <h1 className="text-xl font-semibold text-gray-900 truncate max-w-[60%]">{courseTitle}</h1>
           <div className="w-20" /> {/* Spacer for alignment */}
         </div>
       </header>
 
       {/* Main Content */}
       <div className="container mx-auto px-4 py-6">
-        <div className="flex gap-6">
+        <div className="flex flex-col lg:flex-row gap-6">
           {/* Sidebar */}
-          <div className="w-80 bg-white rounded-lg shadow-lg">
+          <div className="w-full lg:w-80 bg-white rounded-lg shadow-lg mb-6 lg:mb-0">
             <div className="p-4 border-b">
               <h2 className="text-lg font-semibold text-gray-900">{courseTitle}</h2>
               <div className="flex items-center justify-between mt-2 text-sm text-gray-500">
@@ -338,7 +338,7 @@ export default function ViewLessonsByCourse() {
                 <p className="text-sm text-gray-500 mt-1">{progress}% Complete</p>
               </div>
             </div>
-            <ScrollArea className="h-[calc(100vh-13rem)]">
+            <ScrollArea className="h-[50vh] lg:h-[calc(100vh-13rem)]">
               <div className="p-4">
                 {renderLessonList()}
               </div>
@@ -348,11 +348,11 @@ export default function ViewLessonsByCourse() {
           {/* Video Player and Controls */}
           <div className="flex-1">
             {/* Chat and Quiz Buttons */}
-            <div className="mb-4 flex justify-end space-x-4">
+            <div className="mb-4 flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-4">
               <Button
                 onClick={() => setIsChatOpen(true)}
                 variant="outline"
-                className="bg-white hover:bg-blue-50 text-blue-600 shadow-sm transition-all duration-300 flex items-center"
+                className="w-full sm:w-auto bg-white hover:bg-blue-50 text-blue-600 shadow-sm transition-all duration-300 flex items-center justify-center"
               >
                 <MessageCircle className="mr-2 h-5 w-5" />
                 Chat with Tutor
@@ -360,7 +360,7 @@ export default function ViewLessonsByCourse() {
               {isFullCourseCompleted && (
                 <Button
                   onClick={handleAttendQuiz}
-                  className="bg-green-500 hover:bg-green-600 text-white shadow-md hover:shadow-lg transition-all duration-300 flex items-center"
+                  className="w-full sm:w-auto bg-green-500 hover:bg-green-600 text-white shadow-md hover:shadow-lg transition-all duration-300 flex items-center justify-center"
                 >
                   <ClipboardList className="mr-2 h-5 w-5" />
                   Attend Quiz
@@ -512,11 +512,11 @@ export default function ViewLessonsByCourse() {
                 </h2>
                 <p className="text-gray-600 mb-6">{selectedLesson.description}</p>
                 <div className="flex flex-col sm:flex-row gap-4">
-                  <Button onClick={handleViewPdf} className="flex items-center justify-center bg-blue-500 hover:bg-blue-600 text-white flex-1 shadow-md">
+                  <Button onClick={handleViewPdf} className="flex items-center justify-center bg-blue-500 hover:bg-blue-600 text-white w-full sm:flex-1 shadow-md">
                     <FileText className="mr-2 h-4 w-4" />
                     View PDF Notes
                   </Button>
-                  <Button onClick={handleDownloadPdf} variant="outline" className="flex items-center justify-center bg-white hover:bg-gray-50 text-blue-500 shadow-md flex-1">
+                  <Button onClick={handleDownloadPdf} variant="outline" className="flex items-center justify-center bg-white hover:bg-gray-50 text-blue-500 w-full sm:flex-1 shadow-md">
                     <Download className="mr-2 h-4 w-4" />
                     Download PDF Notes
                   </Button>

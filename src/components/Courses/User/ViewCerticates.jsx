@@ -38,7 +38,13 @@ export default function ViewCertificates() {
       if (response.data.certificates.length === 0) {
         setError('no_certificates')
       } else {
-        setCertificates(response.data.certificates)
+        const certificatesWithTutorData = await Promise.all(
+          response.data.certificates.map(async (certificate) => {
+            const tutorResponse = await axiosInstance.get(`/user/data/tutor/${certificate.tutorId}`)
+            return { ...certificate, tutorData: tutorResponse.data.tutorData }
+          })
+        )
+        setCertificates(certificatesWithTutorData)
         setCurrentPage(response.data.currentPage)
         setTotalPages(response.data.totalPages)
       }
@@ -137,14 +143,13 @@ export default function ViewCertificates() {
     if (error === 'fetch_failed') {
       return (
         <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-lg">
-      <div className="font-bold text-lg mb-2">No Certificates</div>
-      <div className="text-base">
-        You did not achieve any certificates. First, complete the lessons, 
-        attend the quizzes, and achieve at least 90% marks to earn the course 
-        completion certificate.
-      </div>
-    </div>
-
+          <div className="font-bold text-lg mb-2">No Certificates</div>
+          <div className="text-base">
+            You did not achieve any certificates. First, complete the lessons, 
+            attend the quizzes, and achieve at least 90% marks to earn the course 
+            completion certificate.
+          </div>
+        </div>
       )
     }
 
@@ -167,7 +172,7 @@ export default function ViewCertificates() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-700">Tutor: {certificate.tutorId.name}</p>
+              <p className="text-gray-700">Tutor: {certificate.tutorData.name}</p>
               <p className="text-gray-700">Score: {certificate.quizScorePercentage.toFixed(2)}%</p>
             </CardContent>
             <CardFooter className="flex justify-between items-center">
@@ -230,5 +235,4 @@ export default function ViewCertificates() {
     </div>
   )
 }
-
 

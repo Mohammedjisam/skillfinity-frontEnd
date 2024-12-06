@@ -158,7 +158,7 @@ const CourseCertificate = () => {
                         <img
                           src={signatureImage}
                           alt="CEO Signature"
-                          className="h-5 sm:h-3 md:h-4 w-auto mx-auto mb-2"
+                          className="h-6 sm:h-4 md:h-5 w-auto mx-auto mb-2"
                         />
                         <p className="text-xs sm:text-sm text-gray-600">Skillfinity CEO</p>
                       </div>
