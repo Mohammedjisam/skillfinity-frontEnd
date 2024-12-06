@@ -363,7 +363,7 @@ export default function AddCourse() {
                             </SelectItem>
                           ))
                         ) : (
-                          <SelectItem value="" disabled>No categories available</SelectItem>
+                          <SelectItem value="no-categories">No categories available</SelectItem>
                         )}
                       </SelectContent>
                     </Select>
