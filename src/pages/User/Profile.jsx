@@ -16,19 +16,36 @@ export default function Profile() {
   const [isUploading, setIsUploading] = useState(false)
   const [showCropper, setShowCropper] = useState(false)
   const [cropperImage, setCropperImage] = useState('')
+  const [validationError, setValidationError] = useState('')
   
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen)
   
   const handleEdit = (field, value) => {
     setEditField(field)
     setEditValue(value)
+    setValidationError('')
+  }
+
+  const validateField = (field, value) => {
+    if (field === 'name') {
+      return /^[a-zA-Z\s]*$/.test(value) ? null : 'Name must contain only letters and spaces'
+    } else if (field === 'phone') {
+      return /^\d{10}$/.test(value) ? null : 'Phone number must be exactly 10 digits'
+    }
+    return null
   }
 
   const handleUpdate = async (e) => {
     e.preventDefault()
 
     if (!editValue) {
-      toast.error('Field cannot be empty')
+      setValidationError('Field cannot be empty')
+      return
+    }
+
+    const error = validateField(editField, editValue)
+    if (error) {
+      setValidationError(error)
       return
     }
 
@@ -40,6 +57,7 @@ export default function Profile() {
       dispatch(updateUser(updatedData))
       setEditField(null)
       setEditValue('')
+      setValidationError('')
       toast.success(response.data.message)
     } catch (err) {
       console.error('Update error:', err)
@@ -215,6 +233,9 @@ export default function Profile() {
               onChange={(e) => setEditValue(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500"
             />
+            {validationError && (
+              <p className="mt-2 text-sm text-red-600">{validationError}</p>
+            )}
             <div className="mt-4 flex justify-end space-x-2">
               <button onClick={() => setEditField(null)} className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500">Cancel</button>
               <button onClick={handleUpdate} className="px-4 py-2 border border-transparent rounded-md shadow-sm text-white bg-pink-600 hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500">Update</button>

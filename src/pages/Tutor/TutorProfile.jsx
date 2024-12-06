@@ -16,6 +16,7 @@ const TutorProfile = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [showCropper, setShowCropper] = useState(false);
   const [cropperImage, setCropperImage] = useState('');
+  const [validationError, setValidationError] = useState('');
 
   useEffect(() => {
     const handleResize = () => {
@@ -35,12 +36,28 @@ const TutorProfile = () => {
   const handleEdit = (field, value) => {
     setEditField(field);
     setEditValue(value);
+    setValidationError('');
+  };
+
+  const validateField = (field, value) => {
+    if (field === 'name') {
+      return /^[a-zA-Z\s]*$/.test(value) ? null : 'Name must contain only letters and spaces';
+    } else if (field === 'phone') {
+      return /^\d{10}$/.test(value) ? null : 'Phone number must be exactly 10 digits';
+    }
+    return null;
   };
 
   const handleUpdate = async (e) => {
     e.preventDefault();
     if (!editValue) {
-      toast.error('Field cannot be empty');
+      setValidationError('Field cannot be empty');
+      return;
+    }
+
+    const error = validateField(editField, editValue);
+    if (error) {
+      setValidationError(error);
       return;
     }
 
@@ -51,6 +68,7 @@ const TutorProfile = () => {
       dispatch(updateTutor(updatedData));
       setEditField(null);
       setEditValue('');
+      setValidationError('');
       toast.success(response.data.message);
     } catch (err) {
       console.error('Update error:', err);
@@ -191,17 +209,17 @@ const TutorProfile = () => {
                       <label className="text-lg font-medium text-gray-700 mb-2 sm:mb-0">
                         {field.label}:
                       </label>
-                      <div className="flex items-center w-full sm:w-2/3 relative">
+                      <div className="relative w-full sm:w-2/3">
                         <input
                           type="text"
                           value={field.value}
                           readOnly
-                          className="w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm pr-12"
+                          className="w-full px-4 py-3 pr-10 border border-gray-300 rounded-md shadow-sm"
                         />
                         {field.editable && (
                           <button
                             onClick={() => handleEdit(field.label.toLowerCase(), field.value)}
-                            className="absolute right-4 text-gray-400 hover:text-blue-500"
+                            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-blue-500"
                             aria-label={`Edit ${field.label}`}
                           >
                             <Pencil className="h-5 w-5" />
@@ -226,6 +244,9 @@ const TutorProfile = () => {
               onChange={(e) => setEditValue(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md"
             />
+            {validationError && (
+              <p className="mt-2 text-sm text-red-600">{validationError}</p>
+            )}
             <div className="mt-4 flex justify-end space-x-2">
               <button
                 onClick={() => setEditField(null)}
