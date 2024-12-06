@@ -38,13 +38,7 @@ export default function ViewCertificates() {
       if (response.data.certificates.length === 0) {
         setError('no_certificates')
       } else {
-        const certificatesWithTutorData = await Promise.all(
-          response.data.certificates.map(async (certificate) => {
-            const tutorResponse = await axiosInstance.get(`/user/data/tutor/${certificate.tutorId}`)
-            return { ...certificate, tutorData: tutorResponse.data.tutorData }
-          })
-        )
-        setCertificates(certificatesWithTutorData)
+        setCertificates(response.data.certificates)
         setCurrentPage(response.data.currentPage)
         setTotalPages(response.data.totalPages)
       }
@@ -172,7 +166,7 @@ export default function ViewCertificates() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-700">Tutor: {certificate.tutorData.name}</p>
+              <p className="text-gray-700">Tutor: {certificate.tutorId.name}</p>
               <p className="text-gray-700">Score: {certificate.quizScorePercentage.toFixed(2)}%</p>
             </CardContent>
             <CardFooter className="flex justify-between items-center">

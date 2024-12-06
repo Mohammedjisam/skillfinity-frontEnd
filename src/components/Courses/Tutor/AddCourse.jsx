@@ -69,7 +69,7 @@ export default function AddCourse() {
   const fetchCategories = async () => {
     try {
       const response = await axiosInstance.get("/admin/categories")
-      setCategories(response.data || [])
+      setCategories(Array.isArray(response.data) ? response.data : [])
     } catch (error) {
       console.error("Error fetching categories:", error)
       toast.error("Failed to load categories")
@@ -350,11 +350,11 @@ export default function AddCourse() {
                         <SelectValue placeholder="Select a category" />
                       </SelectTrigger>
                       <SelectContent className="bg-gray-100 border-none">
-                        {categories.map((category) => (
+                        {Array.isArray(categories) ? categories.map((category) => (
                           <SelectItem key={category._id} value={category._id}>
                             {category.title}
                           </SelectItem>
-                        ))}
+                        )) : <SelectItem value="">No categories available</SelectItem>}
                       </SelectContent>
                     </Select>
                     {errors.category && <p className="text-red-500 text-sm mt-1">{errors.category}</p>}
@@ -460,7 +460,7 @@ export default function AddCourse() {
                     </label>
                     <div className="bg-rose-50 rounded-lg p-4">
                       <div className="space-y-2">
-                        {courseData.courseStructure.map((item, index) => (
+                        {Array.isArray(courseData.courseStructure) ? courseData.courseStructure.map((item, index) => (
                           <div key={index}>
                             <Input
                               value={item}
@@ -472,15 +472,15 @@ export default function AddCourse() {
                               <p className="text-red-500 text-sm mt-1">{errors.courseStructure[index]}</p>
                             )}
                           </div>
-                        ))}
-                        <Button
-                          type="button"
-                          onClick={addNewSection}
-                          className="mt-2 w-full bg-teal-500 hover:bg-teal-600 text-white"
-                        >
-                          Add Section
-                        </Button>
+                        )) : <p>No course structure defined</p>}
                       </div>
+                      <Button
+                        type="button"
+                        onClick={addNewSection}
+                        className="mt-2 w-full bg-teal-500 hover:bg-teal-600 text-white"
+                      >
+                        Add Section
+                      </Button>
                     </div>
                   </div>
                 </div>
