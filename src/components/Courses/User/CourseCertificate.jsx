@@ -102,7 +102,7 @@ const CourseCertificate = () => {
                     <img
                       src={logoImage}
                       alt="EduSphere Logo"
-                      className="w-16 sm:w-20 md:w-24 h-auto"
+                      className="w-20 sm:w-24 md:w-28 h-auto"
                     />
                   </div>
 
@@ -148,12 +148,7 @@ const CourseCertificate = () => {
                   <div className="relative z-10 mt-auto">
                     <div className="grid grid-cols-3 gap-4 items-end">
                       <div className="text-center">
-                        <img
-                          src={signatureImage}
-                          alt="Instructor Signature"
-                          className="h-12 sm:h-16 w-auto mx-auto mb-2"
-                        />
-                        <p className="text-sm sm:text-base font-script text-emerald-600">
+                        <p className="text-sm sm:text-base md:text-lg font-semibold text-emerald-600 mb-1">
                           {tutorData.name || 'Instructor Name'}
                         </p>
                         <p className="text-xs sm:text-sm text-gray-600">Course Instructor</p>
@@ -163,10 +158,10 @@ const CourseCertificate = () => {
                         <img
                           src={signatureImage}
                           alt="CEO Signature"
-                          className="h-12 sm:h-16 w-auto mx-auto mb-2"
+                          className="h-10 sm:h-12 md:h-14 w-auto mx-auto mb-2"
                         />
-                        <p className="text-sm sm:text-base font-script text-emerald-600">CEO</p>
-                        <p className="text-xs sm:text-sm text-gray-600">Skillfinity</p>
+                        <p className="text-sm sm:text-base md:text-lg font-semibold text-emerald-600 mb-1">Jisam TP</p>
+                        <p className="text-xs sm:text-sm text-gray-600">Skillfinity CEO</p>
                       </div>
 
                       <div className="text-center">
