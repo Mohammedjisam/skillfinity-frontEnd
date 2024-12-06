@@ -191,17 +191,17 @@ const TutorProfile = () => {
                       <label className="text-lg font-medium text-gray-700 mb-2 sm:mb-0">
                         {field.label}:
                       </label>
-                      <div className="flex items-center w-full sm:w-2/3">
+                      <div className="flex items-center w-full sm:w-2/3 relative">
                         <input
                           type="text"
                           value={field.value}
                           readOnly
-                          className="w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm"
+                          className="w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm pr-12"
                         />
                         {field.editable && (
                           <button
                             onClick={() => handleEdit(field.label.toLowerCase(), field.value)}
-                            className="ml-3 text-gray-400 hover:text-blue-500"
+                            className="absolute right-4 text-gray-400 hover:text-blue-500"
                             aria-label={`Edit ${field.label}`}
                           >
                             <Pencil className="h-5 w-5" />
