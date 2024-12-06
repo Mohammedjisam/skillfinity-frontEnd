@@ -120,11 +120,10 @@ const TutorProfile = () => {
     }
   };
 
-
   const fields = [
-    { label: 'Name', value: tutorData.name },
-    { label: 'Phone', value: tutorData.phone },
-    { label: 'Email', value: tutorData.email },
+    { label: 'Name', value: tutorData.name, editable: true },
+    { label: 'Phone', value: tutorData.phone, editable: true },
+    { label: 'Email', value: tutorData.email, editable: false },
   ];
 
   return (
@@ -199,13 +198,15 @@ const TutorProfile = () => {
                           readOnly
                           className="w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm"
                         />
-                        <button
-                          onClick={() => handleEdit(field.label.toLowerCase(), field.value)}
-                          className="ml-3 text-gray-400 hover:text-blue-500"
-                          aria-label={`Edit ${field.label}`}
-                        >
-                          <Pencil className="h-5 w-5" />
-                        </button>
+                        {field.editable && (
+                          <button
+                            onClick={() => handleEdit(field.label.toLowerCase(), field.value)}
+                            className="ml-3 text-gray-400 hover:text-blue-500"
+                            aria-label={`Edit ${field.label}`}
+                          >
+                            <Pencil className="h-5 w-5" />
+                          </button>
+                        )}
                       </div>
                     </div>
                   ))}
@@ -244,11 +245,11 @@ const TutorProfile = () => {
       )}
       {showCropper && (
         <CropperModal
-        isOpen={showCropper}
-        onClose={() => setShowCropper(false)}
-        image={cropperImage}
-        onCropComplete={handleCroppedImage}
-      />
+          isOpen={showCropper}
+          onClose={() => setShowCropper(false)}
+          image={cropperImage}
+          onCropComplete={handleCroppedImage}
+        />
       )}
     </div>
   );

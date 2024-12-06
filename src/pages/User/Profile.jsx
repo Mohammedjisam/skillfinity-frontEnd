@@ -116,9 +116,9 @@ export default function Profile() {
   }
 
   const fields = [
-    { label: 'Name', value: userData.name },
-    { label: 'Phone', value: userData.phone },
-    { label: 'Email', value: userData.email },
+    { label: 'Name', value: userData.name, editable: true },
+    { label: 'Phone', value: userData.phone, editable: true },
+    { label: 'Email', value: userData.email, editable: false },
   ]
 
   return (
@@ -187,13 +187,15 @@ export default function Profile() {
                           readOnly
                           className="w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition duration-150 ease-in-out"
                         />
-                        <button
-                          onClick={() => handleEdit(field.label.toLowerCase(), field.value)}
-                          className="ml-3 text-gray-400 hover:text-pink-500 transition duration-150 ease-in-out"
-                          aria-label={`Edit ${field.label}`}
-                        >
-                          <Pencil className="h-5 w-5" />
-                        </button>
+                        {field.editable && (
+                          <button
+                            onClick={() => handleEdit(field.label.toLowerCase(), field.value)}
+                            className="ml-3 text-gray-400 hover:text-pink-500 transition duration-150 ease-in-out"
+                            aria-label={`Edit ${field.label}`}
+                          >
+                            <Pencil className="h-5 w-5" />
+                          </button>
+                        )}
                       </div>
                     </div>
                   ))}
@@ -231,3 +233,4 @@ export default function Profile() {
     </div>
   )
 }
+
