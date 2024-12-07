@@ -6,7 +6,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Loader2, ShoppingCart, Trash2, BookOpen, User, Tag, BarChart } from 'lucide-react';
-import { setCartItems, updateCartCount } from "@/redux/slices/cartSlice";
+import { setCartItems, updateCartCount } from "../../../redux/slice/CartSlice";
 
 const Cart = () => {
   const dispatch = useDispatch();
