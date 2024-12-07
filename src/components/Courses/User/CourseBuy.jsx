@@ -38,7 +38,7 @@ function CourseBuy() {
           const response = await axiosInstance.post(
             "/user/data/buyallcourses",
             {
-              userId: location.state.userId,
+              userId: userData._id,
               courseIds: location.state.courseIds,
             }
           );
