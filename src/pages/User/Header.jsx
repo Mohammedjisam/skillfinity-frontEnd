@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
-import { Menu, X, Search, User, ShoppingCart } from 'lucide-react';
+import { useLocation, useNavigate } from "react-router-dom";
+import { Menu, X, Search, User, ShoppingCart } from "lucide-react";
 import axiosInstance from "@/AxiosConfig";
 import { useCart } from "../../context/CartContext";
 import { Badge } from "@/components/ui/badge";
@@ -17,16 +17,19 @@ const Header = () => {
   const { isAuthenticated, setIsAuthenticated } = useAuth();
   const navigate = useNavigate();
   const { cartCount, updateCartCount } = useCart();
+  const location = useLocation();
 
   useEffect(() => {
     if (userData && userData._id) {
       fetchCartCount();
     }
-  }, [userData]);
+  }, [userData, location.pathname]);
 
   const fetchCartCount = async () => {
     try {
-      const response = await axiosInstance.post(`/user/data/cartcount/${userData._id}`);
+      const response = await axiosInstance.post(
+        `/user/data/cartcount/${userData._id}`
+      );
       updateCartCount(response.data.totalItems);
     } catch (error) {
       console.error("Error fetching cart count:", error);
@@ -44,10 +47,30 @@ const Header = () => {
 
   const renderNavItems = () => (
     <>
-      <button onClick={() => handleNavigation("/home")} className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">Home</button>
-      <button onClick={() => handleNavigation("/allcourse")} className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">Courses</button>
-      <button onClick={() => handleNavigation("/viewallcategories")} className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">Categories</button>
-      <button onClick={() => handleNavigation("/viewalltutors")} className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">Tutors</button>
+      <button
+        onClick={() => handleNavigation("/home")}
+        className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
+      >
+        Home
+      </button>
+      <button
+        onClick={() => handleNavigation("/allcourse")}
+        className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
+      >
+        Courses
+      </button>
+      <button
+        onClick={() => handleNavigation("/viewallcategories")}
+        className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
+      >
+        Categories
+      </button>
+      <button
+        onClick={() => handleNavigation("/viewalltutors")}
+        className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
+      >
+        Tutors
+      </button>
     </>
   );
 
@@ -63,14 +86,11 @@ const Header = () => {
             />
           </div>
           {userData ? (
-            <nav className="hidden md:flex space-x-8">
-              {renderNavItems()}
-            </nav>
+            <nav className="hidden md:flex space-x-8">{renderNavItems()}</nav>
           ) : null}
           <div className="hidden md:flex items-center space-x-4">
             {userData ? (
               <>
-                
                 <button
                   className="rounded-full bg-gray-200 p-2 hover:bg-gray-300 transition-colors duration-200 relative"
                   onClick={() => handleNavigation("/cart")}
@@ -78,22 +98,21 @@ const Header = () => {
                   <ShoppingCart className="h-5 w-5 text-gray-600" />
                   {cartCount > 0 && (
                     <Badge
-                    variant="destructive"
-                    className="absolute -top-2 -right-2 px-1.5  text-xs bg-gray-800 text-white rounded-full shadow-md"
-                  >
-                    {cartCount}
-                  </Badge>
-                  
+                      variant="destructive"
+                      className="absolute -top-2 -right-2 px-1.5  text-xs bg-gray-800 text-white rounded-full shadow-md"
+                    >
+                      {cartCount}
+                    </Badge>
                   )}
                 </button>
-                <button 
-                  className="rounded-full bg-gray-200 p-1 hover:bg-gray-300 transition-colors duration-200" 
+                <button
+                  className="rounded-full bg-gray-200 p-1 hover:bg-gray-300 transition-colors duration-200"
                   onClick={() => handleNavigation("/profile")}
                 >
                   {userData.profileImage ? (
-                    <img 
-                      src={userData.profileImage} 
-                      alt="Profile" 
+                    <img
+                      src={userData.profileImage}
+                      alt="Profile"
                       className="h-8 w-8 object-cover rounded-full"
                     />
                   ) : (
@@ -103,14 +122,14 @@ const Header = () => {
               </>
             ) : (
               <>
-                <button 
-                  onClick={() => handleNavigation("/login")} 
+                <button
+                  onClick={() => handleNavigation("/login")}
                   className="px-4 py-2 text-gray-700 hover:text-gray-900 text-sm font-medium"
                 >
                   Log in
                 </button>
-                <button 
-                  onClick={() => handleNavigation("/signup")} 
+                <button
+                  onClick={() => handleNavigation("/signup")}
                   className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-500 text-sm font-medium"
                 >
                   Sign Up
@@ -118,12 +137,16 @@ const Header = () => {
               </>
             )}
           </div>
-          <button 
-            className="md:hidden p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-gray-300" 
+          <button
+            className="md:hidden p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-gray-300"
             onClick={toggleMenu}
             aria-label="Toggle menu"
           >
-            {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            {isMenuOpen ? (
+              <X className="h-6 w-6" />
+            ) : (
+              <Menu className="h-6 w-6" />
+            )}
           </button>
         </div>
       </div>
@@ -132,10 +155,30 @@ const Header = () => {
           <nav className="px-2 pt-2 pb-3 space-y-1">
             {userData ? (
               <>
-                <button onClick={() => handleNavigation("/home")} className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 w-full text-left">Home</button>
-                <button onClick={() => handleNavigation("/allcourse")} className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 w-full text-left">Courses</button>
-                <button onClick={() => handleNavigation("/viewallcategories")} className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 w-full text-left">Categories</button>
-                <button onClick={() => handleNavigation("/viewalltutors")} className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 w-full text-left">Tutors</button>
+                <button
+                  onClick={() => handleNavigation("/home")}
+                  className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 w-full text-left"
+                >
+                  Home
+                </button>
+                <button
+                  onClick={() => handleNavigation("/allcourse")}
+                  className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 w-full text-left"
+                >
+                  Courses
+                </button>
+                <button
+                  onClick={() => handleNavigation("/viewallcategories")}
+                  className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 w-full text-left"
+                >
+                  Categories
+                </button>
+                <button
+                  onClick={() => handleNavigation("/viewalltutors")}
+                  className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 w-full text-left"
+                >
+                  Tutors
+                </button>
               </>
             ) : null}
           </nav>
@@ -152,7 +195,7 @@ const Header = () => {
                     <Search className="h-5 w-5 text-gray-400" />
                   </div>
                 </div>
-                <button 
+                <button
                   onClick={() => handleNavigation("/cart")}
                   className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 w-full text-left flex items-center justify-between"
                 >
@@ -161,22 +204,22 @@ const Header = () => {
                     <ShoppingCart className="h-6 w-6 text-gray-600" />
                     {cartCount > 0 && (
                       <Badge
-                      variant="destructive"
-                      className="absolute -top-2 -right-2 px-1.5  text-xs bg-gray-800 text-white rounded-full shadow-md"
-                    >
-                      {cartCount}
-                    </Badge>
+                        variant="destructive"
+                        className="absolute -top-2 -right-2 px-1.5  text-xs bg-gray-800 text-white rounded-full shadow-md"
+                      >
+                        {cartCount}
+                      </Badge>
                     )}
                   </div>
                 </button>
-                <button 
+                <button
                   onClick={() => handleNavigation("/profile")}
                   className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 w-full text-left flex items-center"
                 >
                   {userData.profileImage ? (
-                    <img 
-                      src={userData.profileImage} 
-                      alt="Profile" 
+                    <img
+                      src={userData.profileImage}
+                      alt="Profile"
                       className="h-6 w-6 object-cover rounded-full mr-2"
                     />
                   ) : (
@@ -188,8 +231,18 @@ const Header = () => {
             </div>
           ) : (
             <div className="px-4 py-4 space-y-2">
-              <button onClick={() => handleNavigation("/login")} className="w-full px-4 py-2 text-gray-700 hover:text-gray-900 border border-gray-300 rounded-md text-base font-medium">Log in</button>
-              <button onClick={() => handleNavigation("/signup")} className="w-full px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-500 text-base font-medium">Sign Up</button>
+              <button
+                onClick={() => handleNavigation("/login")}
+                className="w-full px-4 py-2 text-gray-700 hover:text-gray-900 border border-gray-300 rounded-md text-base font-medium"
+              >
+                Log in
+              </button>
+              <button
+                onClick={() => handleNavigation("/signup")}
+                className="w-full px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-500 text-base font-medium"
+              >
+                Sign Up
+              </button>
             </div>
           )}
         </div>
@@ -199,4 +252,3 @@ const Header = () => {
 };
 
 export default Header;
-
