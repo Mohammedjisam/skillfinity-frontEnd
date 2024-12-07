@@ -33,6 +33,10 @@ export const CartProvider = ({ children }) => {
     setCartCount((prevCount) => Math.max(0, prevCount - 1));
   };
 
+  const resetCartCount = () => {
+    setCartCount(0);
+  };
+
   useEffect(() => {
     if (userDatas?._id) {
       updateCartCount();
@@ -46,9 +50,11 @@ export const CartProvider = ({ children }) => {
         updateCartCount,
         incrementCartCount,
         decrementCartCount,
+        resetCartCount,
       }}
     >
       {children}
     </CartContext.Provider>
   );
 };
+

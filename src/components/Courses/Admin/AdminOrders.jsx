@@ -122,13 +122,13 @@ export default function AdminOrders() {
                 <ul className="list-disc list-inside">
                   {order.items.map((item) => (
                     <li key={item.courseId}>
-                      {item.coursetitle} - ${item.price}
+                      {item.coursetitle} - ₹{item.price}
                     </li>
                   ))}
                 </ul>
               </div>
               <p className="mt-2 text-gray-700">
-                <span className="font-semibold">Total:</span> ${order.totalAmount}
+                <span className="font-semibold">Total:</span> ₹{order.totalAmount}
               </p>
             </CardContent>
           </Card>

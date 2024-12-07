@@ -4,6 +4,9 @@ import axiosInstance from "../../../AxiosConfig";
 import { toast } from "sonner";
 import { useSelector } from "react-redux";
 import { useCart } from "@/context/CartContext";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Loader2, ShoppingCart, Trash2, BookOpen, User, Tag, BarChart } from 'lucide-react';
 
 const Cart = () => {
   const [cartItems, setCartItems] = useState([]);
@@ -11,7 +14,7 @@ const Cart = () => {
   const [loading, setLoading] = useState(true);
   const userDatas = useSelector((store) => store.user.userDatas);
   const navigate = useNavigate();
-  const { updateCartCount, decrementCartCount } = useCart();
+  const { updateCartCount, decrementCartCount, resetCartCount } = useCart();
 
   useEffect(() => {
     const fetchCart = async () => {
@@ -23,6 +26,7 @@ const Cart = () => {
         setCartItems(response.data.cart.items);
       } catch (error) {
         console.error("Error fetching cart data:", error);
+        toast.error("Failed to fetch cart data. Please try again.");
       } finally {
         setLoading(false);
       }
@@ -67,7 +71,8 @@ const Cart = () => {
   if (loading) {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center p-4">
-        <h2 className="text-2xl font-semibold mb-2">Loading Cart...</h2>
+        <Loader2 className="w-8 h-8 animate-spin mb-4" />
+        <h2 className="text-2xl font-semibold">Loading Cart...</h2>
       </div>
     );
   }
@@ -75,6 +80,7 @@ const Cart = () => {
   if (cartItems.length === 0) {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center p-4">
+        <ShoppingCart className="w-16 h-16 text-gray-400 mb-4" />
         <h2 className="text-2xl font-semibold mb-2">Your cart is empty</h2>
         <p className="text-gray-600">Add some courses to get started!</p>
       </div>
@@ -83,64 +89,86 @@ const Cart = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold mb-6">
+      <h1 className="text-3xl font-bold mb-6 flex items-center">
+        <ShoppingCart className="mr-2" />
         Shopping Cart ({cartItems.length} items)
       </h1>
 
-      <div className="grid grid-cols-1 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         {cartItems.map((item) => {
           const course = item.courseId;
           if (!course || !course._id) return null;
 
           return (
-            <div
-              key={course._id}
-              className="bg-gray-100 rounded-lg shadow-xl p-6 flex flex-col sm:flex-row items-center gap-4"
-            >
-              <img
-                src={course.thumbnail || "/placeholder.svg"}
-                alt={course.coursetitle || "Course Thumbnail"}
-                className="w-full sm:w-48 h-32 object-cover rounded-lg"
-              />
-              <div className="flex-1 min-w-0">
-                <h3 className="text-xl font-semibold mb-2">
-                  {course.coursetitle || "Course Title"}
-                </h3>
-                <p className="font-bold text-lg mb-2">₹{item.price}</p>
-              </div>
-              <div className="flex flex-col sm:flex-col gap-2 w-full sm:w-auto">
-                <button
+            <Card key={course._id} className="overflow-hidden">
+              <CardHeader className="p-0">
+                <img
+                  src={course.thumbnail || "/placeholder.svg"}
+                  alt={course.coursetitle || "Course Thumbnail"}
+                  className="w-full h-48 object-cover"
+                />
+              </CardHeader>
+              <CardContent className="p-4">
+                <CardTitle className="text-xl mb-2">{course.coursetitle || "Course Title"}</CardTitle>
+                <div className="grid grid-cols-2 gap-2 text-sm mb-4">
+                  <div className="flex items-center">
+                    <User className="w-4 h-4 mr-1" />
+                    <span>{course.tutorName}</span>
+                  </div>
+                  <div className="flex items-center">
+                    <Tag className="w-4 h-4 mr-1" />
+                    <span>{course.categoryName}</span>
+                  </div>
+                  <div className="flex items-center">
+                    <BookOpen className="w-4 h-4 mr-1" />
+                    <span>{course.totalLessonsCount} lessons</span>
+                  </div>
+                  <div className="flex items-center">
+                    <BarChart className="w-4 h-4 mr-1" />
+                    <span>{course.difficulty}</span>
+                  </div>
+                </div>
+                <p className="font-bold text-lg">₹{item.price}</p>
+              </CardContent>
+              <CardFooter className="bg-gray-50 p-4">
+                <Button
                   onClick={() => handleRemove(course._id)}
                   disabled={isProcessing}
-                  className="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50"
+                  variant="destructive"
+                  className="w-full"
                 >
+                  <Trash2 className="w-4 h-4 mr-2" />
                   Remove
-                </button>
-              </div>
-            </div>
+                </Button>
+              </CardFooter>
+            </Card>
           );
         })}
       </div>
 
-      <div className="bg-white rounded-lg shadow-sm p-6">
-        <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-          <div>
-            <h3 className="text-xl font-semibold mb-2">
-              Total: ₹{calculateTotal()}
-            </h3>
-            <p className="text-gray-600">Total items: {cartItems.length}</p>
+      <Card>
+        <CardContent className="p-6">
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div>
+              <h3 className="text-xl font-semibold mb-2">
+                Total: ₹{calculateTotal()}
+              </h3>
+              <p className="text-gray-600">Total items: {cartItems.length}</p>
+            </div>
+            <Button
+              onClick={handleBuyAll}
+              disabled={isProcessing}
+              size="lg"
+              className="w-full sm:w-auto"
+            >
+              Buy All Courses
+            </Button>
           </div>
-          <button
-            onClick={handleBuyAll}
-            disabled={isProcessing}
-            className="w-full sm:w-auto px-8 py-3 bg-[#475569] text-white rounded-lg hover:bg-[#334155] transition-colors disabled:opacity-50"
-          >
-            Buy All Courses
-          </button>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };
 
 export default Cart;
+

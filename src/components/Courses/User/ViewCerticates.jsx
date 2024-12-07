@@ -171,7 +171,7 @@ export default function ViewCertificates() {
             </CardContent>
             <CardFooter className="flex justify-between items-center">
               <Badge variant="secondary">
-                Certificate ID: {certificate._id.slice(0, 8)}...{certificate._id.slice(-8)}
+                Certificate ID: {certificate._id.slice(0, 6)}%@#$&{certificate._id.slice(-2)}
               </Badge>
               <div className="space-x-2">
                 <Button onClick={() => navigate(`/certificate/${certificate.courseId._id}`)}>

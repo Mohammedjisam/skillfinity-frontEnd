@@ -96,7 +96,7 @@ export default function PurchaseHistory() {
             <CardHeader>
               <CardTitle className="text-xl font-semibold text-gray-800 flex items-center">
                 <ShoppingBag className="w-5 h-5 mr-2" />
-                Order #{order.orderId}
+                Order #%${order.orderId.slice(0, 6)}&%
               </CardTitle>
               <CardDescription className="flex items-center text-gray-600">
                 <Calendar className="w-4 h-4 mr-1" />
