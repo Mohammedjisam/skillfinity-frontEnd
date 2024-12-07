@@ -1,8 +1,10 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import axiosInstance from '../AxiosConfig';
 import { useSelector } from 'react-redux';
+import { useLocation } from 'react-router-dom';
 
 const CartContext = createContext();
+
 
 export const useCart = () => {
   const context = useContext(CartContext);
@@ -13,6 +15,7 @@ export const useCart = () => {
 };
 
 export const CartProvider = ({ children }) => {
+  const location = useLocation();
   const [cartCount, setCartCount] = useState(0);
   const userDatas = useSelector((store) => store.user.userDatas);
 
@@ -37,7 +40,7 @@ export const CartProvider = ({ children }) => {
     if (userDatas?._id) {
       updateCartCount();
     }
-  }, [userDatas?._id]);
+  }, [userDatas?._id,location.pathname]);
 
   return (
     <CartContext.Provider
