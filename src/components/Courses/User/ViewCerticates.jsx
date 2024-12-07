@@ -170,7 +170,9 @@ export default function ViewCertificates() {
               <p className="text-gray-700">Score: {certificate.quizScorePercentage.toFixed(2)}%</p>
             </CardContent>
             <CardFooter className="flex justify-between items-center">
-              <Badge variant="secondary">Certificate ID: {certificate._id}</Badge>
+              <Badge variant="secondary">
+                Certificate ID: {certificate._id.slice(0, 8)}...{certificate._id.slice(-8)}
+              </Badge>
               <div className="space-x-2">
                 <Button onClick={() => navigate(`/certificate/${certificate.courseId._id}`)}>
                   View Certificate
