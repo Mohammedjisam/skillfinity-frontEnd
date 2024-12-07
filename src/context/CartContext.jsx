@@ -1,6 +1,7 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
+import React, { createContext, useContext, useEffect } from 'react';
 import axiosInstance from '../AxiosConfig';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import { updateCartCount } from '@/redux/slices/cartSlice';
 
 const CartContext = createContext();
 
@@ -13,28 +14,29 @@ export const useCart = () => {
 };
 
 export const CartProvider = ({ children }) => {
-  const [cartCount, setCartCount] = useState(0);
+  const { count: cartCount } = useSelector((state) => state.cart);
+  const dispatch = useDispatch();
   const userDatas = useSelector((store) => store.user.userDatas);
 
   const updateCartCount = async () => {
     try {
       const response = await axiosInstance.post(`/user/data/cartcount/${userDatas._id}`);
-      setCartCount(response.data.totalItems);
+      dispatch(updateCartCount(response.data.totalItems));
     } catch (error) {
       console.error('Error fetching cart count:', error);
     }
   };
 
   const incrementCartCount = () => {
-    setCartCount((prevCount) => prevCount + 1);
+    dispatch(updateCartCount(cartCount + 1));
   };
 
   const decrementCartCount = () => {
-    setCartCount((prevCount) => Math.max(0, prevCount - 1));
+    dispatch(updateCartCount(Math.max(0, cartCount - 1)));
   };
 
   const resetCartCount = () => {
-    setCartCount(0);
+    dispatch(updateCartCount(0));
   };
 
   useEffect(() => {

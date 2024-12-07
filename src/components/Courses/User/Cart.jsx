@@ -2,28 +2,36 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axiosInstance from "../../../AxiosConfig";
 import { toast } from "sonner";
-import { useSelector } from "react-redux";
-import { useCart } from "@/context/CartContext";
+import { useDispatch, useSelector } from "react-redux";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Loader2, ShoppingCart, Trash2, BookOpen, User, Tag, BarChart } from 'lucide-react';
+import { setCartItems, updateCartCount } from "@/redux/slices/cartSlice";
 
 const Cart = () => {
-  const [cartItems, setCartItems] = useState([]);
+  const dispatch = useDispatch();
   const [isProcessing, setIsProcessing] = useState(false);
   const [loading, setLoading] = useState(true);
   const userDatas = useSelector((store) => store.user.userDatas);
+  const cartItems = useSelector((store) => store.cart.items);
   const navigate = useNavigate();
-  const { updateCartCount, decrementCartCount, resetCartCount } = useCart();
 
   useEffect(() => {
-    const fetchCart = async () => {
+    const fetchCartAndCheckPurchases = async () => {
       try {
-        const response = await axiosInstance.post(`/user/data/cart`, {
+        const cartResponse = await axiosInstance.post(`/user/data/cart`, {
           userId: userDatas._id,
         });
-        console.log("Cart response:", response.data);
-        setCartItems(response.data.cart.items);
+        
+        const purchaseResponse = await axiosInstance.get(`/user/data/checkPurchases/${userDatas._id}`);
+        const purchasedCourseIds = purchaseResponse.data.purchasedCourseIds;
+
+        const filteredCartItems = cartResponse.data.cart.items.filter(
+          item => !purchasedCourseIds.includes(item.courseId._id)
+        );
+
+        dispatch(setCartItems(filteredCartItems));
+        dispatch(updateCartCount(filteredCartItems.length));
       } catch (error) {
         console.error("Error fetching cart data:", error);
         toast.error("Failed to fetch cart data. Please try again.");
@@ -32,8 +40,8 @@ const Cart = () => {
       }
     };
 
-    fetchCart();
-  }, [userDatas._id]);
+    fetchCartAndCheckPurchases();
+  }, [userDatas._id, dispatch]);
 
   const handleRemove = async (courseId) => {
     try {
@@ -44,10 +52,9 @@ const Cart = () => {
           courseId,
         },
       });
-      setCartItems((prevItems) =>
-        prevItems.filter((item) => item.courseId?._id !== courseId)
-      );
-      decrementCartCount();
+      const updatedItems = cartItems.filter((item) => item.courseId._id !== courseId);
+      dispatch(setCartItems(updatedItems));
+      dispatch(updateCartCount(updatedItems.length));
       toast.success("Course removed from cart successfully!");
     } catch (error) {
       console.error("Error removing course from cart:", error);
@@ -94,21 +101,21 @@ const Cart = () => {
         Shopping Cart ({cartItems.length} items)
       </h1>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
         {cartItems.map((item) => {
           const course = item.courseId;
           if (!course || !course._id) return null;
 
           return (
-            <Card key={course._id} className="overflow-hidden">
+            <Card key={course._id} className="flex flex-col">
               <CardHeader className="p-0">
                 <img
                   src={course.thumbnail || "/placeholder.svg"}
                   alt={course.coursetitle || "Course Thumbnail"}
-                  className="w-full h-48 object-cover"
+                  className="w-full h-48 object-cover rounded-t-lg"
                 />
               </CardHeader>
-              <CardContent className="p-4">
+              <CardContent className="flex-grow p-4">
                 <CardTitle className="text-xl mb-2">{course.coursetitle || "Course Title"}</CardTitle>
                 <div className="grid grid-cols-2 gap-2 text-sm mb-4">
                   <div className="flex items-center">
@@ -130,7 +137,7 @@ const Cart = () => {
                 </div>
                 <p className="font-bold text-lg">₹{item.price}</p>
               </CardContent>
-              <CardFooter className="bg-gray-50 p-4">
+              <CardFooter className="bg-gray-50 p-4 mt-auto">
                 <Button
                   onClick={() => handleRemove(course._id)}
                   disabled={isProcessing}

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -9,11 +10,11 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { MonitorPlay, User, CheckCircle } from "lucide-react";
+import { MonitorPlay, User, CheckCircle, Loader2 } from 'lucide-react';
 import RazorPay from "./RazorPay";
 import { toast } from "sonner";
 import axiosInstance from "@/AxiosConfig";
-import { useSelector } from "react-redux";
+import { setCartItems, updateCartCount } from "@/redux/slices/cartSlice";
 
 function CourseBuy() {
   const [courses, setCourses] = useState([]);
@@ -22,6 +23,7 @@ function CourseBuy() {
   const { courseId } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
+  const dispatch = useDispatch();
 
   const userData = useSelector((store) => store.user.userDatas);
 
@@ -33,12 +35,11 @@ function CourseBuy() {
             `/user/data/buycourse/${courseId}`
           );
           setCourses([response.data.course]);
-          console.log(response.data.course);
         } else if (location.state?.courseIds) {
           const response = await axiosInstance.post(
             "/user/data/buyallcourses",
             {
-              userId: location.state.userId,
+              userId: userData._id,
               courseIds: location.state.courseIds,
             }
           );
@@ -55,7 +56,7 @@ function CourseBuy() {
     };
 
     fetchCourses();
-  }, [courseId, location.state]);
+  }, [courseId, location.state, userData._id]);
 
   const calculateTotalPrice = () => {
     return courses.reduce((total, course) => total + (course.price || 0), 0);
@@ -67,7 +68,7 @@ function CourseBuy() {
 
   const handlePaymentSuccess = async () => {
     try {
-      const userId = userData?._id; 
+      const userId = userData?._id;
       const courseIds = courseId
         ? [courseId]
         : courses.map((course) => course._id);
@@ -78,6 +79,11 @@ function CourseBuy() {
 
       await axiosInstance.post("/user/data/purchase", { userId, courseIds });
 
+      // Clear the cart
+      await axiosInstance.post(`/user/data/clearcart/${userId}`);
+      dispatch(setCartItems([]));
+      dispatch(updateCartCount(0));
+
       toast.success("Course(s) purchased successfully!");
       navigate("/purchasedcourses");
     } catch (error) {
@@ -85,13 +91,15 @@ function CourseBuy() {
       toast.error(
         "There was an issue recording your purchase. Please contact support."
       );
+    } finally {
+      setShowRazorPay(false);
     }
   };
 
   if (loading) {
     return (
       <div className="flex justify-center items-center h-screen bg-gray-50">
-        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-gray-900"></div>
+        <Loader2 className="w-12 h-12 animate-spin text-primary" />
       </div>
     );
   }
@@ -107,16 +115,16 @@ function CourseBuy() {
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
-        <h1 className="text-3xl font-bold text-gray-700 mb-8 text-center">
+        <h1 className="text-3xl font-bold text-gray-900 mb-8 text-center">
           Course Purchase
         </h1>
         <div className="space-y-8">
           {courses.map((course, index) => (
             <Card
               key={course._id || index}
-              className="bg-white shadow-lg hover:shadow-xl transition-shadow border-none duration-300"
+              className="bg-white shadow-lg hover:shadow-xl transition-shadow duration-300"
             >
-              <CardHeader className="border-b border-gray-300 bg-gray-100">
+              <CardHeader className="border-b border-gray-200 bg-gray-50">
                 <CardTitle className="text-2xl md:text-3xl font-bold text-gray-800">
                   {course.coursetitle}
                 </CardTitle>
@@ -126,10 +134,7 @@ function CourseBuy() {
                   <div className="md:w-2/5">
                     <div className="aspect-video rounded-lg overflow-hidden shadow-md">
                       <img
-                        src={
-                          course.thumbnail ||
-                          "/placeholder.svg?height=400&width=800"
-                        }
+                        src={course.thumbnail || "/placeholder.svg?height=400&width=800"}
                         alt={course.coursetitle}
                         className="object-cover w-full h-full transform hover:scale-105 transition-transform duration-300"
                       />
@@ -176,7 +181,7 @@ function CourseBuy() {
             </Card>
           ))}
         </div>
-        <Card className="mt-8 bg-gradient-to-b from-white to-gray-50 shadow-xl rounded-2xl border-none overflow-hidden transition-all duration-300 hover:shadow-2xl">
+        <Card className="mt-8 bg-gradient-to-b from-white to-gray-50 shadow-xl rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-2xl">
           <CardFooter className="p-8">
             <div className="w-full flex flex-col sm:flex-row justify-between items-center gap-6">
               <div className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-gray-700 to-gray-900">
@@ -208,3 +213,4 @@ function CourseBuy() {
 }
 
 export default CourseBuy;
+
