@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Heart, ShoppingCart, ChevronLeft, Play } from 'lucide-react';
 import axiosInstance from "@/AxiosConfig";
@@ -18,7 +18,7 @@ const AllCourse = () => {
   const navigate = useNavigate();
   const coursesPerPage = 12;
   const userDatas = useSelector((store) => store.user.userDatas);
-  const { incrementCartCount } = useCart();
+  const { incrementCartCount,setCartCount } = useCart();
 
   useEffect(() => {
     fetchCourses();
@@ -134,8 +134,8 @@ const AllCourse = () => {
       });
       
       // Use backend response to update cart count
-      if (response.data.cartCount !== undefined) {
-        setCartCount(response.data.cartCount);
+      if (response.data) {
+        setCartCount(response.data.cart.items.length);
       } else {
         incrementCartCount();
       }

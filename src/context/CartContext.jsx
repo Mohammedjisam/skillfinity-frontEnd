@@ -4,8 +4,6 @@ import { useSelector } from 'react-redux';
 import { useLocation } from 'react-router-dom';
 
 const CartContext = createContext();
-
-
 export const useCart = () => {
   const context = useContext(CartContext);
   if (!context) {
@@ -46,6 +44,7 @@ export const CartProvider = ({ children }) => {
     <CartContext.Provider
       value={{
         cartCount,
+        setCartCount,
         updateCartCount,
         incrementCartCount,
         decrementCartCount,
