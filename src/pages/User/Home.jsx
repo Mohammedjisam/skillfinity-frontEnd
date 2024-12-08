@@ -371,7 +371,7 @@ export default function Home() {
                     </div>
                     <Button
                       variant="outline"
-                      className="relative overflow-hidden group/button bg-gray-300 hover:bg-gray-500 border-none transition-colors duration-300"
+                      className="relative overflow-hidden group/button bg-gray-100 hover:bg-gray-200 border-gray-200 border transition-colors duration-300"
                       onClick={(e) => {
                         e.stopPropagation();
                         navigate(`/coursedetails/${course._id}`);
