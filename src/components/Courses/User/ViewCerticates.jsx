@@ -166,7 +166,7 @@ export default function ViewCertificates() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-700">Tutor: {certificate.tutorId.name}</p>
+              <p className="text-gray-700">Tutor: {certificate.courseId.tutor.name}</p>
               <p className="text-gray-700">Score: {certificate.quizScorePercentage.toFixed(2)}%</p>
             </CardContent>
             <CardFooter className="flex justify-between items-center">

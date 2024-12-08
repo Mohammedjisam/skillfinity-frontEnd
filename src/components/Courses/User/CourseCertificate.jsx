@@ -18,7 +18,6 @@ const CourseCertificate = () => {
   const [error, setError] = useState(null)
   const { courseId } = useParams()
   const userId = useSelector((store) => store.user.userDatas?._id)
-  const tutorData = useSelector((store) => store.tutor.tutorDatas)
   const certificateRef = useRef(null)
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 
@@ -69,7 +68,7 @@ const CourseCertificate = () => {
     return <div className="text-center text-red-500">{error}</div>
   }
 
-  if (!certificateData || !tutorData) {
+  if (!certificateData) {
     return <div className="text-center">Loading certificate...</div>
   }
 
@@ -149,7 +148,7 @@ const CourseCertificate = () => {
                     <div className="grid grid-cols-3 gap-4 items-end">
                       <div className="text-center">
                         <p className="text-sm sm:text-base md:text-lg font-semibold text-emerald-600 mb-1">
-                          {tutorData.name || 'Instructor Name'}
+                          {certificateData.tutorName}
                         </p>
                         <p className="text-xs sm:text-sm text-gray-600">Course Instructor</p>
                       </div>
@@ -172,7 +171,7 @@ const CourseCertificate = () => {
                           />
                         </div>
                         <p className="text-xs sm:text-sm text-gray-600">
-                          {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                          {certificateData.completionDate}
                         </p>
                       </div>
                     </div>
@@ -203,3 +202,4 @@ const CourseCertificate = () => {
 }
 
 export default CourseCertificate
+
