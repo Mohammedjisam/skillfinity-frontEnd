@@ -15,6 +15,7 @@ export default function CourseQuiz() {
   const { courseId } = useParams();
   const navigate = useNavigate();
   const [quiz, setQuiz] = useState(null);
+  const [tutorData, setTutorData] = useState(null);
   const [userAnswers, setUserAnswers] = useState({});
   const [submitted, setSubmitted] = useState(false);
   const [quizResult, setQuizResult] = useState(null);
@@ -24,16 +25,16 @@ export default function CourseQuiz() {
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 
   const user = useSelector((store) => store.user.userDatas);
-  const tutor = useSelector((store) => store.tutor.tutorDatas);
-  console.log('-------------------------->',tutor)
 
   useEffect(() => {
     const fetchQuiz = async () => {
       try {
         const response = await axiosInstance.get(`/user/data/getquiz/${courseId}`);
         setQuiz(response.data.quiz);
+        setTutorData(response.data.quiz.courseData); 
       } catch (error) {
         console.error('Error fetching quiz:', error);
+        toast.error("Failed to load quiz data");
       } finally {
         setLoading(false);
       }
@@ -47,10 +48,6 @@ export default function CourseQuiz() {
     }
   }, [courseId]);
 
-  const handleAnswerChange = (questionId, answer) => {
-    setUserAnswers((prev) => ({ ...prev, [questionId]: answer }));
-  };
-
   const handleSubmit = async () => {
     try {
       if (!user || !user._id) {
@@ -58,10 +55,11 @@ export default function CourseQuiz() {
         return;
       }
       
-      if (!tutor || !tutor._id) {
+      if (!tutorData || !tutorData.tutorId) {
         toast.error("Tutor information is missing. Please try again later.");
         return;
       }
+
       const questionResults = quiz.questions.map((question) => ({
         questionId: question._id,
         userAnswer: userAnswers[question._id] || null,
@@ -70,7 +68,7 @@ export default function CourseQuiz() {
 
       const response = await axiosInstance.post("/user/data/submitquizresult", {
         userId: user._id,
-        tutorId: tutor._id,
+        tutorId: tutorData.tutorId, // Use tutorId from API response
         courseId,
         quizId: quiz._id,
         questionResults,
@@ -88,6 +86,12 @@ export default function CourseQuiz() {
       toast.error(error.response?.data?.message || "Failed to submit quiz.");
     }
   };
+
+  const handleAnswerChange = (questionId, answer) => {
+    setUserAnswers((prev) => ({ ...prev, [questionId]: answer }));
+  };
+
+  
 
   const handleViewCertificate = () => {
     navigate(`/certificate/${courseId}`);
