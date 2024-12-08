@@ -211,21 +211,21 @@ export default function CourseDetails() {
                       variant="secondary"
                       className="px-4 py-2 text-sm bg-gradient-to-r from-blue-400/10 to-blue-500/10 border border-blue-500/20 text-blue-300 hover:from-blue-400/20 hover:to-blue-500/20 transition-colors duration-200"
                     >
-                      <MonitorPlay className="w-4 h-4 mr-2 text-blue-400" />
+                      <MonitorPlay className="w-4 h-4 mr-2 text-blue-700" />
                       {courseData.lessons?.length || 0} Lessons
                     </Badge>
                     <Badge
                       variant="secondary"
                       className="px-4 py-2 text-sm bg-gradient-to-r from-green-400/10 to-green-500/10 border border-green-500/20 text-green-300 hover:from-green-400/20 hover:to-green-500/20 transition-colors duration-200"
                     >
-                      <User className="w-4 h-4 mr-2 text-green-400" />
+                      <User className="w-4 h-4 mr-2 text-green-700" />
                       {courseData.tutor?.name || "Not specified"}
                     </Badge>
                     <Badge
                       variant="secondary"
                       className="px-4 py-2 text-sm bg-gradient-to-r from-purple-400/10 to-purple-500/10 border border-purple-500/20 text-purple-300 hover:from-purple-400/20 hover:to-purple-500/20 transition-colors duration-200"
                     >
-                      <Clock className="w-4 h-4 mr-2 text-purple-400" />
+                      <Clock className="w-4 h-4 mr-2 text-purple-700" />
                       {formatDuration(
                         courseData.lessons?.reduce(
                           (total, lesson) => total + (lesson.duration || 0),

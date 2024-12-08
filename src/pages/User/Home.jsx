@@ -147,11 +147,13 @@ export default function Home() {
     }
   };
 
-  
   const renderCategoryFallback = () => (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
       {[1, 2, 3, 4].map((index) => (
-        <div key={index} className="flex flex-col items-center p-6 bg-white rounded-xl shadow-lg">
+        <div
+          key={index}
+          className="flex flex-col items-center p-6 bg-white rounded-xl shadow-lg"
+        >
           <div className="w-12 h-12 bg-gray-200 rounded-full mb-4"></div>
           <div className="h-6 bg-gray-200 w-3/4 mb-2 rounded"></div>
           <div className="h-4 bg-gray-200 w-5/6 rounded"></div>
@@ -163,7 +165,10 @@ export default function Home() {
   const renderCourseFallback = () => (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
       {[1, 2, 3, 4].map((index) => (
-        <Card key={index} className="bg-white dark:bg-gray-800/50 backdrop-blur-sm border-none shadow-lg">
+        <Card
+          key={index}
+          className="bg-white dark:bg-gray-800/50 backdrop-blur-sm border-none shadow-lg"
+        >
           <div className="h-48 bg-gray-200"></div>
           <CardHeader className="pb-2">
             <div className="h-6 bg-gray-200 w-3/4 rounded"></div>
@@ -231,13 +236,16 @@ export default function Home() {
         </div>
         <section className="mb-16">
           <div className="flex justify-between items-center mb-8">
-            <h2 className="text-3xl font-bold text-gray-800">Course Categories</h2>
+            <h2 className="text-3xl font-bold text-gray-800">
+              Course Categories
+            </h2>
             <Button
               variant="ghost"
               className="flex items-center text-gray-700 hover:text-gray-900 font-semibold transition duration-300 ease-in-out group"
               onClick={handleViewAllCategories}
             >
-              View All <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              View All{" "}
+              <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </Button>
           </div>
           {loadingCategories ? (
@@ -263,21 +271,24 @@ export default function Home() {
                       "Explore our courses in this category."}
                   </p>
                 </div>
-                ))}
-                </div>
-              ) : (
-                renderCategoryFallback()
-              )}
-            </section>
-            <section className="mb-16">
+              ))}
+            </div>
+          ) : (
+            renderCategoryFallback()
+          )}
+        </section>
+        <section className="mb-16">
           <div className="flex justify-between items-center mb-8">
-            <h2 className="text-3xl font-bold text-gray-800">Explore Courses</h2>
+            <h2 className="text-3xl font-bold text-gray-800">
+              Explore Courses
+            </h2>
             <Button
               variant="ghost"
               className="flex items-center text-gray-700 hover:text-gray-900 font-semibold transition duration-300 ease-in-out group"
               onClick={handleExploreClick}
             >
-              View All <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              View All{" "}
+              <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </Button>
           </div>
           {loadingCourses ? (
@@ -360,25 +371,25 @@ export default function Home() {
                     </div>
                     <Button
                       variant="outline"
-                      className="relative overflow-hidden group/button bg-gray-300 border-none"
+                      className="relative overflow-hidden group/button bg-gray-300 hover:bg-gray-500 border-none transition-colors duration-300"
                       onClick={(e) => {
                         e.stopPropagation();
                         navigate(`/coursedetails/${course._id}`);
                       }}
                     >
-                      <span className="relative z-10 group-hover/button:text-gray transition-colors">
+                      <span className="relative z-10 text-gray-700">
                         View Details
                       </span>
-                      <div className="absolute inset-0 bg-primary transform -translate-x-full group-hover/button:translate-x-0 transition-transform" />
+                      <div className="absolute inset-0 bg-gray-200 transform scale-x-0 group-hover/button:scale-x-100 transition-transform duration-300 origin-left" />
                     </Button>
                   </CardFooter>
                 </Card>
               ))}
-              </div>
-            ) : (
-              renderCourseFallback()
-            )}
-          </section>
+            </div>
+          ) : (
+            renderCourseFallback()
+          )}
+        </section>
         <section className="mb-16">
           <div className="bg-white rounded-xl overflow-hidden shadow-lg">
             <div className="flex flex-col md:flex-row">
@@ -407,13 +418,16 @@ export default function Home() {
         </section>
         <section>
           <div className="flex justify-between items-center mb-8">
-            <h2 className="text-3xl font-bold text-gray-800">Our Expert Tutors</h2>
+            <h2 className="text-3xl font-bold text-gray-800">
+              Our Expert Tutors
+            </h2>
             <Button
               variant="ghost"
               className="flex items-center text-gray-700 hover:text-gray-900 font-semibold transition duration-300 ease-in-out group"
               onClick={handleViewAllTutors}
             >
-              View All <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              View All{" "}
+              <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </Button>
           </div>
           {loadingTutors ? (
@@ -446,15 +460,13 @@ export default function Home() {
                   </p>
                   <p className="text-gray-600">{tutor.specialization}</p>
                 </div>
-                 ))}
-                 </div>
-               ) : (
-                 renderTutorFallback()
-               )}
-             </section>
-           </div>
-         </div>
-       );
-     }
-     
-     
+              ))}
+            </div>
+          ) : (
+            renderTutorFallback()
+          )}
+        </section>
+      </div>
+    </div>
+  );
+}
