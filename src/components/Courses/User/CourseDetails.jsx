@@ -225,7 +225,7 @@ export default function CourseDetails() {
                       variant="secondary"
                       className="px-4 py-2 text-sm bg-gradient-to-r from-purple-400/10 to-purple-500/10 border border-purple-500/20 text-purple-300 hover:from-purple-400/20 hover:to-purple-500/20 transition-colors duration-200"
                     >
-                      <Clock className="w-4 h-4 mr-2 text-purple-700" />
+                      <Clock className="w-4 h-4 mr-2 text-purple-7 00" />
                       {formatDuration(
                         courseData.lessons?.reduce(
                           (total, lesson) => total + (lesson.duration || 0),

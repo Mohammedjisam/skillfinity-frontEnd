@@ -84,7 +84,7 @@ const SideBar = ({ isOpen, onClose }) => {
     { name: 'Profile', icon: UserCircle, path: '/tutor/profile' },
     { name: 'Courses', icon: BookOpen, path: '/tutor/mycourse' },
     { name: 'Revenue', icon: DollarSign, path: '/tutor/revenue' },
-    { name: 'Chat & Video', icon: MessageSquare, path: '/tutor/chat' },
+    { name: 'Chat', icon: MessageSquare, path: '/tutor/chat' },
   ];
 
   return (
