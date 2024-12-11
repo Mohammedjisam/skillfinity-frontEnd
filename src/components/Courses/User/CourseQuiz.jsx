@@ -61,14 +61,22 @@ export default function CourseQuiz() {
       }
 
       const questionResults = quiz.questions.map((question) => ({
-        questionId: question._id,
+        questionId: question._id.toString(), // Ensure questionId is a string
         userAnswer: userAnswers[question._id] || null,
         isCorrect: userAnswers[question._id] === question.correctAnswer,
       }));
 
+      console.log("Submitting quiz results:", {
+        userId: user._id,
+        tutorId: tutorData.tutorId,
+        courseId,
+        quizId: quiz._id,
+        questionResults,
+      });
+
       const response = await axiosInstance.post("/user/data/submitquizresult", {
         userId: user._id,
-        tutorId: tutorData.tutorId, // Use tutorId from API response
+        tutorId: tutorData.tutorId,
         courseId,
         quizId: quiz._id,
         questionResults,
@@ -83,7 +91,7 @@ export default function CourseQuiz() {
       }
     } catch (error) {
       console.error("Error submitting quiz:", error.response?.data || error.message);
-      toast.error(error.response?.data?.message || "Failed to submit quiz.");
+      toast.error(error.response?.data?.message || "Failed to submit quiz. Please try again.");
     }
   };
 
@@ -236,3 +244,4 @@ export default function CourseQuiz() {
     </div>
   );
 }
+
