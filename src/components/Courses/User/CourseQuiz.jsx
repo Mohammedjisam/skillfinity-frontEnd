@@ -60,10 +60,8 @@ export default function CourseQuiz() {
         return;
       }
 
-      // Get total number of questions
       const totalQuestions = quiz.questions.length;
       
-      // Calculate correct answers
       const questionResults = quiz.questions.map((question) => {
         const userAnswer = userAnswers[question._id] || null;
         const isCorrect = userAnswer === question.correctAnswer;
@@ -75,8 +73,8 @@ export default function CourseQuiz() {
         };
       });
 
-      // Count total correct answers
       const totalCorrect = questionResults.filter(result => result.isCorrect).length;
+      const percentageScore = (totalCorrect / totalQuestions) * 100;
 
       console.log("Submitting quiz results:", {
         userId: user._id,
@@ -86,6 +84,7 @@ export default function CourseQuiz() {
         questionResults,
         totalQuestions,
         totalCorrect,
+        percentageScore,
       });
 
       const response = await axiosInstance.post("/user/data/submitquizresult", {
@@ -100,13 +99,16 @@ export default function CourseQuiz() {
         ...response.data.result,
         totalQuestions: totalQuestions,
         totalMarks: totalCorrect,
+        percentageScore: percentageScore,
       });
       
       setSubmitted(true);
       toast.success("Quiz submitted successfully!");
 
-      if (response.data.result.certificateData) {
+      if (percentageScore >= 90) {
         toast.success("Congratulations! You have earned a certificate.");
+      } else {
+        toast.info("You need to score at least 90% to earn a certificate.");
       }
     } catch (error) {
       console.error("Error submitting quiz:", error.response?.data || error.message);
@@ -238,10 +240,10 @@ export default function CourseQuiz() {
                             Your score: {quizResult.totalMarks} / {quizResult.totalQuestions}
                           </p>
                           <p className="text-2xl text-gray-800">
-                            Percentage: {((quizResult.totalMarks / quizResult.totalQuestions) * 100).toFixed(2)}%
+                            Percentage: {quizResult.percentageScore.toFixed(2)}%
                           </p>
                         </div>
-                        {quizResult.certificateData ? (
+                        {quizResult.percentageScore >= 90 ? (
                           <Button 
                             onClick={handleViewCertificate} 
                             className="w-full bg-green-600 hover:bg-green-700 text-white"
