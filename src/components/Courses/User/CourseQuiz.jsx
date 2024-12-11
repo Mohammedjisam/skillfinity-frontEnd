@@ -31,7 +31,7 @@ export default function CourseQuiz() {
       try {
         const response = await axiosInstance.get(`/user/data/getquiz/${courseId}`);
         setQuiz(response.data.quiz);
-        setTutorData(response.data.quiz.courseData); 
+        setTutorData(response.data.quiz.courseData);
       } catch (error) {
         console.error('Error fetching quiz:', error);
         toast.error("Failed to load quiz data");
@@ -61,7 +61,7 @@ export default function CourseQuiz() {
       }
 
       const questionResults = quiz.questions.map((question) => ({
-        questionId: question._id.toString(), // Ensure questionId is a string
+        questionId: question._id.toString(),
         userAnswer: userAnswers[question._id] || null,
         isCorrect: userAnswers[question._id] === question.correctAnswer,
       }));
@@ -98,8 +98,6 @@ export default function CourseQuiz() {
   const handleAnswerChange = (questionId, answer) => {
     setUserAnswers((prev) => ({ ...prev, [questionId]: answer }));
   };
-
-  
 
   const handleViewCertificate = () => {
     navigate(`/certificate/${courseId}`);
