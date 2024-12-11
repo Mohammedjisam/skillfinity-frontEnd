@@ -60,11 +60,23 @@ export default function CourseQuiz() {
         return;
       }
 
-      const questionResults = quiz.questions.map((question) => ({
-        questionId: question._id.toString(),
-        userAnswer: userAnswers[question._id] || null,
-        isCorrect: userAnswers[question._id] === question.correctAnswer,
-      }));
+      // Get total number of questions
+      const totalQuestions = quiz.questions.length;
+      
+      // Calculate correct answers
+      const questionResults = quiz.questions.map((question) => {
+        const userAnswer = userAnswers[question._id] || null;
+        const isCorrect = userAnswer === question.correctAnswer;
+        
+        return {
+          questionId: question._id.toString(),
+          userAnswer: userAnswer,
+          isCorrect: isCorrect,
+        };
+      });
+
+      // Count total correct answers
+      const totalCorrect = questionResults.filter(result => result.isCorrect).length;
 
       console.log("Submitting quiz results:", {
         userId: user._id,
@@ -72,6 +84,8 @@ export default function CourseQuiz() {
         courseId,
         quizId: quiz._id,
         questionResults,
+        totalQuestions,
+        totalCorrect,
       });
 
       const response = await axiosInstance.post("/user/data/submitquizresult", {
@@ -82,7 +96,12 @@ export default function CourseQuiz() {
         questionResults,
       });
 
-      setQuizResult(response.data.result);
+      setQuizResult({
+        ...response.data.result,
+        totalQuestions: totalQuestions,
+        totalMarks: totalCorrect,
+      });
+      
       setSubmitted(true);
       toast.success("Quiz submitted successfully!");
 
@@ -215,11 +234,18 @@ export default function CourseQuiz() {
                         className="space-y-4"
                       >
                         <div className="text-lg font-semibold text-center">
-                          <p className="text-gray-700">Your score: {quizResult.totalMarks} / {quizResult.totalQuestions}</p>
-                          <p className="text-2xl text-gray-800">Percentage: {quizResult.percentageScore.toFixed(2)}%</p>
+                          <p className="text-gray-700">
+                            Your score: {quizResult.totalMarks} / {quizResult.totalQuestions}
+                          </p>
+                          <p className="text-2xl text-gray-800">
+                            Percentage: {((quizResult.totalMarks / quizResult.totalQuestions) * 100).toFixed(2)}%
+                          </p>
                         </div>
                         {quizResult.certificateData ? (
-                          <Button onClick={handleViewCertificate} className="w-full bg-green-600 hover:bg-green-700 text-white">
+                          <Button 
+                            onClick={handleViewCertificate} 
+                            className="w-full bg-green-600 hover:bg-green-700 text-white"
+                          >
                             View Course Completion Certificate
                           </Button>
                         ) : (
@@ -227,7 +253,10 @@ export default function CourseQuiz() {
                             To get your course completion certificate, you need to score at least 90% on the quiz.
                           </p>
                         )}
-                        <Button onClick={() => navigate(`/course/${courseId}/lessons`)} className="w-full bg-gray-600 hover:bg-gray-700 text-white">
+                        <Button 
+                          onClick={() => navigate(`/course/${courseId}/lessons`)} 
+                          className="w-full bg-gray-600 hover:bg-gray-700 text-white"
+                        >
                           Back to Course
                         </Button>
                       </motion.div>
