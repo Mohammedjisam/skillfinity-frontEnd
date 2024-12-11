@@ -106,7 +106,7 @@ export default function AdminOrders() {
           >
             <CardHeader>
               <CardTitle className="text-xl font-semibold text-gray-800">
-                Order #{order._id.slice(0, 8)}*%$@# 
+                Order ID: ORDR{order._id.slice(0, 6)}
               </CardTitle>
               <p className="text-sm text-gray-600">
                 {new Date(order.createdAt).toLocaleString()}
